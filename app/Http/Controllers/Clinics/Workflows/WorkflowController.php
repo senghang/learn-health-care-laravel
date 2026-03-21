@@ -19,8 +19,8 @@ class WorkflowController extends Controller
     /** GET /workflow/create */
     public function create(): View
     {
-        $nextCode = $this->generateVisitCode();
         $steps    = $this->registry->all();
+        $nextCode = $this->generateVisitCode();
 
         return view('clinics.workflow.create', compact('steps', 'nextCode'));
     }
@@ -56,8 +56,7 @@ class WorkflowController extends Controller
 
         $code = DB::transaction(function () {
             $count = VisitModel::whereDate('created_at', today())
-                ->lockForUpdate()
-                ->count();
+                ->lockForUpdate()->count();
             return 'V' . now()->format('Ymd') . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
         });
 
@@ -73,8 +72,8 @@ class WorkflowController extends Controller
             'skipped_steps'  => [],
         ]);
 
-        return redirect()
-            ->route('workflow.step', $this->stepParams($code, 'registration'))
+        // Use url() instead of route() to avoid subdomain parameter binding issue
+        return redirect($this->stepUrl($code, 'registration'))
             ->with('flash', "✅ ការចូលព្យាបាល {$code} ត្រូវបានបង្កើត / Visit {$code} created")
             ->with('flash_type', 'ok');
     }
@@ -99,8 +98,7 @@ class WorkflowController extends Controller
 
         $next = $ctx->nextPendingStep();
 
-        return redirect()
-            ->route('workflow.step', $this->stepParams($code, $next?->id() ?? $step))
+        return redirect($this->stepUrl($code, $next?->id() ?? $step))
             ->with('flash', "{$stepObj->labelKm()} ({$stepObj->labelEn()}) saved!")
             ->with('flash_type', 'ok');
     }
@@ -116,8 +114,7 @@ class WorkflowController extends Controller
 
         $next = $ctx->nextStep();
 
-        return redirect()
-            ->route('workflow.step', $this->stepParams($code, $next?->id() ?? $step))
+        return redirect($this->stepUrl($code, $next?->id() ?? $step))
             ->with('flash', "{$stepObj->labelKm()} skipped — come back later")
             ->with('flash_type', 'wrn');
     }
@@ -135,13 +132,16 @@ class WorkflowController extends Controller
                 ->first(fn($s) => in_array($s->id(), $skip))
             ?? $this->registry->all()[0];
 
-        return redirect()->route('workflow.step', $this->stepParams($code, $next->id()));
+        // Use url() — avoids "Missing required parameter: subdomain" error
+        // that occurs when using route('workflow.step', [...]) under
+        // Route::domain('{subdomain}.localhost')
+        return redirect($this->stepUrl($code, $next->id()));
     }
 
     /** GET /workflow */
     public function index(): RedirectResponse
     {
-        return redirect()->route('visits.index');
+        return redirect('/visits');
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
@@ -158,20 +158,17 @@ class WorkflowController extends Controller
     }
 
     /**
-     * Build named route parameters for workflow routes.
+     * Build a plain URL for a workflow step.
      *
-     * Routes live under Route::domain('{subdomain}.localhost'), so every
-     * route() call has three parameters: subdomain, code, step.
+     * Uses url('/workflow/CODE/STEP') instead of route('workflow.step', [...])
+     * to completely bypass Laravel's named route parameter binding.
      *
-     * Passing a positional array like [$code, $step] maps $code → subdomain
-     * and $step → code, breaking the URL.
-     *
-     * Using named keys ['code' => ..., 'step' => ...] lets Laravel match
-     * by name and fills {subdomain} from URL::defaults set by
-     * BindSubdomainParameter middleware.
+     * Under Route::domain('{subdomain}.localhost'), named routes require
+     * the {subdomain} parameter. Even with URL::defaults set by middleware,
+     * this is fragile inside controller redirects. Plain url() always works.
      */
-    private function stepParams(string $code, string $step): array
+    private function stepUrl(string $code, string $step): string
     {
-        return ['code' => $code, 'step' => $step];
+        return url("/workflow/{$code}/{$step}");
     }
 }

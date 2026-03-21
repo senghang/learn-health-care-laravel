@@ -8,19 +8,18 @@
         title="ការចូលព្យាបាល"
         subtitle="Patient Visits"
         :breadcrumbs="[
-            ['label' => 'ដើម', 'url' => route('dashboard')],
+            ['label' => 'ដើម', 'url' => url('/')],
             ['label' => 'Visits'],
         ]"
     >
-        <a href="{{ route('workflow.create') }}" class="btn btn-primary">
+        <a href="{{ url('/workflow/create') }}" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> ថ្មី / New
         </a>
     </x-page-header>
 
-    {{-- Filter Bar --}}
     <div class="card-emr">
         <div class="card-bd">
-            <form method="GET" action="{{ route('visits.index') }}">
+            <form method="GET" action="{{ url('/visits') }}">
                 <div class="row g-2 align-items-end">
                     <div class="col-12 col-sm-6 col-md-4">
                         <label class="flbl"><span class="km">ស្វែងរក</span><span class="en">/ Search</span></label>
@@ -60,19 +59,17 @@
         </div>
     </div>
 
-    {{-- Results summary --}}
     @if($visits->total() > 0)
         <div style="font-size:11px;color:#aaa;padding:6px 2px;margin-bottom:4px">
-            បង្ហាញ {{ $visits->firstItem() }}–{{ $visits->lastItem() }} នៃ {{ $visits->total() }} ការចូលព្យាបាល
+            បង្ហាញ {{ $visits->firstItem() }}–{{ $visits->lastItem() }} នៃ {{ $visits->total() }}
             @if(request()->hasAny(['search','type','status','date']))
-                · <a href="{{ route('visits.index') }}" style="color:#e74c3c;text-decoration:none">
+                · <a href="{{ url('/visits') }}" style="color:#e74c3c;text-decoration:none">
                     <i class="bi bi-x-circle"></i> លុបតម្រង
                 </a>
             @endif
         </div>
     @endif
 
-    {{-- Visit Rows --}}
     @forelse($visits as $visit)
         @php
             $initials = strtoupper(substr($visit->surname ?? '', 0, 1) . substr($visit->name ?? '', 0, 1));
@@ -80,21 +77,18 @@
             $color    = $colors[abs(crc32($visit->patient_code)) % count($colors)];
             $isActive = is_null($visit->discharged_at);
         @endphp
-        <div class="visit-row" onclick="window.location='{{ route('workflow.show', ['code' => $visit->code]) }}'">
+        {{-- FIXED: url() instead of route() --}}
+        <div class="visit-row" onclick="window.location='{{ url('/workflow/'.$visit->code) }}'">
             <div class="v-avatar" style="background:linear-gradient(135deg,{{ $color }},{{ $color }}cc)">
                 {{ $initials ?: '?' }}
             </div>
             <div class="v-info">
-                {{-- FIXED: visits.name column stores the given name --}}
                 <div class="v-name">{{ $visit->surname }}, {{ $visit->name }}</div>
                 <div class="v-meta">
                     {{ $visit->patient_code }} · {{ $visit->code }}
                     · {{ $visit->admitted_at?->format('d/m/Y H:i') ?? '—' }}
                     @if($visit->steps_done > 0)
                         · <span style="color:#4154f1;font-weight:600">{{ $visit->steps_done }}/10 steps</span>
-                    @endif
-                    @if($visit->steps_skipped > 0)
-                        · <span style="color:#c97700">{{ $visit->steps_skipped }} skipped</span>
                     @endif
                 </div>
                 @if($visit->steps_done > 0)
@@ -116,22 +110,20 @@
             <div style="font-size:48px;margin-bottom:12px;opacity:.3">🏥</div>
             <div style="font-size:16px;font-weight:700;color:#bbb;margin-bottom:6px">
                 @if(request()->hasAny(['search','type','status','date']))
-                    រកមិនឃើញការចូលព្យាបាល / No visits match your filters
+                    រកមិនឃើញ / No visits match your filters
                 @else
                     មិនទាន់មានការចូលព្យាបាល / No visits yet
                 @endif
             </div>
-            <div style="font-size:12px;margin-bottom:20px">
-                @if(request()->hasAny(['search','type','status','date']))
-                    <a href="{{ route('visits.index') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-x-circle"></i> លុបតម្រង / Clear filters
-                    </a>
-                @else
-                    <a href="{{ route('workflow.create') }}" class="btn btn-primary">
-                        <i class="bi bi-plus-lg"></i> ការចូលព្យាបាលថ្មី / New Visit
-                    </a>
-                @endif
-            </div>
+            @if(request()->hasAny(['search','type','status','date']))
+                <a href="{{ url('/visits') }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-x-circle"></i> លុបតម្រង
+                </a>
+            @else
+                <a href="{{ url('/workflow/create') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> ការចូលព្យាបាលថ្មី / New Visit
+                </a>
+            @endif
         </div>
     @endforelse
 

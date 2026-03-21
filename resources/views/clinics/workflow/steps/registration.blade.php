@@ -1,9 +1,7 @@
 @php
     use App\Common\Constants\DateFormats;
-
-    // Map patients.gender column back to the form's sex select
-    $sexValue      = $patient?->gender ?? '';
-    $isIPDVisit    = $isIPD ?? false;
+    $sexValue   = $patient?->gender ?? '';
+    $isIPDVisit = $isIPD ?? false;
 @endphp
 
 <div class="card-hd" style="flex-wrap:wrap;gap:8px;padding:14px 18px 10px">
@@ -23,12 +21,13 @@
 </div>
 
 <div class="card-bd">
+    {{-- FIXED: url() instead of route() for form action --}}
     <form id="stepForm" method="POST"
-          action="{{ route('workflow.step.save', ['code' => $visit->code, 'step' => 'registration']) }}">
+          action="{{ url('/workflow/'.$visit->code.'/registration/save') }}">
         @csrf
         @method('PATCH')
 
-        {{-- ── Visit Info (read-only) ── --}}
+        {{-- Visit Info (read-only) --}}
         <x-form.section title="Visit Info" km="ព័ត៌មានការចូល" color="#4154f1">
             <div class="row g-3">
                 <div class="col-6 col-md-3">
@@ -52,28 +51,19 @@
             </div>
         </x-form.section>
 
-        {{-- ── IPD / OPD encounter details ── --}}
+        {{-- IPD / OPD --}}
         @if($isIPDVisit)
         <x-form.section title="Inpatient Details" km="ព័ត៌មាន IPD" color="#ff771d">
             <div class="row g-3">
                 <div class="col-6 col-sm-4">
-                    <x-form.input name="ward" label="Ward" km="វார្ត"
-                                  :value="$encounter?->name" placeholder="General Medicine"/>
+                    <x-form.input name="ward" label="Ward" km="វ៉ាត" :value="$encounter?->name"/>
                 </div>
                 <div class="col-6 col-sm-4">
-                    <x-form.input name="bed" label="Bed No." km="គ្រែ"
-                                  :value="$encounter?->bed" placeholder="B-12"/>
+                    <x-form.input name="bed" label="Bed No." km="គ្រែ" :value="$encounter?->bed"/>
                 </div>
                 <div class="col-12 col-sm-4">
                     <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
-                        :options="[
-                            ''                 => '— Select —',
-                            'General Medicine' => 'General Medicine',
-                            'Surgery'          => 'Surgery',
-                            'Paediatrics'      => 'Paediatrics',
-                            'ICU'              => 'ICU',
-                            'Emergency'        => 'Emergency',
-                        ]"
+                        :options="[''=>'—','General Medicine'=>'General Medicine','Surgery'=>'Surgery','Paediatrics'=>'Paediatrics','ICU'=>'ICU','Emergency'=>'Emergency']"
                         :value="$encounter?->service_type"/>
                 </div>
             </div>
@@ -83,20 +73,14 @@
             <div class="row g-3">
                 <div class="col-12 col-sm-4">
                     <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
-                        :options="[
-                            ''             => '— Select —',
-                            'Consultation' => 'Consultation',
-                            'Emergency'    => 'Emergency',
-                            'Follow-up'    => 'Follow-up',
-                            'Specialist'   => 'Specialist',
-                        ]"
+                        :options="[''=>'—','Consultation'=>'Consultation','Emergency'=>'Emergency','Follow-up'=>'Follow-up','Specialist'=>'Specialist']"
                         :value="$encounter?->service_type"/>
                 </div>
             </div>
         </x-form.section>
         @endif
 
-        {{-- ── Patient demographics ── --}}
+        {{-- Patient Demographics --}}
         <x-form.section title="Patient Demographics" km="ព័ត៌មានអ្នកជំងឺ" color="#2eca6a">
             <div class="row g-3">
                 <div class="col-6 col-sm-4">
@@ -104,17 +88,13 @@
                                   :value="$patient?->surname" :required="true"/>
                 </div>
                 <div class="col-6 col-sm-4">
-                    {{-- FIXED: patients.name stores given name; form field name is 'name' here
-                         because RegistrationStep::save() validates 'name' and saves to patients.name --}}
                     <x-form.input name="name" label="Given Name" km="ឈ្មោះ"
                                   :value="$patient?->name" :required="true"/>
                 </div>
                 <div class="col-6 col-sm-4">
-                    {{-- FIXED: patients.gender column, form field 'sex', value from $sexValue --}}
                     <x-form.select name="sex" label="Gender" km="ភេទ"
                         :options="[''=>'—','M'=>'ប្រុស / Male','F'=>'ស្រី / Female']"
-                        :value="$sexValue"
-                        :required="true"/>
+                        :value="$sexValue" :required="true"/>
                 </div>
                 <div class="col-6 col-sm-4">
                     <x-form.input type="date" name="birthdate" label="Date of Birth" km="ថ្ងៃខែ"
@@ -134,85 +114,56 @@
                 </div>
                 <div class="col-6 col-sm-4">
                     <x-form.select name="marital_status" label="Marital Status" km="ស្ថានភាពអាពាហ៍"
-                        :options="[
-                            ''         => '—',
-                            'Single'   => 'Single / នៅលីវ',
-                            'Married'  => 'Married / រៀបការ',
-                            'Divorced' => 'Divorced / លែងលះ',
-                            'Widowed'  => 'Widowed / មេម៉ាយ',
-                        ]"
+                        :options="[''=>'—','Single'=>'Single / នៅលីវ','Married'=>'Married / រៀបការ','Divorced'=>'Divorced / លែងលះ','Widowed'=>'Widowed / មេម៉ាយ']"
                         :value="$patient?->marital_status"/>
                 </div>
             </div>
         </x-form.section>
 
-        {{-- ── Address ── --}}
+        {{-- Address --}}
         <x-form.section title="Address (NCDD)" km="អាសយដ្ឋាន" color="#ff771d">
             <div class="row g-3">
                 <div class="col-6 col-md-3">
-                    <x-form.input name="province_name" label="Province" km="ខេត្ត"
-                                  :value="$address?->province_name"/>
+                    <x-form.input name="province_name" label="Province" km="ខេត្ត" :value="$address?->province_name"/>
                 </div>
                 <div class="col-6 col-md-3">
-                    <x-form.input name="district_name" label="District" km="ស្រុក"
-                                  :value="$address?->district_name"/>
+                    <x-form.input name="district_name" label="District" km="ស្រុក" :value="$address?->district_name"/>
                 </div>
                 <div class="col-6 col-md-3">
-                    <x-form.input name="commune_name" label="Commune" km="ឃុំ"
-                                  :value="$address?->commune_name"/>
+                    <x-form.input name="commune_name" label="Commune" km="ឃុំ" :value="$address?->commune_name"/>
                 </div>
                 <div class="col-6 col-md-3">
-                    <x-form.input name="village_name" label="Village" km="ភូមិ"
-                                  :value="$address?->village_name"/>
+                    <x-form.input name="village_name" label="Village" km="ភូមិ" :value="$address?->village_name"/>
                 </div>
                 <div class="col-6">
-                    <x-form.input name="house_number" label="House No." km="លេខផ្ទះ"
-                                  :value="$address?->house_number"/>
+                    <x-form.input name="house_number" label="House No." km="លេខផ្ទះ" :value="$address?->house_number"/>
                 </div>
                 <div class="col-6">
-                    <x-form.input name="street_number" label="Street No." km="លេខផ្លូវ"
-                                  :value="$address?->street_number"/>
+                    <x-form.input name="street_number" label="Street No." km="លេខផ្លូវ" :value="$address?->street_number"/>
                 </div>
             </div>
         </x-form.section>
 
-        {{-- ── Discharge (fill later or at end of visit) ── --}}
+        {{-- Discharge --}}
         <x-form.section title="Discharge" km="ការចេញ" color="#9b59b6">
-            <x-alert type="info">
-                ទំនេរទុក ឬ បំពេញនៅពេលចេញ / Leave blank — fill when discharging the patient.
-            </x-alert>
+            <x-alert type="info">ទំនេរទុក ឬ បំពេញនៅពេលចេញ / Leave blank — fill when discharging.</x-alert>
             <div class="row g-3">
                 <div class="col-6 col-md-3">
                     <x-form.select name="discharge_type" label="Discharge Type" km="ប្រភេទចេញ"
-                        :options="[
-                            ''             => '—',
-                            'Authorized'   => 'Authorized',
-                            'AMA'          => 'AMA (Against Medical Advice)',
-                            'Transfer'     => 'Transfer / បញ្ជូន',
-                            'Death'        => 'Death / មរណៈ',
-                        ]"
+                        :options="[''=>'—','Authorized'=>'Authorized','AMA'=>'AMA','Transfer'=>'Transfer','Death'=>'Death']"
                         :value="$visit->discharge_type"/>
                 </div>
                 <div class="col-6 col-md-3">
                     <x-form.select name="visit_outcome" label="Outcome" km="លទ្ធផល"
-                        :options="[
-                            ''             => '—',
-                            'Improved'     => 'Improved / ល្អប្រសើរ',
-                            'Resolved'     => 'Resolved / ជាសះស្បើយ',
-                            'Stable'       => 'Stable / មានស្ថិរភាព',
-                            'Deteriorated' => 'Deteriorated / ធ្ងន់ធ្ងរ',
-                            'Death'        => 'Death / មរណៈ',
-                        ]"
+                        :options="[''=>'—','Improved'=>'Improved','Resolved'=>'Resolved','Stable'=>'Stable','Deteriorated'=>'Deteriorated','Death'=>'Death']"
                         :value="$visit->visit_outcome"/>
                 </div>
                 <div class="col-6 col-md-3">
-                    <x-form.input type="datetime-local" name="discharged_at"
-                                  label="Discharged At" km="ថ្ងៃចេញ"
+                    <x-form.input type="datetime-local" name="discharged_at" label="Discharged At" km="ថ្ងៃចេញ"
                                   :value="old('discharged_at', $visit->discharged_at?->format(DateFormats::DATETIME_TIME))"/>
                 </div>
                 <div class="col-6 col-md-3">
-                    <x-form.input type="datetime-local" name="followup_at"
-                                  label="Follow-up At" km="ការតាមដាន"
+                    <x-form.input type="datetime-local" name="followup_at" label="Follow-up At" km="ការតាមដាន"
                                   :value="old('followup_at', $visit->followup_at?->format(DateFormats::DATETIME_TIME))"/>
                 </div>
             </div>
