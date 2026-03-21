@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Clinics\Workflows;
 use App\Http\Controllers\Controller;
 use App\Models\PatientModel;
 use App\Models\VisitModel;
+use App\Common\Utils\CodeGenerator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -54,11 +55,7 @@ class WorkflowController extends Controller
             ], fn($v) => $v !== null)
         );
 
-        $code = DB::transaction(function () {
-            $count = VisitModel::whereDate('created_at', today())
-                ->lockForUpdate()->count();
-            return 'V' . now()->format('Ymd') . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-        });
+        $code = CodeGenerator::visit();
 
         VisitModel::create([
             'code'           => $code,
@@ -153,8 +150,7 @@ class WorkflowController extends Controller
 
     private function generateVisitCode(): string
     {
-        $count = VisitModel::whereDate('created_at', today())->count();
-        return 'V' . now()->format('Ymd') . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+        return CodeGenerator::visitPreview();
     }
 
     /**

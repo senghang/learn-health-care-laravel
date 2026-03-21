@@ -26,7 +26,7 @@
             <div class="col-6 col-md-3">
                 <x-form.field type="datetime-local" name="admitted_at"
                               label="Admitted At" km="ថ្ងៃចូល"
-                              :value="$visit->admitted_at?->format(DateFormats::DATETIME_TIME)"
+                              :value="$visit->admitted_at?->format(DateFormats::INPUT_DATETIME)"
                               :readonly="true"/>
             </div>
         </div>
@@ -82,7 +82,7 @@
             <div class="col-6 col-sm-4">
                 <x-form.field name="birthdate" label="Date of Birth" km="ថ្ងៃខែឆ្នាំ"
                               type="date" :required="true"
-                              :value="old('birthdate', $patient?->birthdate?->format(DateFormats::DATE))"/>
+                              :value="old('birthdate', $patient?->birthdate?->format(DateFormats::INPUT_DATE))"/>
             </div>
             <div class="col-6">
                 <x-form.field name="phone" label="Phone" km="ទូរស័ព្ទ"
@@ -141,12 +141,12 @@
             <div class="col-6">
                 <x-form.field name="discharged_at" label="Discharged At" km="ថ្ងៃចេញ"
                               type="datetime-local"
-                              :value="old('discharged_at', $visit->discharged_at?->format(DateFormats::DATETIME_TIME))"/>
+                              :value="old('discharged_at', $visit->discharged_at?->format(DateFormats::INPUT_DATETIME))"/>
             </div>
             <div class="col-6">
                 <x-form.field name="followup_at" label="Follow-up At" km="ការតាមដាន"
                               type="datetime-local"
-                              :value="old('followup_at', $visit->followup_at?->format(DateFormats::DATETIME_TIME))"/>
+                              :value="old('followup_at', $visit->followup_at?->format(DateFormats::INPUT_DATETIME))"/>
             </div>
         </div>
     </x-form.section>

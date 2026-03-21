@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Clinics;
 
+use App\Common\Constants\DateFormats;
 use App\Http\Controllers\Controller;
 use App\Models\PatientModel;
 use App\Models\VisitModel;
@@ -83,7 +84,7 @@ class VisitController extends Controller
                     'name'           => $p->name,           // patients.name = given name
                     'full_name'      => "{$p->surname}, {$p->name}",
                     'sex'            => $p->gender,         // return as 'sex' to match form field
-                    'birthdate'      => $p->birthdate?->format('d/m/Y'),
+                    'birthdate'      => $p->birthdate?->format(DateFormats::DISPLAY_DATE),
                     'phone'          => $p->phone,
                     'nationality'    => $p->nationality,
                     'occupation'     => $p->occupation,
@@ -96,7 +97,7 @@ class VisitController extends Controller
                     'street_number'  => $p->address->street_number ?? null,
                     'visits_count'   => $p->visits_count,
                     'last_visit_code'=> $lastVisit?->code,
-                    'last_visit_date'=> $lastVisit?->admitted_at?->format('d/m/Y'),
+                    'last_visit_date'=> $lastVisit?->admitted_at?->format(DateFormats::DISPLAY_DATE),
                     'last_visit_type'=> $lastVisit?->visit_type,
                 ];
             });

@@ -6,6 +6,7 @@ use App\Models\Base\ResolvesEncounter;
 use App\Models\VisitModel;
 use App\Models\VitalSignModel;
 use App\Models\VitalSignObservationModel;
+use App\Common\Utils\CodeGenerator;
 use Illuminate\Http\Request;
 
 class VitalsStep extends AbstractWorkflowStep
@@ -43,7 +44,7 @@ class VitalsStep extends AbstractWorkflowStep
         }
 
         $encounter = $this->getOrCreateEncounter($visit);
-        $vsCode    = 'VS-' . $visit->code . '-' . now()->timestamp;
+        $vsCode    = CodeGenerator::vitalSign($visit->code);
 
         // FIXED: include visit_code and patient_code (both now in $fillable)
         $vs = VitalSignModel::create([

@@ -19,7 +19,7 @@
     $histBadge = $histories->isNotEmpty()   ? $histories->count() . ' history items' : null;
     $peBadge   = $examinations->isNotEmpty() ? $examinations->count() . ' PE systems'  : null;
     $peBy      = old('pe_by', auth()->user()?->name ?? '');
-    $peDate    = old('pe_date', now()->format('Y-m-d'));
+    $peDate    = old('pe_date', df_today_input());
 @endphp
 
 <x-step.card step-id="history" :visit="$visit" :step-idx="$stepIdx" :steps="$steps"

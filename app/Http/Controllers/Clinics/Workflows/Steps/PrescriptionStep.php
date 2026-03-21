@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Clinics\Workflows\Steps;
 
 use App\Models\PrescriptionMedicationModel;
+use App\Common\Utils\CodeGenerator;
 use App\Models\PrescriptionModel;
 use App\Models\VisitModel;
 use Illuminate\Http\Request;
@@ -74,7 +75,7 @@ class PrescriptionStep extends AbstractWorkflowStep
             $rx = PrescriptionModel::updateOrCreate(
                 ['visit_code' => $visit->code],
                 [
-                    'code'          => 'RX-' . $visit->code,
+                    'code'          => CodeGenerator::prescription($visit->code),
                     'patient_code'  => $visit->patient_code,
                     'prescribed_at' => $data['prescribed_at'] ?? now(),
                     'prescribed_by' => $data['prescribed_by'] ?? null,

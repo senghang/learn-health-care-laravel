@@ -4,7 +4,7 @@
 
         <td data-label="Code">
             <code style="color:#4154f1;font-size:12px">{{ $visit->code }}</code>
-            <div style="font-size:10px;color:#ccc">{{ $visit->admitted_at?->format('d/m H:i') }}</div>
+            <div style="font-size:10px;color:#ccc">{{ df_short($visit->admitted_at) }}</div>
         </td>
 
         <td data-label="អ្នកជំងឺ">

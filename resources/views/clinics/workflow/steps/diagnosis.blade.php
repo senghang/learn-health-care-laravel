@@ -1,6 +1,6 @@
 @php
     $diagnoses   = $diagnoses ?? collect([]);
-    $nowFormatted = now()->format('Y-m-d\TH:i');
+    $nowFormatted = df_now_input();
     $currentUser  = auth()->user()?->name ?? '';
     $typeOptions  = ['Primary' => 'Primary', 'Secondary' => 'Secondary', 'In' => 'In', 'Out' => 'Out'];
     $diagCount    = $diagnoses->count();

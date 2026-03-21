@@ -2,7 +2,7 @@
     $soap      = $soap      ?? null;
     $encounter = $encounter ?? null;
 
-    $savedTime = $soap?->updated_at?->format('d/m H:i') ?? '';
+    $savedTime = df_short($soap?->updated_at) ?? '';
 
     $soapCards = [
         ['key' => 'subjective', 'color' => '#4154f1', 'letter' => 'S', 'km' => 'ការរៀបរាប់',   'en' => 'Subjective',  'desc' => 'Patient-reported symptoms & complaints',  'required' => true],
@@ -22,7 +22,7 @@
     <div style="font-size:11px;color:#aaa;margin-bottom:16px">
         <i class="bi bi-link-45deg"></i>
         Encounter: <code style="color:#4154f1;font-size:11px">{{ $encounter->code }}</code>
-        @if($encounter->started_at) · {{ $encounter->started_at->format('d/m/Y H:i') }} @endif
+        @if($encounter->started_at) · {{ df_dt($encounter->started_at) }} @endif
     </div>
     @endif
 

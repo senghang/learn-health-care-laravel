@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Clinics;
 
 use App\Http\Controllers\Controller;
 use App\Models\InvoiceModel;
+use App\Common\Constants\DateFormats;
+use App\Common\Utils\Currency;
 use App\Models\VisitModel;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -86,7 +88,7 @@ class ReportController extends Controller
             'ipd'     => $allVisits->where('visit_type', 'IPD')->count(),
             'active'  => $allVisits->whereNull('discharged_at')->count(),
             'done'    => $allVisits->whereNotNull('discharged_at')->count(),
-            'revenue' => number_format($revenue),
+            'revenue' => Currency::format($revenue),
         ];
 
         // ── Daily chart ──────────────────────────────────────────────────────
@@ -140,7 +142,7 @@ class ReportController extends Controller
 
     private function exportCsv($visits): Response
     {
-        $filename = 'visits-report-' . now()->format('Y-m-d') . '.csv';
+        $filename = 'visits-report-' . now()->format(DateFormats::EXPORT_DATE) . '.csv';
 
         $rows = [];
         $rows[] = implode(',', [
@@ -154,8 +156,8 @@ class ReportController extends Controller
             $rows[] = implode(',', array_map(
                 fn($cell) => '"' . str_replace('"', '""', $cell ?? '') . '"',
                 [
-                    $v->admitted_at?->format('Y-m-d'),
-                    $v->admitted_at?->format('H:i'),
+                    $v->admitted_at?->format(DateFormats::EXPORT_DATE),
+                    $v->admitted_at?->format(DateFormats::DISPLAY_TIME),
                     $v->code,
                     $v->patient_code,
                     $v->surname,
@@ -163,7 +165,7 @@ class ReportController extends Controller
                     $v->visit_type,
                     $v->admission_type ?? '',
                     is_null($v->discharged_at) ? 'Active' : 'Done',
-                    $v->discharged_at?->format('Y-m-d H:i') ?? '',
+                    $v->discharged_at?->format(DateFormats::EXPORT_DATETIME) ?? '',
                     count($v->done_steps ?? []),
                     $inv?->payment_type ?? '',
                     $inv?->total ?? 0,

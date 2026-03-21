@@ -11,7 +11,7 @@
     $referredBy       = old('referred_by',      $firstRef?->referred_by        ?? auth()->user()?->name ?? '');
     $receivedBy       = old('received_by',      $firstRef?->received_by        ?? '');
     $medications      = old('medications',      $firstRef?->medications        ?? '');
-    $referredAt       = old('referred_at',      $firstRef?->referred_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i'));
+    $referredAt       = old('referred_at',      df_input_dt($firstRef?->referred_at) ?: df_now_input());
     $transportOptions = ['Ambulance' => 'Ambulance', 'Private Vehicle' => 'Private Vehicle', 'Motorcycle' => 'Motorcycle', 'Walk' => 'Walk'];
     $refCount         = $referrals->count();
     $dirIcon          = $direction === 'FROM' ? '⬅️' : '➡️';

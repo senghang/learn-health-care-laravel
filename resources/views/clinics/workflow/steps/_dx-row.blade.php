@@ -13,7 +13,7 @@
     $dxCode    = $dx?->diagnosis_code ?? '';
     $dxName    = $dx?->diagnosis_name ?? '';
     $dxBy      = $dx?->diagnosed_by ?? $currentUser;
-    $dxAt      = $dx?->diagnosed_at?->format('Y-m-d\TH:i') ?? $nowFormatted;
+    $dxAt      = df_input_dt($dx?->diagnosed_at) ?: $nowFormatted;
     $dxDesc    = $dx?->diagnosis_description ?? '';
     $dxType    = $dx?->diagnosis_type ?? 'Primary';
 @endphp

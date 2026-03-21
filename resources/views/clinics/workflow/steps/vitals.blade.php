@@ -3,7 +3,7 @@
     $savedValues = $savedValues ?? [];
     $vitalFields = $vitalFields ?? [];
 
-    $recordedAt = old('recorded_at', $latestVs?->recorded_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i'));
+    $recordedAt = old('recorded_at', df_input_dt($latestVs?->recorded_at) ?: df_now_input());
     $recordedBy = old('recorded_by', $latestVs?->recorded_by ?? auth()->user()?->name ?? '');
 @endphp
 
@@ -14,7 +14,7 @@
     @if($latestVs)
     <x-step.note type="success">
         <strong>ទិន្នន័យមុន / Previous reading:</strong>
-        {{ $latestVs->recorded_at?->format('d/m/Y H:i') }}
+        {{ df_dt($latestVs->recorded_at) }}
         @if($latestVs->recorded_by) · {{ $latestVs->recorded_by }} @endif
         · <span style="font-size:11px;color:#555">Values pre-filled</span>
     </x-step.note>

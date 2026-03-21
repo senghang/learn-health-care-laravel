@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Clinics\Workflows\Steps;
 
+use App\Common\Utils\CodeGenerator;
 use App\Models\ReferralModel;
 use App\Models\VisitModel;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class ReferralStep extends AbstractWorkflowStep
         ]);
 
         ReferralModel::create(array_merge($data, [
-            'code'       => 'REF-' . $visit->code . '-' . now()->timestamp,
+            'code'       => CodeGenerator::referral($visit->code),
             'visit_code' => $visit->code,
         ]));
     }

@@ -3,7 +3,7 @@
     $medications  = $medications  ?? collect([]);
 
     $rxCode       = $prescription?->code ?? ('RX-' . $visit->code);
-    $prescribedAt = old('prescribed_at', $prescription?->prescribed_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i'));
+    $prescribedAt = old('prescribed_at', df_input_dt($prescription?->prescribed_at) ?: df_now_input());
     $prescribedBy = old('prescribed_by', $prescription?->prescribed_by ?? auth()->user()?->name ?? '');
     $formOptions  = ['Tablet' => 'Tablet', 'Capsule' => 'Capsule', 'Syrup' => 'Syrup', 'Injection' => 'Injection', 'Ointment' => 'Ointment', 'Drops' => 'Drops'];
     $rxCount      = $medications->count();

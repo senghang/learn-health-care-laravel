@@ -1,7 +1,7 @@
 @php
     $triage = $triage ?? null;
 
-    $recordedAt    = old('recorded_at', $triage?->recorded_at?->format('Y-m-d\TH:i') ?? '');
+    $recordedAt    = old('recorded_at', df_input_dt($triage?->recorded_at) ?? '');
     $recordedBy    = old('recorded_by', $triage?->recorded_by ?? '');
     $height        = old('height',      $triage?->height ?? '');
     $weight        = old('weight',      $triage?->weight ?? '');

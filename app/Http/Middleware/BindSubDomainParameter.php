@@ -10,28 +10,26 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * BindSubdomainParameter
  *
- * Reads the subdomain from the current request host and sets it as a
- * URL default so that route() and redirect()->route() calls throughout
- * the clinic views don't require an explicit ['subdomain' => '...'] argument.
+ * Routes are registered under Route::domain('{subdomain}.localhost').
+ * Every named route therefore has an implicit {subdomain} parameter.
  *
- * Without this, any named route under Route::domain('{subdomain}.localhost')
- * throws:
- *   "Missing required parameter for [Route: X] [Missing parameter: subdomain]"
+ * Without this middleware, every call to route('dashboard') throws:
+ *   "Missing required parameter for [Route: dashboard] [Missing parameter: subdomain]"
  *
- * Only runs when a real subdomain is present (not on the admin domain).
+ * This middleware reads the actual subdomain from the incoming request
+ * and registers it as a URL default so all route() / action() / redirect()->route()
+ * calls across controllers AND Blade views work without passing it explicitly.
  */
-class BindSubDomainParameter
+class BindSubdomainParameter
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $host = $request->getHost();
-        $parts = explode('.', $host);
-        $subdomain = count($parts) >= 2 ? $parts[0] : null;
+        $host      = $request->getHost();                // e.g. "dtc.localhost"
+        $subdomain = explode('.', $host)[0];             // e.g. "dtc"
 
-        // Don't bind on the admin domain — it has no {subdomain} parameter
-        if ($subdomain && $subdomain !== 'admin') {
-            URL::defaults(['subdomain' => $subdomain]);
-        }
+        // Register as a global URL default.
+        // This fills {subdomain} automatically in ALL route() calls.
+        URL::defaults(['subdomain' => $subdomain]);
 
         return $next($request);
     }

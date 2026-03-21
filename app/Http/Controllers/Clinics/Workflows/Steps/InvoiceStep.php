@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Clinics\Workflows\Steps;
 
+use App\Common\Constants\DateFormats;
+use App\Common\Utils\CodeGenerator;
 use App\Models\InvoiceModel;
 use App\Models\InvoiceServiceModel;
 use App\Models\VisitModel;
@@ -61,11 +63,11 @@ class InvoiceStep extends AbstractWorkflowStep
             $inv = InvoiceModel::updateOrCreate(
                 ['visit_code' => $visit->code],
                 [
-                    'code'         => 'INV-' . $visit->code,
+                    'code'         => CodeGenerator::invoice($visit->code),
                     'patient_code' => $visit->patient_code,
                     'payment_type' => $data['payment_type'],
                     'invoice_date' => $data['invoice_date']
-                        ? date('Y-m-d', strtotime($data['invoice_date']))
+                        ? \Carbon\Carbon::parse($data['invoice_date'])->format(DateFormats::INPUT_DATE)
                         : today()->toDateString(),
                     'cashier'      => $data['cashier'] ?? null,
                     'total'        => $data['total']   ?? 0,

@@ -2,7 +2,7 @@
     $labs        = $labs        ?? collect([]);
     $hasCritical = $hasCritical ?? false;
 
-    $nowFormatted  = now()->format('Y-m-d\TH:i');
+    $nowFormatted  = df_now_input();
     $currentUser   = auth()->user()?->name ?? '';
     $interpOptions = ['', 'Normal', 'Negative', 'Positive', 'High', 'Low', 'Critical', 'Borderline'];
     $labsCount     = $labs->count();
@@ -50,7 +50,7 @@
                 </code>
                 <span style="font-size:12px;color:#555;font-weight:600">{{ $labItem->title }}</span>
                 <span style="font-size:10.5px;color:#aaa;margin-left:auto">
-                    {{ $labItem->requested_at?->format('d/m/Y H:i') }}
+                    {{ df_dt($labItem->requested_at) }}
                 </span>
                 @if($hasCrit)
                 <span style="font-size:10px;background:#fde8e8;color:#e74c3c;padding:2px 8px;border-radius:10px;font-weight:700">
@@ -104,7 +104,7 @@
                         </td>
                         <td style="text-align:center;font-size:11px;color:#aaa">
                             @if($res->verified_at)
-                                <span style="color:#2eca6a;font-weight:700">✓ {{ $res->verified_at->format('d/m') }}</span>
+                                <span style="color:#2eca6a;font-weight:700">✓ {{ df_short($res->verified_at) }}</span>
                             @else
                                 <span style="color:#ddd">Pending</span>
                             @endif

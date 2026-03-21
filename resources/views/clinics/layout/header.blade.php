@@ -1,130 +1,130 @@
 <header id="topbar">
 
-    {{-- Sidebar toggle --}}
-    <button class="topbar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-        <i class="bi bi-list"></i>
-    </button>
-
-    {{-- Search — inline autocomplete --}}
-    <div class="search-wrap" id="searchWrap">
-        <i class="bi bi-search si" id="searchIcon"></i>
-        {{-- Ghost input shows the inline completion text --}}
-        <input type="text" id="searchGhost" class="search-ghost" tabindex="-1" readonly aria-hidden="true"/>
-        {{-- Real input sits on top --}}
-        <input type="text"
-               id="globalSearch"
-               class="search-real"
-               placeholder="ស្វែងរក / Search patient…"
-               autocomplete="off"
-               spellcheck="false"
-               aria-label="Search patients"
-               aria-autocomplete="inline"
-               aria-controls="searchDropdown"
-               aria-expanded="false"/>
-        <button class="search-clear" id="searchClear" style="display:none" aria-label="Clear search">
-            <i class="bi bi-x"></i>
+    {{-- ── Left: toggle + breadcrumb ──────────────────────────────────── --}}
+    <div class="tb-left">
+        <button class="tb-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+            <i class="bi bi-list"></i>
         </button>
-        {{-- Dropdown still shows for multi-result navigation --}}
-        <div id="searchDropdown" class="search-dropdown" role="listbox" style="display:none"></div>
+
+        {{-- Breadcrumb / page title — filled by each page via a shared view composer --}}
+        <div class="tb-breadcrumb d-none d-md-flex">
+            <span class="tb-clinic-chip">
+                @if(currentClinic()?->logo)
+                    <img src="{{ asset('storage/' . currentClinic()->logo) }}" alt="" style="height:16px;border-radius:3px;object-fit:cover">
+                @else
+                    <i class="bi bi-hospital" style="font-size:12px"></i>
+                @endif
+                {{ currentClinic()?->name_kh ?? currentClinic()?->name ?? 'Clinic' }}
+            </span>
+        </div>
     </div>
 
-    {{-- Right actions --}}
-    <div class="tb-actions">
+    {{-- ── Center: search ──────────────────────────────────────────────── --}}
+    <div class="tb-search-wrap" id="searchWrap">
+        <i class="bi bi-search tb-search-icon"></i>
+        <input id="searchGhost"  class="tb-search-ghost"  tabindex="-1" readonly aria-hidden="true">
+        <input id="globalSearch" class="tb-search-real"
+               placeholder="ស្វែងរក / Search patient…"
+               autocomplete="off" spellcheck="false"
+               aria-label="Search patients">
+        <button class="tb-search-clear" id="searchClear" style="display:none" aria-label="Clear">
+            <i class="bi bi-x"></i>
+        </button>
+        <div id="searchDropdown" class="tb-search-dd" role="listbox" style="display:none"></div>
+    </div>
 
-        {{-- Date / time --}}
-        <div class="tb-datetime d-none d-md-flex">
-            <i class="bi bi-calendar3" style="color:#4154f1;font-size:13px"></i>
+    {{-- ── Right actions ────────────────────────────────────────────────── --}}
+    <div class="tb-right">
+
+        {{-- Clock --}}
+        <div class="tb-clock d-none d-xl-flex">
+            <i class="bi bi-clock"></i>
             <span id="tbClock">{{ now()->format('d/m/Y · H:i') }}</span>
         </div>
 
         {{-- Quick new visit --}}
-        <a href="{{ route('workflow.create') }}" class="tb-btn-new d-none d-sm-flex">
+        <a href="{{ route('workflow.create') }}" class="tb-new-btn" title="New Visit">
             <i class="bi bi-plus-lg"></i>
-            <span>New Visit</span>
+            <span class="d-none d-lg-inline">New Visit</span>
         </a>
 
         {{-- Notifications --}}
-        <div class="tb-notif-wrap">
-            <button class="tb-icon" id="notifBtn" onclick="toggleNotif()" aria-label="Notifications">
+        <div class="tb-dd-wrap" id="notifWrap">
+            <button class="tb-icon-btn" id="notifBtn" onclick="tbToggle('notif')" aria-label="Notifications">
                 <i class="bi bi-bell-fill"></i>
                 @php $activeCount = \App\Models\VisitModel::whereDate('admitted_at', today())->whereNull('discharged_at')->count(); @endphp
                 @if($activeCount > 0)
-                    <span class="tb-badge">{{ min($activeCount, 9) }}{{ $activeCount > 9 ? '+' : '' }}</span>
+                    <span class="tb-dot">{{ min($activeCount, 9) }}{{ $activeCount > 9 ? '+' : '' }}</span>
                 @endif
             </button>
-            <div class="notif-panel" id="notifPanel" style="display:none">
-                <div class="notif-hd">
-                    <span>Active Visits Today</span>
-                    <a href="{{ route('visits.index', ['status' => 'active']) }}" style="font-size:11px;color:#4154f1">View all</a>
+
+            <div class="tb-dropdown tb-notif-panel" id="notifPanel" style="display:none">
+                <div class="tb-dd-hd">
+                    <span><i class="bi bi-circle-fill" style="font-size:7px;color:#2eca6a"></i> Active Today</span>
+                    <a href="{{ route('visits.index', ['status' => 'active']) }}" class="tb-dd-hd-link">View all →</a>
                 </div>
                 @php
                     $activeVisits = \App\Models\VisitModel::whereDate('admitted_at', today())
-                        ->whereNull('discharged_at')->latest('admitted_at')->take(5)->get();
+                        ->whereNull('discharged_at')->latest('admitted_at')->take(6)->get();
                 @endphp
                 @forelse($activeVisits as $av)
-                <a href="{{ url('/workflow/' . $av->code . '/registration') }}" class="notif-item">
-                    <div class="notif-dot" style="background:{{ $av->visit_type === 'IPD' ? '#ff771d' : '#4154f1' }}"></div>
+                <a href="{{ url('/workflow/' . $av->code . '/registration') }}" class="tb-notif-row">
+                    <span class="tb-notif-dot {{ $av->visit_type === 'IPD' ? 'ipd' : 'opd' }}"></span>
                     <div style="flex:1;min-width:0">
-                        <div style="font-size:12px;font-weight:700;color:#012970;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-                            {{ $av->surname }}, {{ $av->name }}
-                        </div>
-                        <div style="font-size:10.5px;color:#aaa">
-                            {{ $av->code }} · {{ $av->visit_type }} · {{ $av->admitted_at?->format('H:i') }}
-                        </div>
+                        <div class="tb-notif-name">{{ $av->surname }}, {{ $av->name }}</div>
+                        <div class="tb-notif-meta">{{ $av->code }} · {{ $av->visit_type }}</div>
                     </div>
-                    <span class="badge-s {{ $av->visit_type === 'IPD' ? 'b-ipd' : 'b-opd' }}" style="font-size:9px;flex-shrink:0">
-                        {{ $av->visit_type }}
-                    </span>
+                    <span class="tb-notif-time">{{ $av->admitted_at?->format('H:i') }}</span>
                 </a>
                 @empty
-                <div class="notif-empty">
-                    <i class="bi bi-check-circle" style="font-size:24px;color:#2eca6a;margin-bottom:8px"></i>
+                <div class="tb-dd-empty">
+                    <i class="bi bi-check-circle-fill" style="color:#2eca6a;font-size:22px;margin-bottom:6px"></i>
                     <div>No active visits</div>
                 </div>
                 @endforelse
+                @if($activeCount > 6)
+                <div class="tb-dd-footer">+{{ $activeCount - 6 }} more active visits</div>
+                @endif
             </div>
         </div>
 
         {{-- User menu --}}
-        <div class="tb-user-wrap">
-            <button class="tb-user" id="userMenuBtn" onclick="toggleUserMenu()">
-                <div class="tb-avatar">
-                    {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
+        <div class="tb-dd-wrap" id="userWrap">
+            <button class="tb-user-btn" id="userBtn" onclick="tbToggle('user')">
+                <div class="tb-av">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</div>
+                <div class="tb-user-info d-none d-lg-block">
+                    <div class="tb-user-name">{{ auth()->user()->name ?? 'User' }}</div>
+                    <div class="tb-user-role">{{ auth()->user()->role ?? 'Staff' }}</div>
                 </div>
-                <div class="tb-info d-none d-lg-block">
-                    <div class="name">{{ auth()->user()->name ?? 'User' }}</div>
-                    <div class="role">{{ auth()->user()->role ?? 'Staff' }}</div>
-                </div>
-                <i class="bi bi-chevron-down" style="font-size:10px;color:#aaa;margin-left:4px" id="userChevron"></i>
+                <i class="bi bi-chevron-down tb-user-chevron" id="userChevron"></i>
             </button>
 
-            <div class="user-menu" id="userMenu" style="display:none">
-                <div class="user-menu-hd">
-                    <div class="user-menu-avatar">
-                        {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
-                    </div>
+            <div class="tb-dropdown tb-user-panel" id="userPanel" style="display:none">
+                <div class="tb-user-hd">
+                    <div class="tb-user-hd-av">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</div>
                     <div>
                         <div style="font-weight:700;color:#012970;font-size:13px">{{ auth()->user()->name }}</div>
-                        <div style="font-size:11px;color:#aaa">{{ auth()->user()->email }}</div>
-                        <div style="font-size:10px;background:#eef0fd;color:#4154f1;padding:1px 8px;border-radius:10px;display:inline-block;margin-top:3px;font-weight:700">
+                        <div style="font-size:11px;color:#aaa;margin-top:1px">{{ auth()->user()->email }}</div>
+                        <div class="tb-user-clinic-chip">
+                            <i class="bi bi-hospital" style="font-size:9px"></i>
                             {{ currentClinic()?->name ?? 'Clinic' }}
                         </div>
                     </div>
                 </div>
-                <div class="user-menu-body">
-                    <a href="#" class="user-menu-item">
+                <div class="tb-user-menu">
+                    <a href="#" class="tb-menu-item">
                         <i class="bi bi-person-circle"></i> My Profile
                     </a>
-                    <a href="#" class="user-menu-item">
+                    <a href="{{ route('settings.general') }}" class="tb-menu-item">
                         <i class="bi bi-gear"></i> Settings
                     </a>
-                    <a href="{{ route('reports.visits') }}" class="user-menu-item">
+                    <a href="{{ route('reports.visits') }}" class="tb-menu-item">
                         <i class="bi bi-bar-chart-line"></i> Reports
                     </a>
-                    <div style="height:1px;background:#f0f2ff;margin:4px 0"></div>
+                    <div class="tb-menu-sep"></div>
                     <form method="POST" action="{{ route('logout') }}" style="margin:0">
                         @csrf
-                        <button type="submit" class="user-menu-item" style="width:100%;text-align:left;border:none;background:none;cursor:pointer;color:#e74c3c">
+                        <button type="submit" class="tb-menu-item tb-menu-item--danger">
                             <i class="bi bi-box-arrow-right"></i> Log Out
                         </button>
                     </form>
@@ -132,362 +132,224 @@
             </div>
         </div>
 
-    </div>
+    </div>{{-- /tb-right --}}
 </header>
 
 <script>
 /* ── Clock ── */
-(function tickClock() {
+(function tick() {
     var el = document.getElementById('tbClock');
     if (el) {
-        var now = new Date();
-        var d = String(now.getDate()).padStart(2,'0');
-        var m = String(now.getMonth()+1).padStart(2,'0');
-        var y = now.getFullYear();
-        var h = String(now.getHours()).padStart(2,'0');
-        var min = String(now.getMinutes()).padStart(2,'0');
-        el.textContent = d+'/'+m+'/'+y+' · '+h+':'+min;
+        var n = new Date();
+        var pad = v => String(v).padStart(2,'0');
+        el.textContent = pad(n.getDate())+'/'+pad(n.getMonth()+1)+'/'+n.getFullYear()+' · '+pad(n.getHours())+':'+pad(n.getMinutes());
     }
-    setTimeout(tickClock, 10000);
+    setTimeout(tick, 15000);
 })();
 
-/* ── Notification panel ── */
-function toggleNotif() {
-    var p = document.getElementById('notifPanel');
-    var u = document.getElementById('userMenu');
-    if (u) u.style.display = 'none';
-    p.style.display = p.style.display === 'none' ? 'block' : 'none';
+/* ── Dropdown toggle ── */
+function tbToggle(which) {
+    var panels = {notif: 'notifPanel', user: 'userPanel'};
+    Object.entries(panels).forEach(([k, id]) => {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (k === which) {
+            var isOpen = el.style.display !== 'none';
+            el.style.display = isOpen ? 'none' : 'block';
+            if (k === 'user') {
+                var c = document.getElementById('userChevron');
+                if (c) c.classList.toggle('rotated', !isOpen);
+            }
+        } else {
+            el.style.display = 'none';
+        }
+    });
 }
 
-/* ── User menu ── */
-function toggleUserMenu() {
-    var u = document.getElementById('userMenu');
-    var p = document.getElementById('notifPanel');
-    var c = document.getElementById('userChevron');
-    if (p) p.style.display = 'none';
-    var open = u.style.display === 'none';
-    u.style.display = open ? 'block' : 'none';
-    if (c) c.style.transform = open ? 'rotate(180deg)' : '';
-}
-
-/* ── Close dropdowns on outside click ── */
+/* ── Close on outside click ── */
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.tb-notif-wrap'))
-        document.getElementById('notifPanel').style.display = 'none';
-    if (!e.target.closest('.tb-user-wrap')) {
-        document.getElementById('userMenu').style.display = 'none';
+    if (!e.target.closest('#notifWrap')) {
+        var p = document.getElementById('notifPanel');
+        if (p) p.style.display = 'none';
+    }
+    if (!e.target.closest('#userWrap')) {
+        var u = document.getElementById('userPanel');
+        if (u) u.style.display = 'none';
         var c = document.getElementById('userChevron');
-        if (c) c.style.transform = '';
+        if (c) c.classList.remove('rotated');
     }
 });
 
-/* ═══════════════════════════════════════════════════════════════
-   PATIENT SEARCH — inline autocomplete (browser-style)
-
-   How it works:
-   - Two stacked inputs: #searchGhost (behind, grey) + #globalSearch (front, transparent bg)
-   - As you type, ghost input shows the best-match full name completion
-   - Tab / ArrowRight / → accepts the completion (fills input, selects that patient)
-   - ArrowDown / ArrowUp navigates the dropdown list
-   - Enter confirms the active item or the ghost completion
-   - Escape clears ghost and closes dropdown
-   - Clicking a dropdown row selects that patient
-═══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   PATIENT SEARCH — inline autocomplete
+   Two stacked inputs: ghost (completion hint) + real (user types)
+   Tab / → accepts ghost; ↓/↑ navigates dropdown; Enter confirms; Esc closes
+═══════════════════════════════════════════════════════════ */
 (function () {
+    var real  = document.getElementById('globalSearch');
+    var ghost = document.getElementById('searchGhost');
+    var dd    = document.getElementById('searchDropdown');
+    var clear = document.getElementById('searchClear');
 
-    var real     = document.getElementById('globalSearch');
-    var ghost    = document.getElementById('searchGhost');
-    var dd       = document.getElementById('searchDropdown');
-    var clearBtn = document.getElementById('searchClear');
-    var icon     = document.getElementById('searchIcon');
-    if (!real || !ghost || !dd) return;
+    if (!real) return;
 
-    /* ── State ── */
-    var timer       = null;
-    var results     = [];        // last fetch results
-    var activeIdx   = -1;        // highlighted row in dropdown
-    var ghostTarget = null;      // the patient object whose name fills the ghost
-    var fetching    = false;
+    var patients  = [];
+    var cache     = {};
+    var activeIdx = -1;
+    var debounce  = null;
+    var controller = null;
 
-    /* ── Colour palette for avatars ── */
-    var PALETTE = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6','#00bcd4','#f39c12','#1abc9c'];
-    function color(code) {
-        var n = 0; for (var i = 0; i < (code||'').length; i++) n += code.charCodeAt(i);
-        return PALETTE[n % PALETTE.length];
+    /* ── fetch ── */
+    function fetchPatients(q) {
+        if (cache[q]) { renderResults(cache[q], q); return; }
+        if (controller) controller.abort();
+        controller = new AbortController();
+        fetch('/patients/search?q=' + encodeURIComponent(q), { signal: controller.signal })
+            .then(r => r.json())
+            .then(data => { cache[q] = data; renderResults(data, q); })
+            .catch(() => {});
     }
 
-    /* ─────────────────────────────────────────────────────
-       GHOST INLINE COMPLETION
-    ───────────────────────────────────────────────────── */
-    function bestMatch(q) {
-        /* Return first result whose full "Surname, Name" starts with q (case-insensitive) */
-        var lq = q.toLowerCase();
-        for (var i = 0; i < results.length; i++) {
-            var p    = results[i];
+    /* ── best prefix match for ghost ── */
+    function bestMatch(val, list) {
+        if (!val || !list.length) return null;
+        var v = val.toLowerCase();
+        return list.find(p => {
             var full = (p.surname + ', ' + p.name).toLowerCase();
-            var byCode  = p.code.toLowerCase().startsWith(lq);
-            var byPhone = (p.phone||'').toLowerCase().startsWith(lq);
-            if (full.startsWith(lq) || byCode || byPhone) return { patient: p, idx: i };
+            var code = (p.code || '').toLowerCase();
+            return full.startsWith(v) || code.startsWith(v);
+        }) || null;
+    }
+
+    /* ── render ghost ── */
+    function updateGhost(val, list) {
+        if (!val) { ghost.value = ''; return; }
+        var m = bestMatch(val, list);
+        if (!m) { ghost.value = ''; return; }
+        var full = m.surname + ', ' + m.name;
+        if (full.toLowerCase().startsWith(val.toLowerCase())) {
+            ghost.value = val + full.slice(val.length);
+        } else {
+            ghost.value = '';
         }
-        return null;
     }
 
-    function showGhost(q) {
-        if (!q) { clearGhost(); return; }
-        var match = bestMatch(q);
-        if (!match) { clearGhost(); return; }
+    /* ── render dropdown ── */
+    function renderResults(list, q) {
+        patients = list;
+        activeIdx = -1;
 
-        ghostTarget = match.patient;
-        var p    = match.patient;
-        var full = p.surname + ', ' + p.name;
+        updateGhost(real.value, list);
 
-        /* Ghost shows the full name; the real input sits on top
-           so the grey "tail" of the completion peeks through */
-        ghost.value = full;
-
-        /* Sync scroll offset so ghost lines up with real */
-        ghost.style.paddingLeft  = getComputedStyle(real).paddingLeft;
-        ghost.style.fontSize     = getComputedStyle(real).fontSize;
-        ghost.style.fontFamily   = getComputedStyle(real).fontFamily;
-        ghost.style.letterSpacing = getComputedStyle(real).letterSpacing;
-    }
-
-    function clearGhost() {
-        ghost.value  = '';
-        ghostTarget  = null;
-    }
-
-    /* ─────────────────────────────────────────────────────
-       ACCEPT COMPLETION
-    ───────────────────────────────────────────────────── */
-    function acceptGhost() {
-        if (!ghostTarget) return false;
-        var p = ghostTarget;
-        real.value = p.surname + ', ' + p.name;
-        clearGhost();
-        clearBtn.style.display = 'flex';
-        closeDD();
-        commitPatient(p);
-        return true;
-    }
-
-    /* Accept the currently highlighted dropdown row */
-    function acceptActive() {
-        if (activeIdx >= 0 && results[activeIdx]) {
-            commitPatient(results[activeIdx]);
-            return true;
-        }
-        return false;
-    }
-
-    /* ─────────────────────────────────────────────────────
-       COMMIT — navigate to create page with patient data
-    ───────────────────────────────────────────────────── */
-    function commitPatient(p) {
-        real.value = p.surname + ', ' + p.name;
-        clearGhost();
-        clearBtn.style.display = 'flex';
-        closeDD();
-        try { sessionStorage.setItem('prefill_patient', JSON.stringify(p)); } catch(e){}
-        window.location.href = '/workflow/create';
-    }
-
-    /* ─────────────────────────────────────────────────────
-       FETCH
-    ───────────────────────────────────────────────────── */
-    function doFetch(q) {
-        fetching = true;
-        icon.className = 'bi bi-arrow-repeat si spin';
-        fetch('/patients/search?q=' + encodeURIComponent(q))
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                fetching = false;
-                icon.className = 'bi bi-search si';
-                results   = data;
-                activeIdx = -1;
-                showGhost(real.value.trim());
-                renderDD(data, real.value.trim());
-            })
-            .catch(function() {
-                fetching = false;
-                icon.className = 'bi bi-search si';
-                results = [];
-                clearGhost();
-                dd.innerHTML = '<div class="sd-empty"><i class="bi bi-exclamation-triangle" style="color:#e74c3c"></i> Search failed — try again</div>';
-                openDD();
-            });
-    }
-
-    /* ─────────────────────────────────────────────────────
-       DROPDOWN RENDER
-    ───────────────────────────────────────────────────── */
-    function renderDD(patients, q) {
-        if (!patients.length) {
-            dd.innerHTML = '<div class="sd-empty">'
-                + '<i class="bi bi-search" style="font-size:22px;color:#ddd;display:block;margin-bottom:8px"></i>'
-                + '<div style="font-size:12.5px;font-weight:600;color:#bbb;margin-bottom:4px">No patients found</div>'
-                + '<div style="font-size:11px;color:#ccc;margin-bottom:12px">Try a different name, code, or phone</div>'
-                + '<a href="/workflow/create" class="sd-new-btn"><i class="bi bi-person-plus-fill"></i> Register new patient</a>'
-                + '</div>';
-            openDD(); return;
+        if (!list.length) {
+            dd.innerHTML = '<div class="tb-search-empty">No patients found for <strong>' + escHtml(q) + '</strong></div>';
+            dd.style.display = 'block';
+            return;
         }
 
-        var html = '<div class="sd-section-label"><i class="bi bi-people-fill"></i> '
-                 + patients.length + ' patient' + (patients.length !== 1 ? 's' : '') + ' found — '
-                 + '<span style="color:#aaa;font-weight:400">Tab or → to complete</span></div>';
-
-        html += patients.map(function(p, i) {
-            var initials = ((p.surname||'')[0]||'').toUpperCase() + ((p.name||'')[0]||'').toUpperCase();
-            var c        = color(p.code);
-            var age = '';
-            if (p.birthdate) {
-                var pts = p.birthdate.split('/');
-                if (pts.length === 3) age = Math.floor((Date.now() - new Date(pts[2],pts[1]-1,pts[0])) / 3.15576e10) + 'y';
-            }
-            var meta  = [p.code, p.phone||null, p.sex==='M'?'♂':p.sex==='F'?'♀':null, age||null].filter(Boolean).join(' · ');
-            var lastV = p.last_visit_date
-                ? '<span class="sd-visit-pill '+(p.last_visit_type==='IPD'?'ipd':'opd')+'">'+p.last_visit_type+'</span>'
-                  + ' <span style="color:#bbb;font-size:10px">'+p.last_visit_date+'</span>'
-                : '';
-            var vcnt = p.visits_count > 0
-                ? '<span class="sd-vcnt">'+p.visits_count+' visit'+(p.visits_count!==1?'s':'')+'</span>'
-                : '<span class="sd-vcnt new">New</span>';
-
-            /* Highlight the matched portion in the name */
-            var display = esc(p.surname) + ', ' + esc(p.name);
-            var lq = q.toLowerCase();
-            if (display.toLowerCase().startsWith(lq)) {
-                display = '<strong>' + esc(q) + '</strong>' + esc(display.slice(q.length));
-            }
-
-            return '<div class="sd-item" data-idx="'+i+'" role="option" tabindex="-1"'
-                + ' onmousedown="selectRow('+i+')" onmouseenter="hoverRow('+i+')">'
-                + '<div class="sd-avatar" style="background:'+c+'">'+initials+'</div>'
-                + '<div class="sd-info">'
-                + '<div class="sd-name">'+display+'</div>'
-                + '<div class="sd-meta">'+esc(meta)+'</div>'
-                + (lastV ? '<div class="sd-last">'+lastV+'</div>' : '')
-                + '</div>'
-                + '<div class="sd-right">'+vcnt+'</div>'
-                + '</div>';
+        dd.innerHTML = list.slice(0, 8).map((p, i) => {
+            var initials = ((p.surname||'').charAt(0) + (p.name||'').charAt(0)).toUpperCase();
+            var colors   = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6','#00bcd4'];
+            var color    = colors[(p.code || '').charCodeAt(2) % colors.length || 0];
+            var visits   = p.visits_count || 0;
+            return '<div class="tb-search-row" role="option" data-idx="'+i+'" onclick="selectPatient('+i+')">'
+                 + '<div class="tb-search-av" style="background:'+color+'">'+initials+'</div>'
+                 + '<div style="flex:1;min-width:0">'
+                 + '<div class="tb-search-name">'+escHtml(p.surname)+', '+escHtml(p.name)+'</div>'
+                 + '<div class="tb-search-meta">'+escHtml(p.code)+(p.phone?' · '+escHtml(p.phone):'')+' · '+(p.sex==='M'?'ប្រុស':'ស្រី')+'</div>'
+                 + '</div>'
+                 + '<div class="tb-search-visits">'+visits+' visit'+(visits!==1?'s':'')+'</div>'
+                 + '</div>';
         }).join('');
 
-        html += '<div class="sd-footer"><a href="/workflow/create" class="sd-new-btn"><i class="bi bi-person-plus-fill"></i> Register new patient</a></div>';
-        dd.innerHTML = html;
-        openDD();
+        dd.style.display = 'block';
+        real.setAttribute('aria-expanded', 'true');
     }
 
-    /* ─────────────────────────────────────────────────────
-       DROPDOWN OPEN/CLOSE
-    ───────────────────────────────────────────────────── */
-    function openDD()  { dd.style.display='block';  real.setAttribute('aria-expanded','true'); }
-    function closeDD() { dd.style.display='none';   real.setAttribute('aria-expanded','false'); activeIdx=-1; }
-
-    /* ─────────────────────────────────────────────────────
-       ROW HIGHLIGHT
-    ───────────────────────────────────────────────────── */
-    function hoverRow(i) { setActive(i); }
-
-    window.selectRow = function(i) {
-        /* mousedown fires before blur — use this to commit */
-        if (results[i]) commitPatient(results[i]);
+    /* ── select patient ── */
+    window.selectPatient = function(idx) {
+        var p = patients[idx];
+        if (!p) return;
+        real.value = p.surname + ', ' + p.name + ' (' + p.code + ')';
+        ghost.value = '';
+        dd.style.display = 'none';
+        clear.style.display = 'flex';
+        window.location.href = '/patients/' + p.code;
     };
 
-    function setActive(i) {
-        activeIdx = i;
-        dd.querySelectorAll('.sd-item').forEach(function(el, j) {
-            el.classList.toggle('active', j === i);
-        });
-        if (results[i]) showGhost(real.value.trim());  /* ghost still shows */
-        var active = dd.querySelector('.sd-item.active');
-        if (active) active.scrollIntoView({ block: 'nearest' });
-    }
-
-    /* ─────────────────────────────────────────────────────
-       INPUT EVENTS
-    ───────────────────────────────────────────────────── */
+    /* ── input handler ── */
     real.addEventListener('input', function() {
-        var q = real.value;
-        clearBtn.style.display = q ? 'flex' : 'none';
-        clearGhost();
-        clearTimeout(timer);
-        if (!q.trim() || q.trim().length < 2) { closeDD(); results=[]; return; }
-        timer = setTimeout(function() { doFetch(q.trim()); }, 220);
+        var val = this.value.trim();
+        clear.style.display = val ? 'flex' : 'none';
+        if (!val) { ghost.value=''; dd.style.display='none'; return; }
+        clearTimeout(debounce);
+        debounce = setTimeout(() => fetchPatients(val), 240);
     });
 
-    real.addEventListener('focus', function() {
-        var q = real.value.trim();
-        if (q.length >= 2 && results.length) {
-            showGhost(q);
-            openDD();
-        } else if (q.length >= 2 && !fetching) {
-            doFetch(q);
-        }
-    });
-
+    /* ── keyboard ── */
     real.addEventListener('keydown', function(e) {
-        var items = dd.querySelectorAll('.sd-item');
+        var rows = dd.querySelectorAll('.tb-search-row');
 
         if (e.key === 'Tab' || e.key === 'ArrowRight') {
-            /* Accept ghost completion */
-            if (ghostTarget && real.selectionStart === real.value.length) {
+            if (ghost.value && ghost.value !== real.value) {
                 e.preventDefault();
-                acceptGhost();
+                var m = bestMatch(real.value, patients);
+                if (m) { real.value = m.surname + ', ' + m.name + ' (' + m.code + ')'; ghost.value=''; dd.style.display='none'; clear.style.display='flex'; }
+                return;
             }
-        } else if (e.key === 'ArrowDown') {
+        }
+        if (e.key === 'ArrowDown') {
             e.preventDefault();
-            if (dd.style.display === 'none' && results.length) openDD();
-            var next = activeIdx < items.length - 1 ? activeIdx + 1 : 0;
-            setActive(next);
-            /* Ghost shows the highlighted row's name */
-            if (results[next]) ghost.value = results[next].surname + ', ' + results[next].name;
+            activeIdx = Math.min(activeIdx + 1, rows.length - 1);
+            highlightRow(rows);
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            var prev = activeIdx > 0 ? activeIdx - 1 : items.length - 1;
-            setActive(prev);
-            if (results[prev]) ghost.value = results[prev].surname + ', ' + results[prev].name;
+            activeIdx = Math.max(activeIdx - 1, -1);
+            highlightRow(rows);
         } else if (e.key === 'Enter') {
             e.preventDefault();
-            if (!acceptActive()) acceptGhost();
+            if (activeIdx >= 0) selectPatient(activeIdx);
+            else if (ghost.value) {
+                var m = bestMatch(real.value, patients);
+                if (m) selectPatient(patients.indexOf(m));
+            }
         } else if (e.key === 'Escape') {
-            clearGhost();
-            closeDD();
+            ghost.value = ''; dd.style.display = 'none'; real.blur();
         }
     });
 
-    /* Prevent blur from firing before mousedown on dropdown rows */
-    dd.addEventListener('mousedown', function(e) { e.preventDefault(); });
-
-    real.addEventListener('blur', function() {
-        /* Small delay so mousedown on dd rows fires first */
-        setTimeout(function() {
-            clearGhost();
-            closeDD();
-        }, 150);
-    });
-
-    /* ─────────────────────────────────────────────────────
-       CLEAR BUTTON & OUTSIDE CLICK
-    ───────────────────────────────────────────────────── */
-    clearBtn.addEventListener('click', function() {
-        real.value = '';
-        clearGhost();
-        closeDD();
-        results = [];
-        clearBtn.style.display = 'none';
-        real.focus();
-    });
-
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('#searchWrap')) { clearGhost(); closeDD(); }
-    });
-
-    /* ─────────────────────────────────────────────────────
-       UTIL
-    ───────────────────────────────────────────────────── */
-    function esc(s) {
-        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function highlightRow(rows) {
+        rows.forEach((r, i) => r.classList.toggle('active', i === activeIdx));
+        if (activeIdx >= 0 && rows[activeIdx]) {
+            var p = patients[activeIdx];
+            real.value = p.surname + ', ' + p.name;
+            ghost.value = '';
+            rows[activeIdx].scrollIntoView({block:'nearest'});
+        }
     }
 
+    /* ── clear btn ── */
+    clear.addEventListener('click', function() {
+        real.value=''; ghost.value=''; dd.style.display='none'; clear.style.display='none'; real.focus();
+    });
+
+    /* ── close on outside ── */
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#searchWrap')) {
+            dd.style.display = 'none';
+            ghost.value = '';
+        }
+    });
+
+    /* ── re-open on focus ── */
+    real.addEventListener('focus', function() {
+        if (this.value.trim() && patients.length) {
+            dd.style.display = 'block';
+        }
+    });
+
+    function escHtml(s) {
+        return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
 })();
 </script>

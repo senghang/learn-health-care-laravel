@@ -33,11 +33,7 @@
         "files": [
             "app/Common/Helpers/helpers.php",
             "app/Common/Helpers/workflow.php",
-            "app/Common/Helpers/workflow.php",
-            "app/Common/Helpers/workflow.php",
-            "app/Common/Helpers/workflow.php",
-            "app/Common/Helpers/code.php",
-            "app/Common/Helpers/workflow.php"
+            "app/Common/Helpers/utils.php"
         ]
     },
     "autoload-dev": {

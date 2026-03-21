@@ -19,6 +19,11 @@
     {{-- EMR CSS --}}
     @vite(['resources/css/clinic.css'])
 
+    {{-- Sidebar + Header CSS --}}
+    @if(file_exists(public_path('css/sidebar-header.css')))
+    <link rel="stylesheet" href="{{ asset('css/sidebar-header.css') }}">
+    @endif
+
     {{-- Sidebar / Header / Reports improvements --}}
     <style>
 

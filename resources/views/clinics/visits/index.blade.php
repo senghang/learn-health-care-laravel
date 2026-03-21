@@ -86,7 +86,7 @@
                 <div class="v-name">{{ $visit->surname }}, {{ $visit->name }}</div>
                 <div class="v-meta">
                     {{ $visit->patient_code }} · {{ $visit->code }}
-                    · {{ $visit->admitted_at?->format('d/m/Y H:i') ?? '—' }}
+                    · {{ df_dt($visit->admitted_at) ?: '—' }}
                     @if($visit->steps_done > 0)
                         · <span style="color:#4154f1;font-weight:600">{{ $visit->steps_done }}/10 steps</span>
                     @endif

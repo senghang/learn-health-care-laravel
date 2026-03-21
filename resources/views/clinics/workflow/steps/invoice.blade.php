@@ -5,7 +5,7 @@
 
     $invCode     = $invoice?->code ?? ('INV-' . $visit->code);
     $paymentType = old('payment_type', $invoice?->payment_type ?? 'HEF');
-    $invoiceDate = old('invoice_date', $invoice?->invoice_date?->format('Y-m-d') ?? now()->format('Y-m-d'));
+    $invoiceDate = old('invoice_date', df_input($invoice?->invoice_date) ?: df_today_input());
     $cashier     = old('cashier',      $invoice?->cashier ?? auth()->user()?->name ?? '');
     $totalVal    = old('total',        $invoice?->total ?? 0);
     $svcCount    = $services->count();
@@ -28,7 +28,7 @@
                     <span style="font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;{{ $visit->visit_type === 'IPD' ? 'background:#fff3e8;color:#ff771d' : 'background:#e8f8ef;color:#2eca6a' }}">
                         {{ $visit->visit_type }}
                     </span>
-                    · {{ $visit->admitted_at?->format('d/m/Y') }}
+                    · {{ df_d($visit->admitted_at) }}
                 </div>
             </div>
             <div style="text-align:right">

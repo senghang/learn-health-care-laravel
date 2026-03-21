@@ -48,7 +48,7 @@
         <div class="filter-group">
             <label class="filter-label"><i class="bi bi-calendar3"></i> To</label>
             <input type="date" name="date_to" class="form-control"
-                   value="{{ request('date_to', now()->format('Y-m-d')) }}"/>
+                   value="{{ request('date_to', df_today_input()) }}"/>
         </div>
 
         <div class="filter-group">
@@ -130,7 +130,7 @@
         <div class="card-hd-title">
             <i class="bi bi-bar-chart-fill"></i>
             Daily Breakdown
-            <small style="font-weight:400;color:#aaa">/ {{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', now()->format('d/m/Y')) }}</small>
+            <small style="font-weight:400;color:#aaa">/ {{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', df_d(now())) }}</small>
         </div>
         <div style="display:flex;gap:10px">
             <span style="font-size:10px;color:#4154f1;display:flex;align-items:center;gap:4px">
@@ -213,8 +213,8 @@
                     @endphp
                     <tr>
                         <td style="white-space:nowrap;color:#888;font-size:11.5px">
-                            {{ $v->admitted_at?->format('d/m/Y') }}<br>
-                            <span style="font-size:10px">{{ $v->admitted_at?->format('H:i') }}</span>
+                            {{ df_d($v->admitted_at) }}<br>
+                            <span style="font-size:10px">{{ df_t($v->admitted_at) }}</span>
                         </td>
                         <td>
                             <code style="font-size:11px;color:#4154f1;background:#eef0fd;padding:2px 6px;border-radius:4px">
@@ -239,7 +239,7 @@
                             @endif
                             @if($v->discharged_at)
                             <div style="font-size:10px;color:#ccc;margin-top:2px">
-                                {{ $v->discharged_at->format('d/m H:i') }}
+                                {{ df_short($v->discharged_at) }}
                             </div>
                             @endif
                         </td>
@@ -255,7 +255,7 @@
                         <td>
                             @if($inv)
                                 <div style="font-size:11px;font-weight:700;color:#012970">
-                                    {{ number_format($inv->total) }} <span style="font-size:9px;color:#aaa">KHR</span>
+                                    {{ khr_fmt($inv->total) }} <span style="font-size:9px;color:#aaa">KHR</span>
                                 </div>
                                 <span style="font-size:9.5px;background:#e0f7fa;color:#00838f;padding:1px 7px;border-radius:10px;font-weight:700">
                                     {{ $inv->payment_type }}

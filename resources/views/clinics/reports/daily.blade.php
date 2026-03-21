@@ -29,7 +29,7 @@
         <div class="filter-group">
             <label class="filter-label">Date</label>
             <input type="date" name="date" class="form-control"
-                   value="{{ request('date', today()->format('Y-m-d')) }}"/>
+                   value="{{ request('date', df_today_input()) }}"/>
         </div>
         <div class="filter-actions">
             <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill"></i> Load</button>
@@ -38,7 +38,7 @@
     </form>
 </div>
 
-@php $dateLabel = \Carbon\Carbon::parse(request('date', today()))->format('l, d F Y'); @endphp
+@php $dateLabel = \Carbon\Carbon::parse(request('date', today()))->format(\App\Common\Constants\DateFormats::DISPLAY_LONG); @endphp
 
 {{-- Header banner --}}
 <div style="background:linear-gradient(135deg,#012970,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;color:#fff">
@@ -91,7 +91,7 @@
                     @php $inv = $v->invoices->first(); @endphp
                     <tr>
                         <td style="color:#aaa;font-size:11px">{{ $i + 1 }}</td>
-                        <td style="font-size:11.5px;color:#888">{{ $v->admitted_at?->format('H:i') }}</td>
+                        <td style="font-size:11.5px;color:#888">{{ df_t($v->admitted_at) }}</td>
                         <td style="font-weight:700;color:#012970">{{ $v->surname }}, {{ $v->name }}</td>
                         <td><code style="font-size:11px;color:#4154f1">{{ $v->code }}</code></td>
                         <td style="font-size:11.5px;color:#777">{{ $v->admission_type ?? '—' }}</td>
@@ -103,7 +103,7 @@
                             @endif
                         </td>
                         <td style="font-size:11.5px">
-                            @if($inv) {{ number_format($inv->total) }} KHR @else — @endif
+                            @if($inv) {{ khr($inv->total) }} @else — @endif
                         </td>
                     </tr>
                     @endforeach
@@ -135,18 +135,18 @@
                     @php $inv = $v->invoices->first(); @endphp
                     <tr>
                         <td style="color:#aaa;font-size:11px">{{ $i + 1 }}</td>
-                        <td style="font-size:11.5px;color:#888">{{ $v->admitted_at?->format('H:i') }}</td>
+                        <td style="font-size:11.5px;color:#888">{{ df_t($v->admitted_at) }}</td>
                         <td style="font-weight:700;color:#012970">{{ $v->surname }}, {{ $v->name }}</td>
                         <td><code style="font-size:11px;color:#ff771d">{{ $v->code }}</code></td>
                         <td>
                             @if(is_null($v->discharged_at))
                                 <span class="badge-s b-active">Active</span>
                             @else
-                                <span class="badge-s b-done">Done · {{ $v->discharged_at->format('H:i') }}</span>
+                                <span class="badge-s b-done">Done · {{ df_t($v->discharged_at) }}</span>
                             @endif
                         </td>
                         <td style="font-size:11.5px">
-                            @if($inv) {{ number_format($inv->total) }} KHR @else — @endif
+                            @if($inv) {{ khr($inv->total) }} @else — @endif
                         </td>
                     </tr>
                     @endforeach
