@@ -10,35 +10,44 @@ class AuthController extends Controller
 {
     public function login()
     {
-        if (!empty(Auth::check())) {
+        if (Auth::check()) {
             return redirect()->route('dashboard');
         }
 
-        // dd(currentClinic()->id); // call clinic id from subdomain
         return view('clinics.auth.login');
     }
 
     public function authLogin(Request $request)
     {
-        $credentials = $request->validate(['email' => 'required|email', 'password' => 'required',]);
-        // attach clinic_id
-        $credentials['clinic_id'] = currentClinic()->id;
+        $credentials = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $credentials['clinic_id']  = currentClinic()->id;
         $credentials['is_deleted'] = 0;
+
         $remember = !empty($request->remember);
-        // if(Auth::attempt(['email' => $request->email, 'password' => $request->password , 'is_deleted' => 0 ], $remember))
+
         if (Auth::attempt($credentials, $remember)) {
-            // $request->session()->regenerate();
-            return redirect('backend/dashboard');
-        } else {
-            return redirect()->back()->with('error', 'Please enter current email and password');
+            $request->session()->regenerate();
+            return redirect()->intended(route('dashboard'));
         }
+
+        return redirect()->back()
+            ->withInput($request->only('email'))
+            ->with('error', 'Email or password is incorrect.');
     }
 
     public function logout(Request $request)
     {
-        Auth::guard('web')->logout(); // clinic user
+        Auth::guard('web')->logout();
+
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('login', ['subdomain' => currentClinic()->subdomain]);
+
+        // FIXED: was redirecting with a 'subdomain' parameter that route('login')
+        // doesn't accept — just redirect to the named login route directly.
+        return redirect()->route('login');
     }
 }

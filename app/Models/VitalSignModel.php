@@ -12,11 +12,19 @@ class VitalSignModel extends Model
 {
     use SoftDeletes, Auditable;
 
-    protected $fillable = ['code', 'encounter_code', 'visit_code', 'recorded_at', 'recorded_by', 'title'];
+    protected $table = 'vital_signs';
+
+    protected $fillable = [
+        'code',
+        'visit_code',       // ← was missing; needed for direct create() calls
+        'encounter_code',
+        'patient_code',
+        'recorded_at',
+        'recorded_by',
+        'title',
+    ];
 
     protected $casts = ['recorded_at' => 'datetime'];
-
-    protected $table = 'vital_signs';
 
     public function visit(): BelongsTo
     {

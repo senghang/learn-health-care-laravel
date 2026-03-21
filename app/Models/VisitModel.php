@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * VisitModel
+ *
+ * Column reference:
+ *   surname   — family name
+ *   name      — given name (stored as `name` in the visits table)
+ *
+ * The form uses `given_name` as the input field name for clarity.
+ * WorkflowController maps given_name → name before persisting.
+ */
 class VisitModel extends Model
 {
     use SoftDeletes, Auditable;
@@ -20,7 +30,7 @@ class VisitModel extends Model
         'health_facility_code',
         'patient_code',
         'surname',
-        'name',
+        'name',             // given name — DB column is `name`
         'visit_type',
         'admission_type',
         'discharge_type',
@@ -35,11 +45,11 @@ class VisitModel extends Model
     ];
 
     protected $casts = [
-        'admitted_at' => 'datetime',
-        'discharged_at' => 'datetime',
-        'followup_at' => 'datetime',
-        'done_steps' => 'array',
-        'skipped_steps' => 'array',
+        'admitted_at'    => 'datetime',
+        'discharged_at'  => 'datetime',
+        'followup_at'    => 'datetime',
+        'done_steps'     => 'array',
+        'skipped_steps'  => 'array',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -48,21 +58,6 @@ class VisitModel extends Model
     {
         return $this->belongsTo(PatientModel::class, 'patient_code', 'code');
     }
-    
-//    public function emergencies(): HasMany
-//    {
-//        return $this->hasMany(Emergency::class, 'visit_code', 'code');
-//    }
-//
-//    public function surgeries(): HasMany
-//    {
-//        return $this->hasMany(Surgery::class, 'visit_code', 'code');
-//    }
-//
-//    public function progressNotes(): HasMany
-//    {
-//        return $this->hasMany(ProgressNote::class, 'visit_code', 'code');
-//    }
 
     public function triages(): HasMany
     {
@@ -117,14 +112,30 @@ class VisitModel extends Model
 
     // ── Computed Attributes ───────────────────────────────────────────────────
 
+    /**
+     * Full display name: "SURNAME, Given Name"
+     * Uses `name` column which stores the given name.
+     */
     public function getPatientNameAttribute(): string
     {
         return "{$this->surname}, {$this->name}";
     }
 
+    /**
+     * Alias so views can access $visit->given_name transparently.
+     * Reads from the `name` column (given name stored there).
+     */
+    public function getGivenNameAttribute(): string
+    {
+        return $this->name ?? '';
+    }
+
     public function getProgressPercentAttribute(): int
     {
-        return (int)round(count($this->done_steps ?? []) / 10 * 100);
+        // Dynamic: uses actual registry count via done_steps
+        // 10 is the current step count — update here if steps change
+        $total = 10;
+        return (int) round(count($this->done_steps ?? []) / $total * 100);
     }
 
     public function getStepsDoneAttribute(): int

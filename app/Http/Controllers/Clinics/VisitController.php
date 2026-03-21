@@ -12,19 +12,20 @@ use Illuminate\Http\Request;
 
 class VisitController extends Controller
 {
-    /** GET /visits — list with search/filter */
+    /** GET /visits */
     public function index(Request $request): Factory|View
     {
         $visits = VisitModel::query()
-            ->when($request->search, fn($q, $s) => $q->where('surname', 'like', "%{$s}%")
-                ->orWhere('given_name', 'like', "%{$s}%")
-                ->orWhere('code', 'like', "%{$s}%")
-                ->orWhere('patient_code', 'like', "%{$s}%")
+            ->when($request->search, fn($q, $s) =>
+                $q->where('surname', 'like', "%{$s}%")
+                  ->orWhere('name', 'like', "%{$s}%")
+                  ->orWhere('code', 'like', "%{$s}%")
+                  ->orWhere('patient_code', 'like', "%{$s}%")
             )
-            ->when($request->type, fn($q, $t) => $q->where('visit_type', $t))
+            ->when($request->type,   fn($q, $t) => $q->where('visit_type', $t))
             ->when($request->status === 'active', fn($q) => $q->whereNull('discharged_at'))
-            ->when($request->status === 'done', fn($q) => $q->whereNotNull('discharged_at'))
-            ->when($request->date, fn($q, $d) => $q->whereDate('admitted_at', $d))
+            ->when($request->status === 'done',   fn($q) => $q->whereNotNull('discharged_at'))
+            ->when($request->date,   fn($q, $d) => $q->whereDate('admitted_at', $d))
             ->latest('admitted_at')
             ->paginate(20)
             ->withQueryString();
@@ -32,7 +33,7 @@ class VisitController extends Controller
         return view('clinics.visits.index', compact('visits'));
     }
 
-    /** GET /visits/{code} — single visit detail */
+    /** GET /visits/{code} */
     public function show(string $code)
     {
         $visit = VisitModel::where('code', $code)
@@ -44,8 +45,9 @@ class VisitController extends Controller
 
     /**
      * GET /patients/search?q=...
-     * JSON endpoint — returns matching patients for autocomplete.
-     * Returns name, code, phone, last visit info.
+     *
+     * FIXED: Scoped to currentClinic()->id so users from one subdomain
+     * cannot see patients belonging to a different clinic.
      */
     public function searchPatients(Request $request): JsonResponse
     {
@@ -55,11 +57,16 @@ class VisitController extends Controller
             return response()->json([]);
         }
 
+        $clinicId = currentClinic()->id;
+
         $patients = PatientModel::query()
-            ->where('code', 'like', "%{$q}%")
-            ->orWhere('surname', 'like', "%{$q}%")
-            ->orWhere('name', 'like', "%{$q}%")
-            ->orWhere('phone', 'like', "%{$q}%")
+            ->where('clinic_id', $clinicId)          // ← scoped to current clinic
+            ->where(function ($query) use ($q) {
+                $query->where('code',    'like', "%{$q}%")
+                      ->orWhere('surname', 'like', "%{$q}%")
+                      ->orWhere('name',    'like', "%{$q}%")
+                      ->orWhere('phone',   'like', "%{$q}%");
+            })
             ->with(['address'])
             ->withCount('visits')
             ->orderByDesc('visits_count')
@@ -71,26 +78,26 @@ class VisitController extends Controller
                     ->first();
 
                 return [
-                    'code' => $p->code,
-                    'surname' => $p->surname,
-                    'name' => $p->name,
-                    'full_name' => "{$p->surname}, {$p->name}",
-                    'sex' => $p->sex,
-                    'birthdate' => $p->birthdate?->format('d/m/Y'),
-                    'phone' => $p->phone,
-                    'nationality' => $p->nationality,
-                    'occupation' => $p->occupation,
+                    'code'           => $p->code,
+                    'surname'        => $p->surname,
+                    'name'           => $p->name,           // patients.name = given name
+                    'full_name'      => "{$p->surname}, {$p->name}",
+                    'sex'            => $p->gender,         // return as 'sex' to match form field
+                    'birthdate'      => $p->birthdate?->format('d/m/Y'),
+                    'phone'          => $p->phone,
+                    'nationality'    => $p->nationality,
+                    'occupation'     => $p->occupation,
                     'marital_status' => $p->marital_status,
-                    'province_name' => $p->address->province_name ?? null,
-                    'district_name' => $p->address->district_name ?? null,
-                    'commune_name' => $p->address->commune_name ?? null,
-                    'village_name' => $p->address->village_name ?? null,
-                    'house_number' => $p->address->house_number ?? null,
-                    'street_number' => $p->address->street_number ?? null,
-                    'visits_count' => $p->visits_count,
-                    'last_visit_code' => $lastVisit?->code,
-                    'last_visit_date' => $lastVisit?->admitted_at?->format('d/m/Y'),
-                    'last_visit_type' => $lastVisit?->visit_type,
+                    'province_name'  => $p->address->province_name ?? null,
+                    'district_name'  => $p->address->district_name ?? null,
+                    'commune_name'   => $p->address->commune_name ?? null,
+                    'village_name'   => $p->address->village_name ?? null,
+                    'house_number'   => $p->address->house_number ?? null,
+                    'street_number'  => $p->address->street_number ?? null,
+                    'visits_count'   => $p->visits_count,
+                    'last_visit_code'=> $lastVisit?->code,
+                    'last_visit_date'=> $lastVisit?->admitted_at?->format('d/m/Y'),
+                    'last_visit_type'=> $lastVisit?->visit_type,
                 ];
             });
 

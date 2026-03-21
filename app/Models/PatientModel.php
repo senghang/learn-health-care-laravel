@@ -3,15 +3,28 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
+use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * PatientModel
+ *
+ * Column notes:
+ *   name    — given name (not family name)
+ *   surname — family name
+ *   gender  — 'M' or 'F' (DB column)
+ *
+ * The registration form uses 'sex' as the field name for gender to avoid
+ * clashing with HTML reserved attributes. The getSexAttribute() accessor
+ * makes $patient->sex work as an alias for $patient->gender.
+ */
 class PatientModel extends Model
 {
-    use SoftDeletes, Auditable;
+    use SoftDeletes, Auditable, ClinicScope;
 
     protected $table = 'patients';
 
@@ -19,8 +32,8 @@ class PatientModel extends Model
         'clinic_id',
         'code',
         'surname',
-        'name',
-        'gender',
+        'name',            // given name
+        'gender',          // 'M' or 'F'
         'birthdate',
         'phone',
         'nationality',
@@ -33,15 +46,10 @@ class PatientModel extends Model
     ];
 
     protected $casts = [
-        'birthdate' => 'date'
+        'birthdate' => 'date',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
-
-    public function clinic(): BelongsTo
-    {
-        return $this->belongsTo(ClinicModel::class);
-    }
 
     public function address(): HasOne
     {
@@ -93,20 +101,36 @@ class PatientModel extends Model
         return $this->hasMany(LaboratoryModel::class, 'patient_code', 'code');
     }
 
-//    public function imageries(): HasMany
-//    {
-//        return $this->hasMany(Imagery::class, 'patient_code', 'code');
-//    }
-
     // ── Computed Attributes ───────────────────────────────────────────────────
 
+    /**
+     * Alias: $patient->sex → reads $patient->gender
+     * Lets form views use the 'sex' field name without confusion.
+     */
+    public function getSexAttribute(): ?string
+    {
+        return $this->gender;
+    }
+
+    /** Full display name */
     public function getFullNameAttribute(): string
     {
         return "{$this->surname} {$this->name}";
     }
 
+    /** Age in years (null if no birthdate) */
     public function getAgeAttribute(): ?int
     {
         return $this->birthdate?->age;
+    }
+
+    /** Gender label in Khmer / English */
+    public function getGenderLabelAttribute(): string
+    {
+        return match($this->gender) {
+            'M' => 'ប្រុស / Male',
+            'F' => 'ស្រី / Female',
+            default => '—',
+        };
     }
 }
