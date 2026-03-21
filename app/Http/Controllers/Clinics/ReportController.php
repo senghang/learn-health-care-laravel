@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Http\Controllers\Clinics;
+
+use App\Http\Controllers\Controller;
+use App\Models\InvoiceModel;
+use App\Models\VisitModel;
+use Carbon\Carbon;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+
+class ReportController extends Controller
+{
+    // ── Visit Report ─────────────────────────────────────────────────────────
+
+    public function visits(Request $request): View|Response
+    {
+        $dateFrom    = $request->date('date_from') ?? now()->startOfMonth();
+        $dateTo      = $request->date('date_to')   ?? now()->endOfDay();
+        $visitType   = $request->get('visit_type');
+        $status      = $request->get('status');
+        $paymentType = $request->get('payment_type');
+        $search      = $request->get('search');
+        $sort        = $request->get('sort', 'admitted_at');
+        $dir         = $request->get('dir', 'desc');
+        $perPage     = (int) $request->get('per_page', 20);
+
+        $query = VisitModel::query()
+            ->with(['invoices'])
+            ->whereBetween('admitted_at', [$dateFrom->startOfDay(), $dateTo->endOfDay()])
+            ->when($visitType, fn($q) => $q->where('visit_type', $visitType))
+            ->when($status === 'active', fn($q) => $q->whereNull('discharged_at'))
+            ->when($status === 'done',   fn($q) => $q->whereNotNull('discharged_at'))
+            ->when($search, fn($q) => $q
+                ->where('surname', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('code', 'like', "%{$search}%")
+                ->orWhere('patient_code', 'like', "%{$search}%")
+            )
+            ->when(in_array($sort, ['admitted_at', 'surname', 'visit_type']),
+                fn($q) => $q->orderBy($sort, $dir === 'asc' ? 'asc' : 'desc')
+            );
+
+        // Payment type filter — join invoices
+        if ($paymentType) {
+            $query->whereHas('invoices', fn($q) => $q->where('payment_type', $paymentType));
+        }
+
+        // CSV export
+        if ($request->get('export') === 'csv') {
+            return $this->exportCsv($query->get());
+        }
+
+        $visits = $query->paginate(max(1, min($perPage, 200)))->withQueryString();
+
+        // ── Totals (full range, not just current page) ──────────────────────
+        $allQuery = VisitModel::query()
+            ->whereBetween('admitted_at', [$dateFrom->startOfDay(), $dateTo->endOfDay()])
+            ->when($visitType, fn($q) => $q->where('visit_type', $visitType))
+            ->when($status === 'active', fn($q) => $q->whereNull('discharged_at'))
+            ->when($status === 'done',   fn($q) => $q->whereNotNull('discharged_at'))
+            ->when($search, fn($q) => $q
+                ->where('surname', 'like', "%{$search}%")
+                ->orWhere('name', 'like', "%{$search}%")
+                ->orWhere('code', 'like', "%{$search}%")
+                ->orWhere('patient_code', 'like', "%{$search}%")
+            );
+
+        if ($paymentType) {
+            $allQuery->whereHas('invoices', fn($q) => $q->where('payment_type', $paymentType));
+        }
+
+        $allVisits = $allQuery->withCount([])->get(['id', 'visit_type', 'discharged_at', 'admitted_at']);
+
+        $revenue = InvoiceModel::whereHas('visit', function ($q) use ($dateFrom, $dateTo, $visitType, $paymentType) {
+            $q->whereBetween('admitted_at', [$dateFrom->startOfDay(), $dateTo->endOfDay()])
+              ->when($visitType, fn($q2) => $q2->where('visit_type', $visitType));
+        })
+        ->when($paymentType, fn($q) => $q->where('payment_type', $paymentType))
+        ->sum('total');
+
+        $totalStats = [
+            'total'   => $allVisits->count(),
+            'opd'     => $allVisits->where('visit_type', 'OPD')->count(),
+            'ipd'     => $allVisits->where('visit_type', 'IPD')->count(),
+            'active'  => $allVisits->whereNull('discharged_at')->count(),
+            'done'    => $allVisits->whereNotNull('discharged_at')->count(),
+            'revenue' => number_format($revenue),
+        ];
+
+        // ── Daily chart ──────────────────────────────────────────────────────
+        $days = $dateFrom->copy()->startOfDay()->diffInDays($dateTo->copy()->endOfDay());
+        $days = min($days, 60); // cap at 60 bars
+
+        $dailyChart = collect();
+        for ($i = 0; $i <= $days; $i++) {
+            $day = $dateFrom->copy()->addDays($i);
+            $dailyChart->push([
+                'label' => $day->format($days <= 7 ? 'D' : ($days <= 31 ? 'd' : 'M/d')),
+                'opd'   => $allVisits->where('visit_type', 'OPD')
+                    ->filter(fn($v) => Carbon::parse($v->admitted_at)->isSameDay($day))->count(),
+                'ipd'   => $allVisits->where('visit_type', 'IPD')
+                    ->filter(fn($v) => Carbon::parse($v->admitted_at)->isSameDay($day))->count(),
+            ]);
+        }
+
+        return view('clinics.reports.visits', compact(
+            'visits', 'totalStats', 'dailyChart'
+        ));
+    }
+
+    // ── Daily Summary ─────────────────────────────────────────────────────────
+
+    public function daily(Request $request): View
+    {
+        $date = $request->date('date') ?? today();
+
+        $allVisits = VisitModel::query()
+            ->with(['invoices'])
+            ->whereDate('admitted_at', $date)
+            ->orderBy('admitted_at')
+            ->get();
+
+        $opdVisits = $allVisits->where('visit_type', 'OPD')->values();
+        $ipdVisits = $allVisits->where('visit_type', 'IPD')->values();
+
+        $summary = [
+            'total'  => $allVisits->count(),
+            'opd'    => $opdVisits->count(),
+            'ipd'    => $ipdVisits->count(),
+            'active' => $allVisits->whereNull('discharged_at')->count(),
+            'done'   => $allVisits->whereNotNull('discharged_at')->count(),
+        ];
+
+        return view('clinics.reports.daily', compact('opdVisits', 'ipdVisits', 'summary'));
+    }
+
+    // ── CSV Export ────────────────────────────────────────────────────────────
+
+    private function exportCsv($visits): Response
+    {
+        $filename = 'visits-report-' . now()->format('Y-m-d') . '.csv';
+
+        $rows = [];
+        $rows[] = implode(',', [
+            'Date', 'Time', 'Visit Code', 'Patient Code',
+            'Surname', 'Given Name', 'Type', 'Admission',
+            'Status', 'Discharged At', 'Steps Done', 'Payment Type', 'Total (KHR)',
+        ]);
+
+        foreach ($visits as $v) {
+            $inv = $v->invoices->first();
+            $rows[] = implode(',', array_map(
+                fn($cell) => '"' . str_replace('"', '""', $cell ?? '') . '"',
+                [
+                    $v->admitted_at?->format('Y-m-d'),
+                    $v->admitted_at?->format('H:i'),
+                    $v->code,
+                    $v->patient_code,
+                    $v->surname,
+                    $v->name,
+                    $v->visit_type,
+                    $v->admission_type ?? '',
+                    is_null($v->discharged_at) ? 'Active' : 'Done',
+                    $v->discharged_at?->format('Y-m-d H:i') ?? '',
+                    count($v->done_steps ?? []),
+                    $inv?->payment_type ?? '',
+                    $inv?->total ?? 0,
+                ]
+            ));
+        }
+
+        return response(implode("\n", $rows), 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+}

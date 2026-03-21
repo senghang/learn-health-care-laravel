@@ -30,7 +30,7 @@
                 <span class="km">ឈ្មោះថ្នាំ</span><span class="en">/ Medicine</span><span class="req">*</span>
             </label>
             {{-- Field name matches DB column: medicine_name --}}
-            <input name="meds[{{ $i }}][medicine_name]" class="form-control"
+            <input name="meds[{{ $i }}][medicine_name]" class="form-control" required data-error-msg="Medicine Name"
                    placeholder="Artemether-Lumefantrine" value="{{ $medName }}"/>
         </div>
     </div>

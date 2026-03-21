@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Clinics\AuthController;
 use App\Http\Controllers\Clinics\DashboardController;
+use App\Http\Controllers\Clinics\ReportController;
 use App\Http\Controllers\Clinics\VisitController;
 use App\Http\Controllers\Clinics\Workflows\WorkflowController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +18,12 @@ Route::middleware(['userauth'])->group(function () {
     Route::get('/patients/search', [VisitController::class, 'searchPatients'])->name('patients.search');
 
     Route::resource('visits', VisitController::class)->only(['index', 'show']);
+
+    // ── Reports ──────────────────────────────────────────────────────────────
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/visits', [ReportController::class, 'visits'])->name('visits');
+        Route::get('/daily',  [ReportController::class, 'daily'])->name('daily');
+    });
 
     Route::prefix('workflow')->name('workflow.')->group(function () {
 

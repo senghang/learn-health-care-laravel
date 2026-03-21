@@ -1,43 +1,55 @@
+{{--
+    <x-form.select name="title" km="តួរបស់" en="Title"
+        :options="['Doctor' => 'Doctor', 'Nurse' => 'Nurse']"
+        :value="$title" />
+
+    Props:
+      name        — select name
+      km          — Khmer label
+      en          — English label
+      options     — associative array [value => label]
+      value       — currently selected value
+      required    — boolean
+      placeholder — optional empty first option label
+      errorMsg    — custom error message text
+--}}
 @props([
     'name',
-    'label'    => null,
-    'km'       => null,
-    'options'  => [],
-    'value'    => null,
-    'required' => false,
-    'hint'     => null,
+    'km'          => '',
+    'en'          => '',
+    'options'     => [],
+    'value'       => null,
+    'required'    => false,
+    'placeholder' => null,
+    'errorMsg'    => null,
 ])
 
 <div class="fld">
-    @if($label || $km)
-    <label class="flbl" for="field_{{ $name }}">
+    <label class="flbl">
         @if($km)<span class="km">{{ $km }}</span>@endif
-        @if($label)<span class="en">/ {{ $label }}</span>@endif
+        @if($en)<span class="en">/ {{ $en }}</span>@endif
         @if($required)<span class="req">*</span>@endif
     </label>
-    @endif
 
     <select
-        id="field_{{ $name }}"
         name="{{ $name }}"
-        @if($required) required @endif
-        {{ $attributes->merge([
-            'class' => 'form-select' . ($errors->has($name) ? ' is-invalid' : ''),
-        ]) }}
+        class="form-select {{ $errors->has($name) ? 'is-invalid' : '' }}"
+        {{ $required ? 'required' : '' }}
+        @if($required) data-error-msg="{{ $errorMsg ?? ($en ?: $km) }}" @endif
+        {{ $attributes->except(['name','km','en','options','value','required','placeholder','errorMsg']) }}
     >
-        @foreach($options as $key => $text)
-            <option value="{{ $key }}"
-                {{ (string) old($name, $value) === (string) $key ? 'selected' : '' }}>
-                {{ $text }}
+        @if($placeholder !== null)
+            <option value="">{{ $placeholder }}</option>
+        @endif
+
+        @foreach($options as $optVal => $optLabel)
+            <option value="{{ $optVal }}" {{ old($name, $value) == $optVal ? 'selected' : '' }}>
+                {{ $optLabel }}
             </option>
         @endforeach
     </select>
 
-    @if($hint)
-        <div class="hint">{{ $hint }}</div>
-    @endif
-
     @error($name)
-        <div class="text-danger" style="font-size:11px;margin-top:3px">{{ $message }}</div>
+        <div class="field-error">{{ $message }}</div>
     @enderror
 </div>
