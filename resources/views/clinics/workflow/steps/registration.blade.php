@@ -1,12 +1,12 @@
 @php
     use App\Common\Constants\DateFormats;
-    $sexValue   = $patient?->gender ?? '';
+    $sexValue   = $patient?->sex ?? '';
     $isIPDVisit = $isIPD ?? false;
 @endphp
 
 <x-step.card step-id="registration" :visit="$visit" :step-idx="$stepIdx" :steps="$steps"
-    icon="bi-clipboard2-plus-fill" icon-color="#4154f1"
-    km="ការចុះឈ្មោះ" en="Registration">
+             icon="bi-clipboard2-plus-fill" icon-color="#4154f1"
+             km="ការចុះឈ្មោះ" en="Registration">
 
     {{-- Visit Info --}}
     <x-form.section title="Visit Info" km="ព័ត៌មានការចូល" color="#4154f1">
@@ -34,33 +34,33 @@
 
     {{-- IPD / OPD specific --}}
     @if($isIPDVisit)
-    <x-form.section title="Inpatient Details" km="ព័ត៌មាន IPD" color="#ff771d">
-        <div class="row g-3">
-            <div class="col-6 col-sm-4">
-                <x-form.field name="ward" label="Ward" km="សេវា"
-                              :value="$encounter?->ward"/>
+        <x-form.section title="Inpatient Details" km="ព័ត៌មាន IPD" color="#ff771d">
+            <div class="row g-3">
+                <div class="col-6 col-sm-4">
+                    <x-form.field name="ward" label="Ward" km="សេវា"
+                                  :value="$encounter?->ward"/>
+                </div>
+                <div class="col-6 col-sm-4">
+                    <x-form.field name="bed" label="Bed No." km="គ្រែ"
+                                  :value="$encounter?->bed"/>
+                </div>
+                <div class="col-12 col-sm-4">
+                    <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
+                                   :options="['' => '— Select —', 'General Medicine' => 'General Medicine', 'Surgery' => 'Surgery', 'Paediatrics' => 'Paediatrics', 'ICU' => 'ICU', 'Emergency' => 'Emergency']"
+                                   :value="$encounter?->service_type"/>
+                </div>
             </div>
-            <div class="col-6 col-sm-4">
-                <x-form.field name="bed" label="Bed No." km="គ្រែ"
-                              :value="$encounter?->bed"/>
-            </div>
-            <div class="col-12 col-sm-4">
-                <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
-                    :options="['' => '— Select —', 'General Medicine' => 'General Medicine', 'Surgery' => 'Surgery', 'Paediatrics' => 'Paediatrics', 'ICU' => 'ICU', 'Emergency' => 'Emergency']"
-                    :value="$encounter?->service_type"/>
-            </div>
-        </div>
-    </x-form.section>
+        </x-form.section>
     @else
-    <x-form.section title="Outpatient Details" km="ព័ត៌មាន OPD" color="#4154f1">
-        <div class="row g-3">
-            <div class="col-12 col-sm-4">
-                <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
-                    :options="['' => '— Select —', 'Consultation' => 'Consultation', 'Emergency' => 'Emergency', 'Follow-up' => 'Follow-up', 'Specialist' => 'Specialist']"
-                    :value="$encounter?->service_type"/>
+        <x-form.section title="Outpatient Details" km="ព័ត៌មាន OPD" color="#4154f1">
+            <div class="row g-3">
+                <div class="col-12 col-sm-4">
+                    <x-form.select name="service_type" label="Service Type" km="ប្រភេទសេវា"
+                                   :options="['' => '— Select —', 'Consultation' => 'Consultation', 'Emergency' => 'Emergency', 'Follow-up' => 'Follow-up', 'Specialist' => 'Specialist']"
+                                   :value="$encounter?->service_type"/>
+                </div>
             </div>
-        </div>
-    </x-form.section>
+        </x-form.section>
     @endif
 
     {{-- Demographics --}}
@@ -75,9 +75,9 @@
                               :value="$patient?->name" :required="true"/>
             </div>
             <div class="col-6 col-sm-4">
-                <x-form.select name="gender" label="Gender" km="ភេទ" :required="true"
-                    :options="['M' => 'ប្រុស / Male', 'F' => 'ស្រី / Female']"
-                    :value="$sexValue"/>
+                <x-form.select name="sex" label="Gender" km="ភេទ" :required="true"
+                               :options="['M' => 'ប្រុស / Male', 'F' => 'ស្រី / Female']"
+                               :value="$sexValue"/>
             </div>
             <div class="col-6 col-sm-4">
                 <x-form.field name="birthdate" label="Date of Birth" km="ថ្ងៃខែឆ្នាំ"
@@ -130,13 +130,13 @@
         <div class="row g-3">
             <div class="col-6">
                 <x-form.select name="discharge_type" label="Discharge Type" km="ប្រភេទចេញ"
-                    :options="['' => '—', 'Authorized' => 'Authorized', 'AMA' => 'AMA', 'Transfer' => 'Transfer', 'Death' => 'Death']"
-                    :value="$visit->discharge_type"/>
+                               :options="['' => '—', 'Authorized' => 'Authorized', 'AMA' => 'AMA', 'Transfer' => 'Transfer', 'Death' => 'Death']"
+                               :value="$visit->discharge_type"/>
             </div>
             <div class="col-6">
                 <x-form.select name="visit_outcome" label="Outcome" km="លទ្ធផល"
-                    :options="['' => '—', 'Improved' => 'Improved', 'Resolved' => 'Resolved', 'Stable' => 'Stable', 'Deteriorated' => 'Deteriorated', 'Death' => 'Death']"
-                    :value="$visit->visit_outcome"/>
+                               :options="['' => '—', 'Improved' => 'Improved', 'Resolved' => 'Resolved', 'Stable' => 'Stable', 'Deteriorated' => 'Deteriorated', 'Death' => 'Death']"
+                               :value="$visit->visit_outcome"/>
             </div>
             <div class="col-6">
                 <x-form.field name="discharged_at" label="Discharged At" km="ថ្ងៃចេញ"

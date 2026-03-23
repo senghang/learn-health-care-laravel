@@ -24,7 +24,10 @@ return new class extends Migration {
             $table->string('batch_no', 60)->nullable();
             $table->text('note')->nullable();
             $table->string('recorded_by', 120)->nullable();
+
+            // Audit
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 

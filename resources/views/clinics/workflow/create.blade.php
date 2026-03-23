@@ -223,9 +223,9 @@
                                             <span class="km">លេខអ្នកជំងឺ</span><span class="en">/ Patient Code</span>
                                             <span class="req">*</span>
                                         </label>
-                                        <input id="f_patient_code" name="patient_code" class="form-control"
+                                        <input id="f_patient_code" name="patient_code" class="form-control ro"
                                                placeholder="PT20250317001"
-                                               value="{{ old('patient_code') }}"/>
+                                               value="{{ old('patient_code') }}" readonly/>
                                     </div>
                                 </div>
                                 <div class="col-6 col-sm-4">

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -33,7 +32,7 @@ class PatientModel extends Model
         'code',
         'surname',
         'name',            // given name
-        'gender',          // 'M' or 'F'
+        'sex',          // 'M' or 'F'
         'birthdate',
         'phone',
         'nationality',
@@ -127,7 +126,7 @@ class PatientModel extends Model
     /** Gender label in Khmer / English */
     public function getGenderLabelAttribute(): string
     {
-        return match($this->gender) {
+        return match ($this->gender) {
             'M' => 'ប្រុស / Male',
             'F' => 'ស្រី / Female',
             default => '—',

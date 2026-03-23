@@ -14,7 +14,7 @@ class InvoiceMedicationModel extends Model
     protected $table = 'invoice_medications';
 
     protected $fillable = [
-        'invoice_code', 'medicine_id', 'medicine_code', 'medicine_name',
+        'invoice_code', 'medicine_code', 'medicine_name',
         'quantity', 'price', 'payment', 'paid', 'discount', 'discount_type',
     ];
 
