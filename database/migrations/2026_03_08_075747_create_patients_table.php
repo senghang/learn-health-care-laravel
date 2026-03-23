@@ -13,7 +13,7 @@ return new class extends Migration {
             $table->string('code')->unique();
             $table->string('surname');
             $table->string('name');
-            $table->char('gender', 1)->comment('F or M');
+            $table->char('sex', 1)->comment('F or M');
             $table->date('birthdate')->nullable();
             $table->string('phone', 30)->nullable();
             $table->string('nationality', 80)->nullable();

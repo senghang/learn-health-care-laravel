@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PatientModel;
 use App\Models\VisitModel;
 use App\Common\Utils\CodeGenerator;
+use App\Services\ClinicCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class WorkflowController extends Controller
             ], fn($v) => $v !== null)
         );
 
-        $code = CodeGenerator::visit();
+        $code = ClinicCodeService::visit(currentClinic()->id);
 
         VisitModel::create([
             'code'           => $code,
@@ -91,7 +92,22 @@ class WorkflowController extends Controller
         $ctx     = WorkflowContext::for($visit, $step, $this->registry->all());
         $stepObj = $this->registry->find($step);
 
-        $ctx->save($request);
+        try {
+            $ctx->save($request);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Return back to the same step with validation errors visible
+            return redirect($this->stepUrl($code, $step))
+                ->withErrors($e->errors())
+                ->withInput()
+                ->with('flash', '⚠ ' . $stepObj->labelEn() . ': Please fix the errors below.')
+                ->with('flash_type', 'err');
+        } catch (\Throwable $e) {
+            // Show a meaningful error instead of a blank page reload
+            return redirect($this->stepUrl($code, $step))
+                ->withInput()
+                ->with('flash', '❌ Could not save: ' . $e->getMessage())
+                ->with('flash_type', 'err');
+        }
 
         $next = $ctx->nextPendingStep();
 
@@ -150,7 +166,7 @@ class WorkflowController extends Controller
 
     private function generateVisitCode(): string
     {
-        return CodeGenerator::visitPreview();
+        return ClinicCodeService::visitPreview(currentClinic()->id);
     }
 
     /**

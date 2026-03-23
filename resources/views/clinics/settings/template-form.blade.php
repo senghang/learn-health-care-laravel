@@ -2,190 +2,206 @@
 @section('title', $template ? 'Edit Template' : 'New Template')
 @section('content')
 
-<div class="pg-header">
-  <div>
-    <h1 class="pg-title">
-      {{ $template ? 'Edit Template' : __('app.settings.new_template') }}
-    </h1>
-    <div class="breadcrumb-row">
-      <a href="{{ route('dashboard') }}">ដើម</a><span>›</span>
-      <a href="{{ route('settings.templates') }}">{{ __('app.settings.templates') }}</a><span>›</span>
-      <span>{{ $template ? 'Edit' : 'New' }}</span>
-    </div>
-  </div>
-  <a href="{{ route('settings.templates') }}" class="btn btn-outline-primary btn-sm">
-    <i class="bi bi-arrow-left"></i> {{ __('app.back') }}
-  </a>
+@php $isEdit = (bool) $template; @endphp
+
+<x-page-header
+    :title="$isEdit ? 'កែប្រែគំរូបោះពុម្ព' : 'គំរូបោះពុម្ពថ្មី'"
+    :subtitle="$isEdit ? 'Edit Print Template' : 'New Print Template'"
+    :breadcrumbs="[
+        ['label'=>'ដើម','url'=>url('/')],
+        ['label'=>'Settings','url'=>route('settings.general')],
+        ['label'=>'Templates','url'=>route('settings.templates')],
+        ['label'=>$isEdit ? 'Edit' : 'New'],
+    ]"
+>
+    <a href="{{ route('settings.templates') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</x-page-header>
+
+@if($errors->any())
+<div class="note note-danger mb-3">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <ul style="margin:0;padding-left:16px;font-size:12px">
+        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+    </ul>
 </div>
+@endif
+
+<form method="POST"
+      action="{{ $isEdit ? route('settings.template.update',$template->id) : route('settings.template.store') }}"
+      id="tplForm">
+@csrf
+@if($isEdit) @method('PATCH') @endif
 
 <div class="row g-3">
-  {{-- Form --}}
-  <div class="col-12 col-lg-5">
-    <div class="card-emr">
-      <div class="card-hd">
-        <div class="card-hd-title">
-          <i class="bi bi-printer-fill"></i> Template Details
+
+{{-- Left: fields --}}
+<div class="col-12 col-lg-8">
+  <div class="card-emr mb-3">
+    <div class="card-hd"><div class="card-hd-title"><i class="bi bi-printer-fill" style="color:#4154f1"></i> Template Info</div></div>
+    <div class="card-bd">
+      <div class="row g-3">
+        @if(!$isEdit)
+        <div class="col-6 col-sm-4">
+          <x-form.field name="code" km="Code" en="Template Code"
+              :value="old('code')" placeholder="TPL-RX-01" required/>
         </div>
-      </div>
-      <div class="card-bd">
-        <form id="tplForm"
-              method="POST"
-              action="{{ $template ? route('settings.template.update', $template->id) : route('settings.template.store') }}">
-          @csrf
-          @if($template) @method('PATCH') @endif
-
+        @endif
+        <div class="col-6 col-sm-4">
+          <x-form.field name="name" km="ឈ្មោះ" en="Name"
+              :value="old('name', $template?->name)" required/>
+        </div>
+        <div class="col-6 col-sm-4">
+          <x-form.select name="type" km="ប្រភេទ" en="Type" required
+              :options="collect($types)->mapWithKeys(fn($t)=>[$t=>ucfirst($t)])->toArray()"
+              :value="old('type', $template?->type)"/>
+        </div>
+        <div class="col-6 col-sm-4">
+          <x-form.select name="locale" km="ភាសា" en="Language"
+              :options="['km'=>'ខ្មែរ / Khmer','en'=>'English','all'=>'Both / ទាំងពីរ']"
+              :value="old('locale', $template?->locale ?? 'km')"/>
+        </div>
+        <div class="col-6 col-sm-4">
+          <x-form.select name="paper_size" km="ទំហំក្រដាស" en="Paper Size"
+              :options="['A4'=>'A4','A5'=>'A5','Letter'=>'Letter']"
+              :value="old('paper_size', $template?->paper_size ?? 'A4')"/>
+        </div>
+        <div class="col-6 col-sm-4">
+          <x-form.select name="orientation" km="ទិស" en="Orientation"
+              :options="['portrait'=>'Portrait','landscape'=>'Landscape']"
+              :value="old('orientation', $template?->orientation ?? 'portrait')"/>
+        </div>
+        <div class="col-6 col-sm-3">
           <div class="fld">
-            <label class="flbl"><span class="km">Code</span><span class="req">*</span></label>
-            <input name="code" class="form-control {{ $errors->has('code') ? 'is-invalid' : '' }}"
-                   value="{{ old('code', $template?->code) }}"
-                   {{ $template ? 'readonly' : '' }}
-                   placeholder="TPL-1-RX-KH"/>
-            @error('code')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
-          </div>
-
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">{{ __('app.settings.template_type') }}</span><span class="req">*</span></label>
-                <select name="type" class="form-select">
-                  @foreach($types as $t)
-                  <option value="{{ $t }}" {{ old('type', $template?->type) === $t ? 'selected' : '' }}>
-                    {{ $t }}
-                  </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">{{ __('app.settings.template_locale') }}</span></label>
-                <select name="locale" class="form-select">
-                  @foreach(['km' => 'ខ្មែរ (km)', 'en' => 'English (en)', 'all' => 'All'] as $v => $l)
-                  <option value="{{ $v }}" {{ old('locale', $template?->locale ?? 'km') === $v ? 'selected' : '' }}>
-                    {{ $l }}
-                  </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="fld">
-            <label class="flbl"><span class="km">Name</span><span class="req">*</span></label>
-            <input name="name" class="form-control"
-                   value="{{ old('name', $template?->name) }}"
-                   placeholder="វេជ្ជបញ្ជា (ភាសាខ្មែរ)"/>
-          </div>
-
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">{{ __('app.settings.paper_size') }}</span></label>
-                <select name="paper_size" class="form-select">
-                  @foreach(['A5','A4','Letter'] as $p)
-                  <option value="{{ $p }}" {{ old('paper_size', $template?->paper_size ?? 'A5') === $p ? 'selected' : '' }}>{{ $p }}</option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">{{ __('app.settings.orientation') }}</span></label>
-                <select name="orientation" class="form-select">
-                  <option value="portrait"  {{ old('orientation', $template?->orientation ?? 'portrait')  === 'portrait'  ? 'selected' : '' }}>{{ __('app.settings.portrait') }}</option>
-                  <option value="landscape" {{ old('orientation', $template?->orientation ?? 'portrait') === 'landscape' ? 'selected' : '' }}>{{ __('app.settings.landscape') }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div class="fld d-flex align-items-center gap-3">
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-              <input type="checkbox" name="is_default" value="1"
+            <label class="flbl"><span class="km">លំនាំដើម</span><span class="en">/ Default</span></label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <input type="hidden" name="is_default" value="0">
+              <input type="checkbox" name="is_default" value="1" id="isDefault"
                      {{ old('is_default', $template?->is_default) ? 'checked' : '' }}
-                     style="width:16px;height:16px">
-              {{ __('app.settings.default') }}
-            </label>
-            @if($template)
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-              <input type="checkbox" name="is_active" value="1"
-                     {{ old('is_active', $template?->is_active ?? true) ? 'checked' : '' }}
-                     style="width:16px;height:16px">
-              Active
-            </label>
-            @endif
-          </div>
-
-          <div class="fld">
-            <label class="flbl">
-              <span class="km">Template Content</span>
-              <span class="en">/ Blade HTML</span>
-              <span class="req">*</span>
-            </label>
-            <div style="font-size:10px;color:#aaa;margin-bottom:4px">
-              Variables: <code>$rx</code> <code>$invoice</code> <code>$visit</code> <code>$patient</code>
-              · Helpers: <code>df_d()</code> <code>khr()</code> <code>currentClinic()</code>
+                     style="width:16px;height:16px;cursor:pointer">
+              <label for="isDefault" style="font-size:12px;color:#555;cursor:pointer">Set as default</label>
             </div>
-            <textarea name="content" id="tplContent" class="form-control"
-                      rows="18"
-                      style="font-family:var(--font-mono,'Courier New',monospace);font-size:11px;resize:vertical"
-                      oninput="updatePreview()"
-                      placeholder="<div>{{ $patient?->surname }}</div>">{{ old('content', $template?->content) }}</textarea>
           </div>
-
-          <div class="d-flex gap-2 mt-3 pt-3" style="border-top:1px solid #f0f2ff">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check2-circle"></i>
-              {{ $template ? __('app.update') : __('app.save') }}
-            </button>
-            <a href="{{ route('settings.templates') }}" class="btn btn-outline-primary">
-              {{ __('app.cancel') }}
-            </a>
+        </div>
+        @if($isEdit)
+        <div class="col-6 col-sm-3">
+          <div class="fld">
+            <label class="flbl"><span class="km">សកម្ម</span><span class="en">/ Active</span></label>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+              <input type="hidden" name="is_active" value="0">
+              <input type="checkbox" name="is_active" value="1" id="isActive"
+                     {{ old('is_active', $template?->is_active ?? true) ? 'checked' : '' }}
+                     style="width:16px;height:16px;cursor:pointer">
+              <label for="isActive" style="font-size:12px;color:#555;cursor:pointer">Active</label>
+            </div>
           </div>
-        </form>
+        </div>
+        @endif
       </div>
     </div>
   </div>
 
-  {{-- Live preview --}}
-  <div class="col-12 col-lg-7">
-    <div class="card-emr" style="position:sticky;top:76px">
-      <div class="card-hd">
-        <div class="card-hd-title"><i class="bi bi-eye-fill"></i> Preview</div>
-        <span style="font-size:11px;color:#aaa">Approximate render (no Blade variables)</span>
+  {{-- Template content editor --}}
+  <div class="card-emr">
+    <div class="card-hd" style="flex-wrap:wrap;gap:8px">
+      <div class="card-hd-title"><i class="bi bi-code-square" style="color:#4154f1"></i> HTML Content</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{patient_name}}')">Patient</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{visit_code}}')">Visit</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{date}}')">Date</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{clinic_name}}')">Clinic</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{doctor_name}}')">Doctor</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{medications}}')">Medications</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{services}}')">Services</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="insertVar('{{total}}')">Total</button>
       </div>
-      <div class="card-bd" style="padding:0">
-        <iframe id="previewFrame"
-                style="width:100%;height:500px;border:none;background:#fff;border-radius:0 0 10px 10px"
-                sandbox="allow-same-origin"></iframe>
-      </div>
+    </div>
+    <div class="card-bd" style="padding:0">
+      <textarea name="content" id="tplContent" required
+                style="width:100%;min-height:400px;border:none;padding:16px;font-family:'Courier New',monospace;font-size:12.5px;resize:vertical;border-top:1px solid #f0f2ff;background:#fafbff;color:#333;outline:none"
+                placeholder="Enter HTML template here…
+Use {{variable_name}} for dynamic content.
+
+Available variables:
+  {{patient_name}} {{patient_code}} {{patient_dob}} {{patient_sex}}
+  {{visit_code}} {{visit_type}} {{admitted_at}}
+  {{clinic_name}} {{clinic_phone}} {{clinic_address}}
+  {{doctor_name}} {{date}} {{time}}
+  {{medications}} {{services}} {{total}} {{diagnosis}}">{{ old('content', $template?->content) }}</textarea>
     </div>
   </div>
 </div>
 
-@push('scripts')
+{{-- Right: guide + actions --}}
+<div class="col-12 col-lg-4">
+  <div class="card-emr mb-3" style="position:sticky;top:76px">
+    <div class="card-hd" style="background:#f6f9ff">
+      <div class="card-hd-title"><i class="bi bi-save-fill" style="color:#4154f1"></i> Actions</div>
+    </div>
+    <div class="card-bd">
+      <button type="submit" class="btn btn-primary btn-w100 mb-2">
+        <i class="bi bi-check2-circle"></i>
+        {{ $isEdit ? 'Update Template' : 'Create Template' }}
+      </button>
+      <a href="{{ route('settings.templates') }}" class="btn btn-outline-primary btn-w100 mb-3">
+        <i class="bi bi-x-circle"></i> Cancel
+      </a>
+
+      @if($isEdit)
+      <div style="border-top:1px solid #f0f2ff;padding-top:12px;font-size:11px;color:#aaa;line-height:1.8">
+        <div><i class="bi bi-tag" style="width:14px"></i> Code: <strong style="color:#555">{{ $template->code }}</strong></div>
+        <div><i class="bi bi-calendar" style="width:14px"></i> Created: {{ $template->created_at->format('d/m/Y') }}</div>
+        <div><i class="bi bi-pencil" style="width:14px"></i> Updated: {{ $template->updated_at->format('d/m/Y H:i') }}</div>
+      </div>
+      @endif
+    </div>
+  </div>
+
+  <div class="card-emr">
+    <div class="card-hd"><div class="card-hd-title"><i class="bi bi-info-circle-fill" style="color:#4154f1"></i> Variable Reference</div></div>
+    <div class="card-bd" style="font-size:11.5px;line-height:1.9">
+      @php
+        $vars = [
+          'patient_name'  => 'Full name',
+          'patient_code'  => 'Patient ID',
+          'patient_dob'   => 'Date of birth',
+          'patient_sex'   => 'M / F',
+          'visit_code'    => 'Visit code',
+          'visit_type'    => 'OPD / IPD',
+          'admitted_at'   => 'Admission date/time',
+          'clinic_name'   => 'Clinic name',
+          'clinic_phone'  => 'Clinic phone',
+          'doctor_name'   => 'Attending doctor',
+          'date'          => 'Print date',
+          'time'          => 'Print time',
+          'medications'   => 'Rx table (HTML)',
+          'services'      => 'Services table',
+          'total'         => 'Total amount KHR',
+          'diagnosis'     => 'Primary diagnosis',
+        ];
+      @endphp
+      @foreach($vars as $k => $desc)
+      <div style="display:flex;gap:6px;padding:2px 0;border-bottom:1px solid #f8f9ff">
+        <code style="font-size:10.5px;color:#4154f1;flex-shrink:0;background:#eef0fd;padding:1px 5px;border-radius:3px">{{{{ $k }}}}</code>
+        <span style="color:#888">{{ $desc }}</span>
+      </div>
+      @endforeach
+    </div>
+  </div>
+</div>
+
+</div>{{-- /row --}}
+</form>
+
 <script>
-function updatePreview() {
-  const content = document.getElementById('tplContent').value;
-  // Simple variable substitution for preview — not real Blade rendering
-  const preview = content
-    .replace(/\{\{[^}]+\}\}/g, '<span style="background:#fff3e8;color:#ff771d;padding:1px 3px;border-radius:3px;font-size:10px">var</span>')
-    .replace(/@\w+[^>]*/g, '')
-    .replace(/<\?php[^?]*\?>/g, '');
-
-  const doc = `<!DOCTYPE html><html><head>
-    <meta charset="UTF-8">
-    <style>
-      body{font-family:'Noto Sans Khmer','Nunito',sans-serif;font-size:11pt;padding:16px;color:#000}
-      *{box-sizing:border-box}table{width:100%;border-collapse:collapse}
-      th,td{padding:3px 6px}
-    </style></head><body>${preview}</body></html>`;
-
-  const frame = document.getElementById('previewFrame');
-  const blob = new Blob([doc], {type:'text/html'});
-  frame.src = URL.createObjectURL(blob);
+function insertVar(v) {
+    var ta = document.getElementById('tplContent');
+    var start = ta.selectionStart;
+    var end   = ta.selectionEnd;
+    ta.value  = ta.value.substring(0,start) + v + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + v.length;
+    ta.focus();
 }
-document.addEventListener('DOMContentLoaded', updatePreview);
 </script>
-@endpush
 @endsection

@@ -1,29 +1,37 @@
 /**
- * MediFlow EMR — clinic.js
+ * MediFlow EMR — clinic.js  (enhanced)
+ * 1. Sidebar   — collapse/expand, mobile overlay, tooltip-on-collapsed
+ * 2. Toast     — rich: icon / title / progress bar / dismiss
+ * 3. Flash     — reads data-flash and session divs from DOM
+ * 4. Workflow  — progress ring helper, step scroll, skip confirm
+ * 5. Live      — badge refresh every 60 s
+ * 6. Dashboard — stat counter animation
+ * 7. Forms     — layout helpers
  */
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+/* ─── 1. SIDEBAR ──────────────────────────────────────────────────── */
+
 const isMobile = () => window.innerWidth < 992;
 
-function toggleSidebar() {
+function _applyCollapsed(collapsed) {
     const sb = document.getElementById('sidebar');
-    const ov = document.getElementById('sidebarOverlay');
     const tb = document.getElementById('topbar');
     const mn = document.getElementById('main');
+    const ic = document.getElementById('sbPinIcon');
+    [sb, tb, mn].forEach(el => el?.classList.toggle('sb-collapsed', collapsed));
+    if (ic) ic.className = collapsed ? 'bi bi-layout-sidebar' : 'bi bi-layout-sidebar-reverse';
+    try { localStorage.setItem('sb_col', collapsed ? '1' : '0'); } catch (_) {}
+}
 
+function toggleSidebar() {
     if (isMobile()) {
-        const open = sb.classList.contains('mobile-open');
-        sb.classList.toggle('mobile-open', !open);
-        ov.classList.toggle('show', !open);
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('sidebarOverlay');
+        const open = sb?.classList.contains('mobile-open');
+        sb?.classList.toggle('mobile-open', !open);
+        ov?.classList.toggle('show', !open);
     } else {
-        const col = sb.classList.contains('collapsed');
-        sb.classList.toggle('collapsed', !col);
-        tb?.classList.toggle('sb-collapsed', !col);
-        mn?.classList.toggle('sb-collapsed', !col);
-        const logoTxt = document.getElementById('sbLogoTxt');
-        if (logoTxt) logoTxt.style.display = !col ? 'none' : '';
-        // Persist sidebar state across page loads
-        try { localStorage.setItem('sb_collapsed', !col ? '1' : '0'); } catch {}
+        _applyCollapsed(!document.getElementById('sidebar')?.classList.contains('sb-collapsed'));
     }
 }
 
@@ -33,17 +41,8 @@ function closeSidebar() {
     document.getElementById('sidebarOverlay')?.classList.remove('show');
 }
 
-// Restore sidebar collapsed state on load
-(function restoreSidebar() {
-    try {
-        if (!isMobile() && localStorage.getItem('sb_collapsed') === '1') {
-            document.getElementById('sidebar')?.classList.add('collapsed');
-            document.getElementById('topbar')?.classList.add('sb-collapsed');
-            document.getElementById('main')?.classList.add('sb-collapsed');
-            const logoTxt = document.getElementById('sbLogoTxt');
-            if (logoTxt) logoTxt.style.display = 'none';
-        }
-    } catch {}
+(function () {
+    try { if (!isMobile() && localStorage.getItem('sb_col') === '1') _applyCollapsed(true); } catch (_) {}
 })();
 
 window.addEventListener('resize', () => {
@@ -53,50 +52,135 @@ window.addEventListener('resize', () => {
     }
 });
 
-/* ── Toast ───────────────────────────────────────────────────────────────── */
-function toast(msg, type = 'ok') {
-    const w = document.getElementById('toastWrap');
-    if (!w || !msg) return;
+/* ─── 2. TOAST ────────────────────────────────────────────────────── */
 
-    const d = document.createElement('div');
-    d.className = 'toast-item' + (type === 'err' ? ' err' : type === 'wrn' ? ' wrn' : '');
+const _TOAST_CFG = {
+    ok  : { cls: '',    bi: 'bi-check-lg'             },
+    wrn : { cls: 'wrn', bi: 'bi-exclamation-triangle'  },
+    err : { cls: 'err', bi: 'bi-x-circle'              },
+    inf : { cls: 'inf', bi: 'bi-info-circle'           },
+};
 
-    const icon = type === 'err' ? '❌' : type === 'wrn' ? '⚠️' : '✅';
-    d.innerHTML = `<span style="font-size:15px">${icon}</span><span>${msg}</span>`;
-
-    w.appendChild(d);
-    setTimeout(() => d.remove(), 3500);
+function toast(msg, type = 'ok', title = '', duration = 4500) {
+    const wrap = document.getElementById('toastWrap');
+    if (!wrap || !msg) return null;
+    const cfg = _TOAST_CFG[type] ?? _TOAST_CFG.ok;
+    const el  = document.createElement('div');
+    el.className = 'toast-item' + (cfg.cls ? ' ' + cfg.cls : '');
+    el.innerHTML =
+        `<div class="toast-icon"><i class="bi ${cfg.bi}"></i></div>` +
+        `<div class="toast-body">` +
+            (title ? `<div class="toast-title">${_esc(title)}</div>` : '') +
+            `<div class="toast-msg">${_esc(msg)}</div>` +
+        `</div>` +
+        `<button class="toast-close" onclick="_toastDismiss(this.parentElement)" aria-label="Close">` +
+            `<i class="bi bi-x"></i>` +
+        `</button>`;
+    wrap.appendChild(el);
+    if (duration > 0) setTimeout(() => _toastDismiss(el), duration);
+    return el;
 }
 
-/**
- * FIXED: read ALL flash divs, not just the first one.
- * The updated flash.blade.php can emit multiple divs
- * (one for 'flash', one for 'success', one for 'error' etc.)
- */
+function _toastDismiss(el) {
+    if (!el || el.classList.contains('removing')) return;
+    el.classList.add('removing');
+    setTimeout(() => el?.remove(), 240);
+}
+
+function _esc(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ─── 3. FLASH READER ────────────────────────────────────────────── */
+
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-flash]').forEach(el => {
-        const msg = el.dataset.flash;
-        const type = el.dataset.type || 'ok';
-        if (msg) toast(msg, type);
+        const msg = el.dataset.flash, type = el.dataset.type || 'ok', title = el.dataset.title || '';
+        if (msg) toast(msg, type, title);
+    });
+    document.querySelectorAll('[data-session-flash]').forEach(el => {
+        if (el.dataset.msg) toast(el.dataset.msg, el.dataset.sessionFlash === 'success' ? 'ok' : 'err');
     });
 });
 
-/* ── Step accordion (mobile) ─────────────────────────────────────────────── */
-let stepListOpen = false;
+/* ─── 4. WORKFLOW ─────────────────────────────────────────────────── */
 
+function drawProgressRing(id, pct) {
+    const svg = document.getElementById(id);
+    if (!svg) return;
+    const c = svg.querySelector('.wf-progress-ring-circle');
+    if (!c) return;
+    const r = parseFloat(c.getAttribute('r') || 18);
+    const circ = 2 * Math.PI * r;
+    c.style.strokeDasharray  = circ;
+    c.style.strokeDashoffset = circ - (pct / 100) * circ;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    /* Auto-scroll active step pill into view */
+    const track  = document.querySelector('.wf-track');
+    const active = track?.querySelector('.wf-pill--active');
+    if (active && track) {
+        setTimeout(() => {
+            const tR = track.getBoundingClientRect(), aR = active.getBoundingClientRect();
+            track.scrollBy({ left: aR.left - tR.left - tR.width / 2 + aR.width / 2, behavior: 'smooth' });
+        }, 120);
+    }
+
+    /* Init any progress rings already on page */
+    document.querySelectorAll('[data-ring-pct]').forEach(svg => {
+        drawProgressRing(svg.id, parseFloat(svg.dataset.ringPct));
+    });
+});
+
+/* Skip link confirmation */
+document.addEventListener('click', e => {
+    const link = e.target.closest('[data-skip-confirm]');
+    if (!link) return;
+    if (!confirm(`Skip "${link.dataset.skipConfirm || 'this step'}"? You can return later.`)) e.preventDefault();
+});
+
+/* Mobile step accordion */
 function toggleStepList() {
-    stepListOpen = !stepListOpen;
-    document.getElementById('stepSelectList')?.classList.toggle('open', stepListOpen);
+    const list = document.getElementById('stepSelectList');
     const chev = document.getElementById('stepListChevron');
-    if (chev) chev.style.transform = stepListOpen ? 'rotate(180deg)' : '';
+    const open = list?.classList.toggle('open');
+    if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
-/* ── Layout: hide/show VSS column ───────────────────────────────────────── */
-function updateLayout() {
+/* ─── 5. LIVE BADGES ──────────────────────────────────────────────── */
+setInterval(() => {
+    /* Silently probe — badges update naturally on next navigation */
+    fetch('/patients/search/json?q=_ping_', { credentials: 'same-origin' }).catch(() => {});
+}, 60_000);
+
+/* ─── 6. STAT COUNTER ANIMATION ──────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+        const target = parseFloat(el.dataset.target);
+        const suffix = el.dataset.suffix || '';
+        if (!isFinite(target) || target === 0) return;
+        let cur = 0;
+        const step = target / (600 / 16);
+        const tick = () => {
+            cur = Math.min(cur + step, target);
+            el.textContent = (Number.isInteger(target) ? Math.round(cur) : cur.toFixed(1)) + suffix;
+            if (cur < target) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+    });
+});
+
+/* ─── 7. LAYOUT / MISC ────────────────────────────────────────────── */
+function _updateVssLayout() {
     const col = document.getElementById('vssCol');
-    if (!col) return;
-    col.style.display = window.innerWidth >= 992 ? 'block' : 'none';
+    if (col) col.style.display = window.innerWidth >= 992 ? '' : 'none';
 }
+window.addEventListener('resize', _updateVssLayout);
+document.addEventListener('DOMContentLoaded', _updateVssLayout);
 
-window.addEventListener('resize', updateLayout);
-document.addEventListener('DOMContentLoaded', updateLayout);
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.row--just-saved').forEach(el => {
+        setTimeout(() => el.classList.remove('row--just-saved'), 2200);
+    });
+});

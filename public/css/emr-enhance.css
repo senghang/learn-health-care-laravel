@@ -1,0 +1,735 @@
+/* ═══════════════════════════════════════════════════════════════════
+   MediFlow EMR — Visual Enhancement Layer
+   Loads AFTER clinic.css + sidebar-header.css + clinic-additions.css
+
+   Covers:
+   1.  Operations-first primary hierarchy
+   2.  Live indicators & pulse animations
+   3.  Sidebar collapsible improvements
+   4.  Workflow progress ring + state bar
+   5.  Toast / alert UX
+   6.  Micro-interactions & elevation system
+═══════════════════════════════════════════════════════════════════ */
+
+/* ───────────────────────────────────────────────────────────────────
+   0. DESIGN TOKENS (override / extend root vars)
+────────────────────────────────────────────────────────────────────*/
+:root {
+    /* Elevation */
+    --shadow-xs  : 0 1px 3px rgba(1,41,112,.06), 0 1px 2px rgba(1,41,112,.04);
+    --shadow-sm  : 0 2px 8px rgba(1,41,112,.08), 0 1px 3px rgba(1,41,112,.05);
+    --shadow-md  : 0 4px 20px rgba(1,41,112,.10), 0 2px 6px rgba(1,41,112,.06);
+    --shadow-lg  : 0 10px 40px rgba(1,41,112,.14), 0 4px 12px rgba(1,41,112,.08);
+    --shadow-xl  : 0 20px 60px rgba(1,41,112,.18), 0 8px 24px rgba(1,41,112,.10);
+
+    /* Operations palette — richer, primary feel */
+    --op-consult : #4154f1;
+    --op-rx      : #e91e8c;
+    --op-invoice : #00bcd4;
+    --op-payment : #2eca6a;
+
+    /* Live indicator */
+    --live-color : #22c55e;
+    --live-ring  : rgba(34,197,94,.35);
+
+    /* Workflow states */
+    --wf-done    : #2eca6a;
+    --wf-active  : #4154f1;
+    --wf-skip    : #f59e0b;
+    --wf-pending : #94a3b8;
+
+    /* Toast */
+    --toast-ok   : #2eca6a;
+    --toast-wrn  : #f59e0b;
+    --toast-err  : #ef4444;
+    --toast-inf  : #4154f1;
+
+    /* Timing */
+    --ease-out   : cubic-bezier(.2,0,0,1);
+    --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   1. OPERATIONS-FIRST HIERARCHY
+   Operations get bolder color, elevated cards, primary styling
+────────────────────────────────────────────────────────────────────*/
+
+/* Operations section label in sidebar gets accent underline */
+.sb-group-label.ops-primary {
+    color: rgba(255,255,255,.7);
+    font-weight: 800;
+    letter-spacing: .8px;
+    padding-top: 16px;
+}
+
+/* Primary operation items — bolder left accent */
+.sb-item--primary {
+    position: relative;
+}
+.sb-item--primary.sb-item--active::before,
+.sb-item--primary:hover::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 20%; bottom: 20%;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--sb-accent);
+}
+
+/* Consultation card on dashboard — elevated hero */
+.op-hero-card {
+    background: linear-gradient(135deg, var(--op-consult), #6366f1);
+    border-radius: 16px;
+    padding: 20px 22px;
+    color: #fff;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
+}
+.op-hero-card::after {
+    content: '';
+    position: absolute;
+    right: -30px; top: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.07);
+    pointer-events: none;
+}
+.op-hero-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+}
+.op-hero-num {
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -2px;
+    font-family: 'Nunito', sans-serif;
+}
+.op-hero-label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: .85;
+    margin-top: 4px;
+}
+.op-hero-sub {
+    font-size: 10.5px;
+    opacity: .65;
+    margin-top: 2px;
+}
+.op-hero-icon {
+    position: absolute;
+    right: 18px; bottom: 14px;
+    font-size: 42px;
+    opacity: .18;
+}
+
+/* Stat cards — improved elevation on hover */
+.stat-card {
+    transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
+    box-shadow: var(--shadow-sm);
+}
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   2. LIVE INDICATORS
+   Pulsing dot for active visits, real-time feel
+────────────────────────────────────────────────────────────────────*/
+
+/* Pulse keyframe */
+@keyframes pulse-ring {
+    0%   { transform: scale(1);    opacity: .8; }
+    70%  { transform: scale(1.6);  opacity: 0;  }
+    100% { transform: scale(1.6);  opacity: 0;  }
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .6; }
+}
+
+@keyframes blink-badge {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: .55; }
+}
+
+/* Live dot — use: <span class="live-dot"></span> */
+.live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--live-color);
+    position: relative;
+    flex-shrink: 0;
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+.live-dot::before {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: var(--live-ring);
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+/* Live badge on sidebar item */
+.sb-badge--live {
+    animation: blink-badge 2.5s ease-in-out infinite;
+}
+
+/* Status pill — "● Active" */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 700;
+}
+.status-pill--active {
+    background: #dcfce7;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}
+.status-pill--pending {
+    background: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+.status-pill--done {
+    background: #ede9fe;
+    color: #7c3aed;
+    border: 1px solid #ddd6fe;
+}
+.status-pill--critical {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    animation: blink-badge 1.8s ease-in-out infinite;
+}
+.status-pill .live-dot {
+    width: 6px; height: 6px;
+}
+.status-pill .live-dot::before { inset: -2px; }
+
+/* Topbar live badge */
+.tb-dot {
+    animation: blink-badge 2.5s ease-in-out infinite;
+}
+
+/* Row highlight — new item just added */
+@keyframes row-highlight {
+    from { background: #eef2ff; }
+    to   { background: transparent; }
+}
+.row--just-saved { animation: row-highlight 2s ease-out forwards; }
+
+/* ───────────────────────────────────────────────────────────────────
+   3. SIDEBAR — COLLAPSIBLE POLISH
+────────────────────────────────────────────────────────────────────*/
+
+/* Smooth icon scaling when collapsed */
+#sidebar.sb-collapsed .sb-item-icon {
+    transform: scale(1.1);
+}
+
+/* Tooltip on collapsed items */
+#sidebar.sb-collapsed .sb-item {
+    position: relative;
+}
+#sidebar.sb-collapsed .sb-item::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: calc(var(--sb-w-col) - 2px);
+    top: 50%;
+    transform: translateY(-50%);
+    background: #1e293b;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 7px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s .05s;
+    z-index: 200;
+    box-shadow: var(--shadow-md);
+}
+#sidebar.sb-collapsed .sb-item:hover::after {
+    opacity: 1;
+}
+
+/* Divider between collapsed-mode tooltip and sidebar */
+#sidebar.sb-collapsed .sb-item::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--sb-w-col) - 4px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #334155;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .15s;
+    z-index: 201;
+}
+#sidebar.sb-collapsed .sb-item:hover::before { opacity: 1; }
+
+/* Active item pill indicator in collapsed mode */
+#sidebar.sb-collapsed .sb-item--active {
+    position: relative;
+}
+#sidebar.sb-collapsed .sb-item--active::after {
+    /* tooltip overrides this — only show active indicator when NOT hovered */
+    content: '';
+    position: absolute;
+    right: 6px; top: 50%;
+    transform: translateY(-50%);
+    width: 4px; height: 20px;
+    background: var(--sb-accent);
+    border-radius: 2px;
+    opacity: 1;
+    left: auto; /* reset */
+    font-size: 0; /* hide text */
+    padding: 0;
+    box-shadow: none;
+    pointer-events: none;
+}
+#sidebar.sb-collapsed .sb-item--active:hover::after {
+    content: attr(data-tooltip);
+    right: auto;
+    left: calc(var(--sb-w-col) - 2px);
+    top: 50%;
+    transform: translateY(-50%);
+    width: auto;
+    height: auto;
+    font-size: 11px;
+    padding: 5px 10px;
+    background: #1e293b;
+    box-shadow: var(--shadow-md);
+    border-radius: 7px;
+    color: #fff;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   4. WORKFLOW PROGRESS STATE
+────────────────────────────────────────────────────────────────────*/
+
+/* Progress ring — circular SVG indicator in step header */
+.wf-progress-ring {
+    flex-shrink: 0;
+}
+.wf-progress-ring-circle {
+    transition: stroke-dashoffset .5s var(--ease-out);
+    transform-origin: 50% 50%;
+    transform: rotate(-90deg);
+}
+
+/* Step pill — individual step state in the progress bar */
+.wf-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+    transition: all .15s var(--ease-out);
+}
+.wf-pill--done {
+    background: #dcfce7;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+.wf-pill--done:hover { background: #bbf7d0; }
+
+.wf-pill--active {
+    background: var(--wf-active);
+    color: #fff;
+    border-color: var(--wf-active);
+    box-shadow: 0 3px 10px rgba(65,84,241,.35);
+}
+
+.wf-pill--skipped {
+    background: #fef3c7;
+    color: #d97706;
+    border-color: #fde68a;
+}
+.wf-pill--skipped:hover { background: #fde68a; }
+
+.wf-pill--pending {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+}
+.wf-pill--pending:hover {
+    background: #e2e8f0;
+    color: #64748b;
+}
+
+/* Step bar — horizontal track */
+.wf-track {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    scroll-behavior: smooth;
+}
+.wf-track::-webkit-scrollbar { display: none; }
+
+/* Summary bar above workflow */
+.wf-summary-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    border: 1px solid #e2e8f0;
+}
+.wf-summary-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #475569;
+}
+.wf-summary-stat span { color: #012970; }
+
+/* Progress bar track — thin gradient fill */
+.wf-progress-track {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+.wf-progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #4154f1, #6366f1, #2eca6a);
+    transition: width .6s var(--ease-out);
+    position: relative;
+}
+.wf-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 20px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35));
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+@keyframes shimmer {
+    0%   { opacity: 0; transform: translateX(-10px); }
+    50%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(10px); }
+}
+
+/* Step dot — compact inline version */
+.wf-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    flex-shrink: 0;
+    border: 2px solid transparent;
+    transition: all .18s var(--ease-out);
+}
+.wf-dot--done    { background: var(--wf-done);    color: #fff; border-color: var(--wf-done); }
+.wf-dot--active  { background: var(--wf-active);  color: #fff; border-color: var(--wf-active); box-shadow: 0 0 0 3px rgba(65,84,241,.2); }
+.wf-dot--skipped { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+.wf-dot--pending { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+
+/* ───────────────────────────────────────────────────────────────────
+   5. TOAST / ALERT UX
+────────────────────────────────────────────────────────────────────*/
+
+/* Toast container — bottom-right stack */
+#toastWrap {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 360px;
+    pointer-events: none;
+}
+
+/* Individual toast — redesigned */
+.toast-item {
+    pointer-events: all;
+    background: #fff;
+    border-radius: 12px;
+    padding: 13px 16px;
+    box-shadow: var(--shadow-xl);
+    font-size: 13px;
+    font-family: var(--font);
+    display: grid;
+    grid-template-columns: 20px 1fr auto;
+    align-items: start;
+    gap: 10px;
+    border-left: 4px solid var(--toast-ok);
+    animation: toast-in .28s var(--ease-spring) both;
+    position: relative;
+    overflow: hidden;
+}
+.toast-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 4px; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--toast-ok), transparent);
+    animation: toast-timer 4s linear forwards;
+    transform-origin: left;
+}
+
+.toast-item.wrn { border-left-color: var(--toast-wrn); }
+.toast-item.wrn::after { background: linear-gradient(90deg, var(--toast-wrn), transparent); }
+
+.toast-item.err { border-left-color: var(--toast-err); }
+.toast-item.err::after { background: linear-gradient(90deg, var(--toast-err), transparent); }
+
+.toast-item.inf { border-left-color: var(--toast-inf); }
+.toast-item.inf::after { background: linear-gradient(90deg, var(--toast-inf), transparent); }
+
+.toast-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    background: #dcfce7;
+    color: #16a34a;
+}
+.toast-item.wrn .toast-icon { background: #fef3c7; color: #d97706; }
+.toast-item.err .toast-icon { background: #fee2e2; color: #dc2626; }
+.toast-item.inf .toast-icon { background: #ede9fe; color: #7c3aed; }
+
+.toast-body { flex: 1; }
+.toast-title {
+    font-weight: 700;
+    color: #012970;
+    font-size: 12.5px;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+.toast-msg {
+    font-size: 11.5px;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    flex-shrink: 0;
+    border-radius: 4px;
+    width: 20px; height: 20px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .12s, color .12s;
+    margin-top: -1px;
+}
+.toast-close:hover { background: #f1f5f9; color: #475569; }
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(100%) scale(.9); }
+    to   { opacity: 1; transform: none; }
+}
+@keyframes toast-out {
+    to   { opacity: 0; transform: translateX(110%) scale(.9); max-height: 0; padding: 0; margin: 0; }
+}
+@keyframes toast-timer {
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+.toast-item.removing {
+    animation: toast-out .22s var(--ease-out) both;
+    pointer-events: none;
+}
+
+/* Alert / note redesign — inline alerts in forms */
+.note {
+    border-radius: 10px;
+    padding: 12px 15px;
+    font-size: 12.5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 1px solid;
+    line-height: 1.5;
+}
+.note-info    { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+.note-success { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.note-warn    { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+.note-danger  { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+.note > i { flex-shrink: 0; margin-top: 2px; font-size: 14px; }
+
+/* ───────────────────────────────────────────────────────────────────
+   6. MICRO-INTERACTIONS & ELEVATION
+────────────────────────────────────────────────────────────────────*/
+
+/* Card lift on hover */
+.card-emr {
+    transition: box-shadow .2s var(--ease-out);
+}
+.card-emr:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* Table row hover — smooth */
+.tbl tbody tr {
+    transition: background .12s;
+}
+
+/* Button press feedback */
+.btn:active { transform: scale(.97); }
+.btn { transition: all .15s var(--ease-out); }
+
+/* Form control focus ring — better */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--op-consult);
+    box-shadow: 0 0 0 3px rgba(65,84,241,.12);
+    outline: none;
+}
+
+/* Skeleton loading shimmer — for dynamic content areas */
+@keyframes skeleton {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+.skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 800px 100%;
+    animation: skeleton 1.4s ease-in-out infinite;
+    border-radius: 6px;
+}
+.skeleton-text  { height: 12px; margin-bottom: 6px; }
+.skeleton-title { height: 20px; margin-bottom: 8px; width: 60%; }
+
+/* Workflow page — sticky action bar */
+.wf-action-bar {
+    position: sticky;
+    bottom: 0;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 20px rgba(1,41,112,.08);
+    z-index: 100;
+    padding: 12px 18px;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   7. OPERATIONS SECTION — special items on dashboard
+────────────────────────────────────────────────────────────────────*/
+
+/* Quick action tiles */
+.qa-tile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .15s var(--ease-out), box-shadow .15s var(--ease-out);
+    border: 1.5px solid transparent;
+}
+.qa-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(65,84,241,.15);
+}
+.qa-tile--consult { background: linear-gradient(135deg, #eef0fd, #e8ecfc); }
+.qa-tile--rx      { background: linear-gradient(135deg, #fdf0f8, #fce4f4); }
+.qa-tile--invoice { background: linear-gradient(135deg, #e0f7fa, #b2ebf2); }
+.qa-tile--payment { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+
+.qa-tile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.qa-tile-label {
+    font-weight: 700;
+    font-size: 13px;
+    color: #012970;
+}
+.qa-tile-sub {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 1px;
+}
+
+/* ───────────────────────────────────────────────────────────────────
+   8. RESPONSIVE ADJUSTMENTS
+────────────────────────────────────────────────────────────────────*/
+
+@media (max-width: 767px) {
+    /* Toasts stack from bottom on mobile */
+    #toastWrap {
+        bottom: 72px; /* above bottom nav */
+        right: 12px;
+        left: 12px;
+        max-width: none;
+    }
+    .toast-item {
+        font-size: 12.5px;
+    }
+    .op-hero-num { font-size: 34px; }
+    .wf-track { padding: 10px 12px; gap: 5px; }
+}
+
+@media (min-width: 992px) {
+    /* Wider sidebar badge when expanded */
+    .sb-badge {
+        min-width: 20px;
+    }
+}

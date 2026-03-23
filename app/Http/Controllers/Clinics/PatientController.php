@@ -47,16 +47,15 @@ class PatientController extends Controller
 
     public function create(): View
     {
-        $nextCode = 'PT' . now()->format('Ymd') . str_pad(
-            PatientModel::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT
-        );
+        $nextCode = \App\Services\ClinicCodeService::patientPreview(currentClinic()->id);
+
         return view('clinics.patients.create', compact('nextCode'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code'           => 'required|string|max:30|unique:patients,code',
+            // code is auto-generated — not accepted from user input
             'surname'        => 'required|string|max:120',
             'name'           => 'required|string|max:120',
             'sex'            => 'required|in:M,F',
@@ -76,9 +75,12 @@ class PatientController extends Controller
         ]);
 
         $patient = PatientModel::create(array_merge(
-            collect($data)->only(['code','surname','name','sex','birthdate',
+            collect($data)->only(['surname','name','sex','birthdate',
                 'phone','nationality','occupation','marital_status','spid'])->toArray(),
-            ['clinic_id' => currentClinic()->id]
+            [
+                'clinic_id' => currentClinic()->id,
+                'code'      => \App\Services\ClinicCodeService::patient(currentClinic()->id),
+            ]
         ));
 
         PatientAddressModel::create(array_merge(

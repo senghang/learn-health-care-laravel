@@ -16,17 +16,11 @@ use App\Http\Controllers\Clinics\Workflows\Steps\WorkflowStep;
 use InvalidArgumentException;
 
 /**
- * WorkflowStepRegistry
- *
- * Single place to register all steps and their order.
- * Inject this via Laravel's service container anywhere you need steps.
- *
- * Bind in AppServiceProvider:
- *   $this->app->singleton(WorkflowStepRegistry::class);
+ * WorkflowStepRegistry — single registration point for all clinical steps.
+ * Bound as singleton in AppServiceProvider.
  */
 class WorkflowStepRegistry
 {
-    /** @var WorkflowStep[] Ordered list of all steps */
     private array $steps;
 
     public function __construct()
@@ -45,23 +39,16 @@ class WorkflowStepRegistry
         ];
     }
 
-    /** All steps in order */
-    public function all(): array
-    {
-        return $this->steps;
-    }
+    public function all(): array { return $this->steps; }
 
-    /** Find a step by its id string */
     public function find(string $id): WorkflowStep
     {
         foreach ($this->steps as $step) {
             if ($step->id() === $id) return $step;
         }
-
         throw new InvalidArgumentException("Workflow step not found: [{$id}]");
     }
 
-    /** Check if a step id exists */
     public function has(string $id): bool
     {
         foreach ($this->steps as $step) {
@@ -70,9 +57,8 @@ class WorkflowStepRegistry
         return false;
     }
 
-    /** All step IDs in order */
     public function ids(): array
     {
-        return array_map(fn(WorkflowStep $s) => $s->id(), $this->steps);
+        return array_map(fn($s) => $s->id(), $this->steps);
     }
 }

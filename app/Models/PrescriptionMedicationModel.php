@@ -10,17 +10,21 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class PrescriptionMedicationModel extends Model
 {
     use SoftDeletes, Auditable;
-    
-    protected $fillable = [
-        'prescription_code', 'medication_code', 'medicine_name', 'strength',
-        'form', 'method', 'unit', 'morning', 'afternoon', 'evening', 'night',
-        'days', 'interval', 'note',
-    ];
 
     protected $table = 'prescription_medications';
 
+    protected $fillable = [
+        'prescription_code', 'medication_code', 'medicine_name',
+        'strength', 'form', 'method', 'unit',
+        'morning', 'afternoon', 'evening', 'night',
+        'days', 'interval', 'note',
+    ];
+
     protected $casts = [
-        'morning' => 'float', 'afternoon' => 'float', 'evening' => 'float', 'night' => 'float',
+        'morning'   => 'float',
+        'afternoon' => 'float',
+        'evening'   => 'float',
+        'night'     => 'float',
     ];
 
     public function prescription(): BelongsTo
@@ -28,16 +32,14 @@ class PrescriptionMedicationModel extends Model
         return $this->belongsTo(PrescriptionModel::class, 'prescription_code', 'code');
     }
 
-    /** Total daily dose across all time slots */
-    public function getTotalDailyDoseAttribute(): float
+    public function getTotalDailyAttribute(): float
     {
         return ($this->morning ?? 0) + ($this->afternoon ?? 0)
-            + ($this->evening ?? 0) + ($this->night ?? 0);
+             + ($this->evening ?? 0) + ($this->night ?? 0);
     }
 
-    /** Total qty for the full course */
     public function getTotalQtyAttribute(): float
     {
-        return $this->total_daily_dose * ($this->days ?? 1);
+        return $this->total_daily * ($this->days ?? 1);
     }
 }

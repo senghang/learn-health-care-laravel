@@ -3,34 +3,38 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
+use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\MedicalHistoryModel;
+use App\Models\PhysicalExaminationModel;
+use App\Models\OutInPatientModel;
+use App\Models\SoapModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * VisitModel
+ * VisitModel — now includes ClinicScope for proper multi-tenant isolation.
  *
- * Column reference:
- *   surname   — family name
- *   name      — given name (stored as `name` in the visits table)
- *
- * The form uses `given_name` as the input field name for clarity.
- * WorkflowController maps given_name → name before persisting.
+ * FIX: Previously missing ClinicScope, which meant:
+ *   - VisitModel::all() returned visits from ALL clinics
+ *   - Cross-clinic data leakage was possible
+ *   - Composite unique code (clinic_id, code) was not enforced
  */
 class VisitModel extends Model
 {
-    use SoftDeletes, Auditable;
+    use SoftDeletes, Auditable, ClinicScope; // ← ClinicScope ADDED
 
     protected $table = 'visits';
 
     protected $fillable = [
+        'clinic_id',          // ← Now explicitly fillable
         'code',
         'health_facility_code',
         'patient_code',
         'surname',
-        'name',             // given name — DB column is `name`
+        'name',
         'visit_type',
         'admission_type',
         'discharge_type',
@@ -45,11 +49,11 @@ class VisitModel extends Model
     ];
 
     protected $casts = [
-        'admitted_at'    => 'datetime',
-        'discharged_at'  => 'datetime',
-        'followup_at'    => 'datetime',
-        'done_steps'     => 'array',
-        'skipped_steps'  => 'array',
+        'admitted_at'   => 'datetime',
+        'discharged_at' => 'datetime',
+        'followup_at'   => 'datetime',
+        'done_steps'    => 'array',    // JSONB → PHP array automatically
+        'skipped_steps' => 'array',
     ];
 
     // ── Relationships ─────────────────────────────────────────────────────────
@@ -64,16 +68,6 @@ class VisitModel extends Model
         return $this->hasMany(TriageModel::class, 'visit_code', 'code');
     }
 
-    public function medicalHistories(): HasMany
-    {
-        return $this->hasMany(MedicalHistoryModel::class, 'visit_code', 'code');
-    }
-
-    public function physicalExaminations(): HasMany
-    {
-        return $this->hasMany(PhysicalExaminationModel::class, 'visit_code', 'code');
-    }
-
     public function diagnoses(): HasMany
     {
         return $this->hasMany(DiagnosisModel::class, 'visit_code', 'code');
@@ -84,11 +78,6 @@ class VisitModel extends Model
         return $this->hasMany(PrescriptionModel::class, 'visit_code', 'code');
     }
 
-    public function referrals(): HasMany
-    {
-        return $this->hasMany(ReferralModel::class, 'visit_code', 'code');
-    }
-
     public function invoices(): HasMany
     {
         return $this->hasMany(InvoiceModel::class, 'visit_code', 'code');
@@ -97,6 +86,11 @@ class VisitModel extends Model
     public function laboratories(): HasMany
     {
         return $this->hasMany(LaboratoryModel::class, 'visit_code', 'code');
+    }
+
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(ReferralModel::class, 'visit_code', 'code');
     }
 
     public function encounters(): HasMany
@@ -110,32 +104,31 @@ class VisitModel extends Model
             ->latestOfMany('started_at');
     }
 
-    // ── Computed Attributes ───────────────────────────────────────────────────
+    // ── Computed attributes ───────────────────────────────────────────────────
 
-    /**
-     * Full display name: "SURNAME, Given Name"
-     * Uses `name` column which stores the given name.
-     */
-    public function getPatientNameAttribute(): string
+    public function medicalHistories(): HasMany
     {
-        return "{$this->surname}, {$this->name}";
+        return $this->hasMany(MedicalHistoryModel::class, 'visit_code', 'code');
     }
 
-    /**
-     * Alias so views can access $visit->given_name transparently.
-     * Reads from the `name` column (given name stored there).
-     */
-    public function getGivenNameAttribute(): string
+    public function physicalExaminations(): HasMany
+    {
+        return $this->hasMany(PhysicalExaminationModel::class, 'visit_code', 'code');
+    }
+
+    public function soap(): HasOne
+    {
+        return $this->hasOne(SoapModel::class, 'encounter_code', 'code');
+    }
+
+        public function getGivenNameAttribute(): string
     {
         return $this->name ?? '';
     }
 
-    public function getProgressPercentAttribute(): int
+    public function getPatientNameAttribute(): string
     {
-        // Dynamic: uses actual registry count via done_steps
-        // 10 is the current step count — update here if steps change
-        $total = 10;
-        return (int) round(count($this->done_steps ?? []) / $total * 100);
+        return "{$this->surname}, {$this->name}";
     }
 
     public function getStepsDoneAttribute(): int
@@ -146,6 +139,12 @@ class VisitModel extends Model
     public function getStepsSkippedAttribute(): int
     {
         return count($this->skipped_steps ?? []);
+    }
+
+    public function getProgressPercentAttribute(): int
+    {
+        $total = 10; // update if step count changes
+        return (int) round($this->steps_done / $total * 100);
     }
 
     public function isStepDone(string $id): bool

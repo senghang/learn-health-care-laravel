@@ -11,44 +11,21 @@ class SoapStep extends AbstractWorkflowStep
 {
     use ResolvesEncounter;
 
-    public function id(): string
-    {
-        return 'soap';
-    }
-
-    public function labelKm(): string
-    {
-        return 'SOAP Notes';
-    }
-
-    public function labelEn(): string
-    {
-        return 'SOAP';
-    }
-
-    public function icon(): string
-    {
-        return '📝';
-    }
-
-    public function color(): string
-    {
-        return '#3498db';
-    }
-
-    public function description(): string
-    {
-        return 'Subjective · Objective · Assessment · Plan';
-    }
+    public function id(): string         { return 'soap'; }
+    public function labelKm(): string    { return 'SOAP Notes'; }
+    public function labelEn(): string    { return 'SOAP'; }
+    public function icon(): string       { return '📝'; }
+    public function color(): string      { return '#3498db'; }
+    public function description(): string { return 'Subjective · Objective · Assessment · Plan'; }
 
     public function save(VisitModel $visit, Request $request): void
     {
         $data = $this->validate($request, [
             'subjective' => 'nullable|string',
-            'objective' => 'nullable|string',
+            'objective'  => 'nullable|string',
             'assessment' => 'nullable|string',
             'evaluation' => 'nullable|string',
-            'plan' => 'nullable|string',
+            'plan'       => 'nullable|string',
         ]);
 
         $encounter = $this->getOrCreateEncounter($visit);
@@ -62,11 +39,9 @@ class SoapStep extends AbstractWorkflowStep
     public function viewData(VisitModel $visit): array
     {
         $encounter = $this->findEncounter($visit);
-
         $soap = $encounter
             ? SoapModel::where('encounter_code', $encounter->code)->first()
             : null;
-
         return compact('soap', 'encounter');
     }
 }

@@ -2,36 +2,17 @@
 
 namespace App\Http\Controllers\Clinics\Workflows\Steps;
 
-use App\Common\Constants\DateFormats;
-use App\Common\Utils\CodeGenerator;
+use App\Models\InvoiceMedicationModel;
 use App\Models\InvoiceModel;
 use App\Models\InvoiceServiceModel;
+use App\Models\MedicineModel;
+use App\Models\ServiceModel;
 use App\Models\VisitModel;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
-/**
- * InvoiceStep
- *
- * Blade field names → DB column names:
- *   payment_type              → invoices.payment_type      (HEF|NSSF|CASH)
- *   invoice_date              → invoices.invoice_date      (date)
- *   cashier                   → invoices.cashier
- *   total                     → invoices.total             (declared total)
- *   services[N][name]         → invoice_services.service_name
- *   services[N][category]     → invoice_services.service_category
- *   services[N][price]        → invoice_services.price  AND .payment
- *   services[N][paid_status]  → 1|0  →  .paid = price if 1, else 0
- *
- * Save strategy: updateOrCreate invoice header keyed on visit_code,
- * then forceDelete old service rows and re-insert fresh ones.
- *
- * paid column (decimal) = amount actually paid:
- *   if paid_status = 1  → paid = price  (fully paid)
- *   if paid_status = 0  → paid = 0      (pending)
- *
- * If _complete=1 is submitted, marks the visit as discharged.
- */
 class InvoiceStep extends AbstractWorkflowStep
 {
     public function id(): string          { return 'invoice'; }
@@ -45,82 +26,159 @@ class InvoiceStep extends AbstractWorkflowStep
     public function save(VisitModel $visit, Request $request): void
     {
         $data = $this->validate($request, [
-            'payment_type'              => 'required|in:HEF,NSSF,CASH',
-            'invoice_date'              => 'nullable|date',
+            'payment_type'              => 'required|in:HEF,NSSF,CASH,CARD',
             'cashier'                   => 'nullable|string|max:120',
+            'invoice_date'              => 'nullable|date',
             'total'                     => 'nullable|numeric|min:0',
+            'status'                    => 'nullable|in:pending,partial,paid,void',
             'services'                  => 'nullable|array',
+            'services.*.service_code'   => 'nullable|string|max:30',
             'services.*.name'           => 'required_with:services|string|max:200',
             'services.*.category'       => 'nullable|string|max:80',
             'services.*.price'          => 'nullable|numeric|min:0',
-            // paid_status: 1 = fully paid, 0 = pending
             'services.*.paid_status'    => 'nullable|in:0,1',
+            'inv_meds'                  => 'nullable|array',
+            'inv_meds.*.medicine_id'    => 'nullable|integer|exists:medicines,id',
+            'inv_meds.*.name'           => 'required_with:inv_meds|string|max:200',
+            'inv_meds.*.qty'            => 'nullable|numeric|min:0',
+            'inv_meds.*.price'          => 'nullable|numeric|min:0',
+            'inv_meds.*.paid_status'    => 'nullable|in:0,1',
         ]);
 
-        DB::transaction(function () use ($visit, $data, $request) {
+        // ── Out-of-stock validation BEFORE any DB write ─────────────────────
+        $stockItems = collect($data['inv_meds'] ?? [])
+            ->filter(fn($m) => !empty($m['medicine_id']) && !empty(trim($m['name'] ?? '')))
+            ->map(fn($m) => [
+                'medicine_id' => (int) $m['medicine_id'],
+                'qty'         => (int) ($m['qty'] ?? 1),
+                'name'        => $m['name'],
+            ])->all();
 
-            // ── 1. Upsert invoice header (one per visit) ──────────────────────
+        $stockErrors = StockService::validate($stockItems);
+        if (!empty($stockErrors)) {
+            throw ValidationException::withMessages([
+                'inv_meds' => $stockErrors,
+            ]);
+        }
+
+        DB::transaction(function () use ($visit, $data, $stockItems) {
+            $invCode = 'INV-' . $visit->code;
+
+            // Force-delete any soft-deleted row to avoid unique constraint collision
+            InvoiceModel::withTrashed()
+                ->where('visit_code', $visit->code)
+                ->whereNotNull('deleted_at')
+                ->forceDelete();
+
+            $isNewInvoice = !InvoiceModel::where('visit_code', $visit->code)->exists();
+
             $inv = InvoiceModel::updateOrCreate(
                 ['visit_code' => $visit->code],
                 [
-                    'code'         => CodeGenerator::invoice($visit->code),
+                    'code'         => $invCode,
                     'patient_code' => $visit->patient_code,
                     'payment_type' => $data['payment_type'],
-                    'invoice_date' => $data['invoice_date']
-                        ? \Carbon\Carbon::parse($data['invoice_date'])->format(DateFormats::INPUT_DATE)
-                        : today()->toDateString(),
-                    'cashier'      => $data['cashier'] ?? null,
-                    'total'        => $data['total']   ?? 0,
+                    'invoice_date' => $data['invoice_date'] ?? today(),
+                    'cashier'      => $data['cashier'] ?? auth()->user()?->name,
+                    'status'       => $data['status'] ?? 'pending',
                 ]
             );
 
-            // ── 2. Replace all service rows cleanly ───────────────────────────
-            InvoiceServiceModel::where('invoice_code', $inv->code)->forceDelete();
+            // If re-saving: return old stock before wiping medications
+            if (!$isNewInvoice) {
+                StockService::returnStock($inv->code);
+            }
 
-            // ── 3. Insert fresh service rows ──────────────────────────────────
+            $inv->services()->forceDelete();
+            $inv->medications()->forceDelete();
+
+            // ── Services ───────────────────────────────────────────────────
+            $svcTotal = 0;
             foreach ($data['services'] ?? [] as $svc) {
                 if (empty(trim($svc['name'] ?? ''))) continue;
-
-                $price      = (float) ($svc['price']       ?? 0);
-                $paidStatus = (int)   ($svc['paid_status']  ?? 0);
-
+                $price    = (float) ($svc['price'] ?? 0);
+                $paid     = ($svc['paid_status'] ?? '0') === '1' ? $price : 0.0;
+                $svcTotal += $price;
                 InvoiceServiceModel::create([
                     'invoice_code'     => $inv->code,
+                    'service_code'     => $svc['service_code'] ?? null,
                     'service_name'     => $svc['name'],
                     'service_category' => $svc['category'] ?? null,
                     'price'            => $price,
-                    // payment = amount charged to patient (same as price here)
                     'payment'          => $price,
-                    // paid = amount actually received: full price if paid, 0 if pending
-                    'paid'             => $paidStatus === 1 ? $price : 0,
+                    'paid'             => $paid,
                 ]);
             }
 
-            // ── 4. Recalculate total from line items ──────────────────────────
-            $inv->load('services');
-            $inv->recalculateTotal();
+            // ── Medications (with medicine_id for stock audit) ─────────────
+            $medTotal    = 0;
+            $dispenseItems = [];
+            foreach ($data['inv_meds'] ?? [] as $med) {
+                if (empty(trim($med['name'] ?? ''))) continue;
+                $price    = (float) ($med['price'] ?? 0);
+                $qty      = (float) ($med['qty'] ?? 1);
+                $paid     = ($med['paid_status'] ?? '0') === '1' ? $price * $qty : 0.0;
+                $medTotal += $price * $qty;
 
-            // ── 5. Complete visit (discharge) if requested ────────────────────
-            if ($request->input('_complete') == '1') {
-                $visit->update([
-                    'discharged_at' => now(),
-                    'visit_outcome' => $visit->visit_outcome ?? 'Improved',
+                InvoiceMedicationModel::create([
+                    'invoice_code'  => $inv->code,
+                    'medicine_id'   => $med['medicine_id'] ?? null,
+                    'medicine_code' => $med['medicine_code'] ?? null,
+                    'medicine_name' => $med['name'],
+                    'quantity'      => $qty,
+                    'price'         => $price,
+                    'payment'       => $price * $qty,
+                    'paid'          => $paid,
                 ]);
+
+                if (!empty($med['medicine_id'])) {
+                    $dispenseItems[] = [
+                        'medicine_id' => (int) $med['medicine_id'],
+                        'qty'         => (int) $qty,
+                        'unit_price'  => $price,
+                        'name'        => $med['name'],
+                    ];
+                }
             }
+
+            // ── Deduct stock ──────────────────────────────────────────────
+            if (!empty($dispenseItems)) {
+                StockService::dispense(
+                    $dispenseItems,
+                    $inv->code,
+                    $visit->code,
+                    $visit->patient_code
+                );
+            }
+
+            // Final total
+            $declared = (float) ($data['total'] ?? 0);
+            $computed = $svcTotal + $medTotal;
+            $inv->update(['total' => $declared > 0 ? $declared : $computed]);
         });
     }
 
     public function viewData(VisitModel $visit): array
     {
         $invoice = InvoiceModel::where('visit_code', $visit->code)
-            ->with('services', 'medications')
-            ->latest()
-            ->first();
+            ->with('services', 'medications')->latest()->first();
+
+        $svcCatalog = ServiceModel::where('clinic_id', currentClinic()->id)
+            ->where('is_active', true)
+            ->orderBy('category')->orderBy('name')
+            ->get(['id', 'code', 'name', 'name_kh', 'category', 'price']);
+
+        $medCatalog = MedicineModel::where('clinic_id', currentClinic()->id)
+            ->where('is_active', true)
+            ->orderBy('form')->orderBy('name')
+            ->get(['id', 'code', 'name', 'name_kh', 'generic_name', 'form', 'strength', 'unit', 'price', 'stock', 'stock_alert']);
 
         return [
-            'invoice'  => $invoice,
-            'services' => $invoice?->services  ?? collect([]),
-            'meds'     => $invoice?->medications ?? collect([]),
+            'invoice'     => $invoice,
+            'services'    => $invoice?->services    ?? collect([]),
+            'meds'        => $invoice?->medications  ?? collect([]),
+            'svcCatalog'  => $svcCatalog,
+            'medCatalog'  => $medCatalog,
         ];
     }
 }

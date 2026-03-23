@@ -11,15 +11,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-/**
- * SettingController
- *
- * Manages:
- *   - Clinic general settings (locale, timezone, branding)
- *   - Print templates (prescription, invoice, referral)
- *   - Service master data
- *   - Medicine master data
- */
 class SettingController extends Controller
 {
     private int $clinicId;
@@ -33,34 +24,52 @@ class SettingController extends Controller
 
     public function general(): View
     {
-        $clinic = currentClinic();
-        $settings = ClinicSettingModel::where('clinic_id', $this->clinicId)->get()->keyBy('key');
+        $clinic   = currentClinic();
+        $settings = ClinicSettingModel::where('clinic_id', $this->clinicId)
+            ->get()->keyBy('key');
+
         return view('clinics.settings.general', compact('clinic', 'settings'));
     }
 
     public function updateGeneral(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'clinic_name'    => 'required|string|max:120',
+            'clinic_name_kh' => 'nullable|string|max:120',
+            'clinic_phone'   => 'nullable|string|max:30',
+            'clinic_email'   => 'nullable|email|max:120',
+            'clinic_address' => 'nullable|string|max:500',
             'default_locale' => 'required|in:km,en',
             'timezone'       => 'nullable|string|max:60',
             'currency'       => 'nullable|string|max:10',
-            'header_logo'    => 'nullable|image|mimes:png,jpg|max:2048',
+            'header_logo'    => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ]);
 
-        currentClinic()->update(['default_locale' => $data['default_locale']]);
+        // Update core clinic fields
+        currentClinic()->update([
+            'name'           => $data['clinic_name'],
+            'name_kh'        => $data['clinic_name_kh'] ?? null,
+            'default_locale' => $data['default_locale'],
+        ]);
 
-        if ($request->hasFile('header_logo')) {
-            $path = $request->file('header_logo')->store("clinic_{$this->clinicId}/branding", 'public');
-            ClinicSettingModel::set($this->clinicId, 'header_logo', $path);
-        }
-
-        foreach (['timezone', 'currency'] as $key) {
-            if (!empty($data[$key])) {
+        // Store flexible settings
+        $settingKeys = ['clinic_phone', 'clinic_email', 'clinic_address', 'timezone', 'currency'];
+        foreach ($settingKeys as $key) {
+            if (isset($data[$key])) {
                 ClinicSettingModel::set($this->clinicId, $key, $data[$key]);
             }
         }
 
-        return back()->with('flash', 'Settings saved.');
+        // Upload logo
+        if ($request->hasFile('header_logo')) {
+            $path = $request->file('header_logo')
+                ->store("clinic_{$this->clinicId}/branding", 'public');
+
+            currentClinic()->update(['logo' => $path]);
+            ClinicSettingModel::set($this->clinicId, 'header_logo', $path);
+        }
+
+        return back()->with('flash', 'ការកំណត់ត្រូវបានរក្សាទុក / Settings saved.');
     }
 
     // ── Print templates ───────────────────────────────────────────────────────
@@ -85,7 +94,7 @@ class SettingController extends Controller
     public function templateStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code'        => 'required|string|max:40|unique:print_templates,code',
+            // code is auto-generated
             'type'        => 'required|in:' . implode(',', PrintTemplateModel::TYPES),
             'name'        => 'required|string|max:120',
             'locale'      => 'required|in:km,en,all',
@@ -100,12 +109,14 @@ class SettingController extends Controller
             'is_active' => true,
         ]));
 
-        return redirect()->route('settings.templates')->with('flash', 'Template created.');
+        return redirect()->route('settings.templates')
+            ->with('flash', 'Template created.');
     }
 
     public function templateEdit(int $id): View
     {
         $template = PrintTemplateModel::where('clinic_id', $this->clinicId)->findOrFail($id);
+
         return view('clinics.settings.template-form', [
             'template' => $template,
             'types'    => PrintTemplateModel::TYPES,
@@ -116,7 +127,7 @@ class SettingController extends Controller
     {
         $template = PrintTemplateModel::where('clinic_id', $this->clinicId)->findOrFail($id);
 
-        $data = $request->validate([
+        $template->update($request->validate([
             'name'        => 'required|string|max:120',
             'locale'      => 'required|in:km,en,all',
             'content'     => 'required|string',
@@ -124,11 +135,10 @@ class SettingController extends Controller
             'orientation' => 'required|in:portrait,landscape',
             'is_default'  => 'boolean',
             'is_active'   => 'boolean',
-        ]);
+        ]));
 
-        $template->update($data);
-
-        return redirect()->route('settings.templates')->with('flash', 'Template updated.');
+        return redirect()->route('settings.templates')
+            ->with('flash', 'Template updated.');
     }
 
     // ── Services master ───────────────────────────────────────────────────────
@@ -145,7 +155,7 @@ class SettingController extends Controller
     public function serviceStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code'     => 'required|string|max:30|unique:services,code',
+            // code is auto-generated
             'name'     => 'required|string|max:120',
             'name_kh'  => 'nullable|string|max:120',
             'name_en'  => 'nullable|string|max:120',
@@ -153,7 +163,10 @@ class SettingController extends Controller
             'price'    => 'required|numeric|min:0',
         ]);
 
-        ServiceModel::create(array_merge($data, ['clinic_id' => $this->clinicId]));
+        ServiceModel::create(array_merge($data, [
+            'clinic_id' => $this->clinicId,
+            'code'      => \App\Services\ClinicCodeService::next($this->clinicId, 'SRV'),
+        ]));
 
         return back()->with('flash', 'Service added.');
     }
@@ -182,13 +195,18 @@ class SettingController extends Controller
             ->orderBy('form')->orderBy('name')
             ->paginate(30);
 
-        return view('clinics.settings.medicines', compact('medicines'));
+        $lowStock = MedicineModel::where('clinic_id', $this->clinicId)
+            ->whereColumn('stock', '<=', 'stock_alert')
+            ->where('is_active', true)
+            ->count();
+
+        return view('clinics.settings.medicines', compact('medicines', 'lowStock'));
     }
 
     public function medicineStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'code'         => 'required|string|max:30|unique:medicines,code',
+            // code is auto-generated
             'name'         => 'required|string|max:120',
             'name_kh'      => 'nullable|string|max:120',
             'name_en'      => 'nullable|string|max:120',
@@ -201,7 +219,10 @@ class SettingController extends Controller
             'stock_alert'  => 'required|integer|min:0',
         ]);
 
-        MedicineModel::create(array_merge($data, ['clinic_id' => $this->clinicId]));
+        MedicineModel::create(array_merge($data, [
+            'clinic_id' => $this->clinicId,
+            'code'      => \App\Services\ClinicCodeService::next($this->clinicId, 'MED'),
+        ]));
 
         return back()->with('flash', 'Medicine added.');
     }

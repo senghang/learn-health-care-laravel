@@ -11,22 +11,17 @@ class InvoiceServiceModel extends Model
 {
     use SoftDeletes, Auditable;
 
+    protected $table = 'invoice_services';
+
     protected $fillable = [
-        'invoice_code', 'service_code', 'service_name', 'service_category',
-        'price', 'payment', 'paid', 'discount_type', 'discount',
+        'invoice_code', 'service_code', 'service_name',
+        'service_category', 'price', 'qty',
     ];
 
-    protected $table = 'invoice_services';
-    
-    protected $casts = ['price' => 'float', 'payment' => 'float', 'paid' => 'float', 'discount' => 'float'];
+    protected $casts = ['price' => 'float', 'qty' => 'float'];
 
     public function invoice(): BelongsTo
     {
         return $this->belongsTo(InvoiceModel::class, 'invoice_code', 'code');
-    }
-
-    public function getBalanceAttribute(): float
-    {
-        return $this->payment - $this->paid;
     }
 }

@@ -26,8 +26,12 @@
         <form method="POST" action="{{ route('settings.service.store') }}">
           @csrf
           <div class="fld">
-            <label class="flbl"><span class="km">Code</span><span class="req">*</span></label>
-            <input name="code" class="form-control" value="{{ old('code') }}" placeholder="SRV001"/>
+            <label class="flbl">
+              <span class="km">Code</span>
+              <span style="font-size:9px;background:#e8f8ef;color:#1D9E75;padding:1px 6px;border-radius:8px;margin-left:4px">AUTO</span>
+            </label>
+            <input class="form-control ro" value="Auto-generated on save" readonly
+                   style="color:#aaa;font-style:italic"/>
           </div>
           <div class="fld">
             <label class="flbl"><span class="km">{{ __('app.name') }}</span><span class="req">*</span></label>

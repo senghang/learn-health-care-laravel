@@ -3,19 +3,36 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
+use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * PrescriptionModel — now includes ClinicScope.
+ */
 class PrescriptionModel extends Model
 {
-    use SoftDeletes, Auditable;
+    use SoftDeletes, Auditable, ClinicScope; // ← ClinicScope ADDED
 
     protected $table = 'prescriptions';
 
-    protected $fillable = ['code', 'patient_code', 'visit_code', 'encounter_code', 'prescribed_at', 'prescribed_by', 'title'];
-    
+    protected $fillable = [
+        'clinic_id',
+        'code',
+        'patient_code',
+        'visit_code',
+        'encounter_code',
+        'prescribed_at',
+        'prescribed_by',
+        'dispensed_status',
+        'dispensed_by',
+        'title',
+        'created_by',
+        'updated_by',
+    ];
+
     protected $casts = ['prescribed_at' => 'datetime'];
 
     public function patient(): BelongsTo

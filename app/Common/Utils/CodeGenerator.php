@@ -3,7 +3,6 @@
 namespace App\Common\Utils;
 
 use App\Common\Constants\DateFormats;
-use App\Models\VisitModel;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -11,32 +10,33 @@ use Illuminate\Support\Facades\DB;
  */
 final class CodeGenerator
 {
+    /**
+     * @deprecated Use ClinicCodeService::visit($clinicId) instead.
+     * This method was broken: lockForUpdate() + count() fails on PostgreSQL.
+     * Kept for backward compatibility — delegates to ClinicCodeService.
+     */
     public static function visit(): string
     {
-        return DB::transaction(function () {
-            $count = VisitModel::whereDate('created_at', today())->lockForUpdate()->count();
-            return 'V' . now()->format(DateFormats::CODE_DATE) . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-        });
+        $clinicId = app()->has('currentClinic') ? app('currentClinic')->id : 1;
+        return \App\Services\ClinicCodeService::visit($clinicId);
     }
 
     public static function visitPreview(): string
     {
-        $count = VisitModel::whereDate('created_at', today())->count();
-        return 'V' . now()->format(DateFormats::CODE_DATE) . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+        $clinicId = app()->has('currentClinic') ? app('currentClinic')->id : 1;
+        return \App\Services\ClinicCodeService::visitPreview($clinicId);
     }
 
     public static function patient(): string
     {
-        return DB::transaction(function () {
-            $count = \App\Models\PatientModel::whereDate('created_at', today())->lockForUpdate()->count();
-            return 'PT' . now()->format(DateFormats::CODE_DATE) . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-        });
+        $clinicId = app()->has('currentClinic') ? app('currentClinic')->id : 1;
+        return \App\Services\ClinicCodeService::patient($clinicId);
     }
 
     public static function patientPreview(): string
     {
-        $count = \App\Models\PatientModel::whereDate('created_at', today())->count();
-        return 'PT' . now()->format(DateFormats::CODE_DATE) . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+        $clinicId = app()->has('currentClinic') ? app('currentClinic')->id : 1;
+        return \App\Services\ClinicCodeService::patientPreview($clinicId);
     }
 
     public static function prescription(string $visitCode): string { return 'RX-' . $visitCode; }

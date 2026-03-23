@@ -7,56 +7,48 @@
     'totalSteps'    => 1,
 ])
 
-<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 p-3"
-     style="border-top:1px solid #f0f2ff">
+<div class="wf-action-bar">
 
-    {{-- Left: Save + Skip --}}
-    <div class="d-flex gap-2 flex-wrap">
+    {{-- ── Left: Save + Skip ────────────────────────────────────────── --}}
+    <div class="d-flex gap-2 flex-wrap align-items-center">
 
-        <button type="submit"
-                form="{{ $formId }}"
-                class="btn btn-primary">
+        <button type="submit" form="{{ $formId }}" class="wf-save-btn">
             <i class="bi bi-check2-circle"></i>
-            រក្សាទុក &amp; បន្ត / Save &amp; continue
+            <span>រក្សាទុក &amp; បន្ត</span>
+            <span class="d-none d-sm-inline" style="font-weight:400;opacity:.8;font-size:12px">/ Save &amp; continue</span>
         </button>
 
         @if($skipRoute)
-            {{-- FIXED: route is workflow.skip (GET), confirmed in routes/clinic.php --}}
-            <a href="{{ $skipRoute }}"
-               class="btn btn-outline-primary"
-               onclick="return confirm('Skip this step? You can come back to fill it later.')">
-                <i class="bi bi-skip-forward-fill"></i>
-                Skip / ដកចោលមុន
-            </a>
+        <a href="{{ $skipRoute }}"
+           class="wf-skip-btn"
+           onclick="return confirm('Skip this step? You can come back to fill it later.\n\nដកចោលមុន? អ្នកអាចវិលត្រឡប់ក្រោយ។')">
+            <i class="bi bi-skip-forward-fill"></i>
+            <span>Skip</span>
+            <span class="d-none d-sm-inline" style="opacity:.7;font-size:11px">/ ដកចោលមុន</span>
+        </a>
         @endif
 
     </div>
 
-    {{-- Right: prev / counter / next --}}
+    {{-- ── Right: Prev / Counter / Next ─────────────────────────────── --}}
     <div class="d-flex align-items-center gap-2">
 
         @if($prevStepRoute)
-            <a href="{{ $prevStepRoute }}" class="btn btn-sm btn-outline-primary" title="Previous step">
-                <i class="bi bi-chevron-left"></i>
-            </a>
+        <a href="{{ $prevStepRoute }}" class="wf-nav-btn" title="Previous step (← Arrow key)">
+            <i class="bi bi-chevron-left"></i>
+        </a>
         @else
-            <button disabled class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-chevron-left"></i>
-            </button>
+        <button disabled class="wf-nav-btn"><i class="bi bi-chevron-left"></i></button>
         @endif
 
-        <span style="font-size:12px;color:#aaa;min-width:44px;text-align:center">
-            {{ $stepNumber }} / {{ $totalSteps }}
-        </span>
+        <span class="wf-step-counter">{{ $stepNumber }} / {{ $totalSteps }}</span>
 
         @if($nextStepRoute)
-            <a href="{{ $nextStepRoute }}" class="btn btn-sm btn-outline-primary" title="Next step">
-                <i class="bi bi-chevron-right"></i>
-            </a>
+        <a href="{{ $nextStepRoute }}" class="wf-nav-btn" title="Next step (→ Arrow key)">
+            <i class="bi bi-chevron-right"></i>
+        </a>
         @else
-            <button disabled class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-chevron-right"></i>
-            </button>
+        <button disabled class="wf-nav-btn"><i class="bi bi-chevron-right"></i></button>
         @endif
 
     </div>

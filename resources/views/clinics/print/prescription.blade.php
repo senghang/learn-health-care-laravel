@@ -1,133 +1,192 @@
-{{--
-  Default Prescription Print Template (Khmer)
-  Variables available: $rx, $visit, $patient, $locale
-  This content is stored in print_templates.content and compiled via Blade::render()
---}}
-<div style="font-family:'Noto Sans Khmer','Hanuman',sans-serif;font-size:11pt;color:#000">
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8"/>
+<title>Prescription {{ $rx->code }}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+@page{size:A4;margin:20mm 18mm}
+body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:12pt;color:#111;background:#fff}
+.page{max-width:210mm;margin:0 auto;padding:12mm 14mm;background:#fff}
 
-  {{-- Header --}}
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #000;padding-bottom:8px;margin-bottom:10px">
+/* Header */
+.clinic-hd{display:flex;align-items:center;gap:16px;padding-bottom:10px;border-bottom:2.5px solid #e91e8c;margin-bottom:10px}
+.clinic-logo{width:56px;height:56px;border-radius:50%;background:#fce7f3;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
+.clinic-name{font-size:16pt;font-weight:900;color:#012970}
+.clinic-sub{font-size:9pt;color:#888;margin-top:2px}
+.rx-badge{background:#e91e8c;color:#fff;padding:3px 16px;border-radius:20px;font-size:11pt;font-weight:700;margin-left:auto;flex-shrink:0}
+
+/* Patient box */
+.patient-box{background:#f9f0ff;border:1.5px solid #e91e8c33;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.pt-field{font-size:10pt}
+.pt-label{font-size:8pt;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
+.pt-val{font-weight:700;color:#012970}
+
+/* Section title */
+.sec-title{font-size:10pt;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#e91e8c;padding:6px 0 4px;border-bottom:1px solid #fce7f3;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+
+/* Med table */
+.med-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10.5pt}
+.med-table th{background:#fce7f3;color:#012970;font-weight:800;font-size:9pt;padding:6px 8px;border:1px solid #e91e8c44;text-align:left}
+.med-table td{padding:7px 8px;border:1px solid #e6eaf5;vertical-align:top}
+.med-table tr:nth-child(even) td{background:#fdf4ff}
+.med-name{font-weight:700;font-size:11pt;color:#012970}
+.med-detail{font-size:9pt;color:#666;margin-top:2px}
+.dose-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.dose-chip{background:#e91e8c11;color:#e91e8c;border:1px solid #e91e8c44;border-radius:4px;padding:1px 6px;font-size:8.5pt;font-weight:700}
+
+/* Signature */
+.sig-row{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:20px;padding-top:16px;border-top:1px dashed #ddd}
+.sig-box{text-align:center}
+.sig-line{border-bottom:1px solid #aaa;margin-bottom:4px;height:40px}
+.sig-label{font-size:9pt;color:#888}
+
+/* Footer */
+.rx-footer{margin-top:12px;padding-top:8px;border-top:1px solid #f0e7ff;display:flex;justify-content:space-between;align-items:center;font-size:8.5pt;color:#aaa}
+.footer-stamp{background:#fce7f3;color:#e91e8c;border:1px solid #e91e8c44;border-radius:4px;padding:2px 10px;font-weight:700;font-size:9pt}
+
+@media print{
+    body{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+    .no-print{display:none!important}
+}
+</style>
+</head>
+<body>
+<script>window.addEventListener('load',function(){window.print()})</script>
+
+<div class="page">
+
+{{-- Print button (no-print) --}}
+<div class="no-print" style="text-align:right;margin-bottom:8px">
+    <button onclick="window.print()" style="background:#e91e8c;color:#fff;border:none;padding:7px 20px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700">
+        🖨 Print
+    </button>
+</div>
+
+{{-- Clinic Header --}}
+<div class="clinic-hd">
+    <div class="clinic-logo">⚕</div>
     <div>
-      @php $clinic = currentClinic(); @endphp
-      @if($clinic->logo)
-        <img src="{{ asset('storage/'.$clinic->logo) }}" style="height:48px;margin-bottom:4px;display:block" alt="Logo"/>
-      @endif
-      <div style="font-size:14pt;font-weight:700">{{ $clinic->name_kh ?? $clinic->name }}</div>
-      @if($clinic->address)
-        <div style="font-size:9pt;color:#444">{{ $clinic->address }}</div>
-      @endif
-      @if($clinic->phone)
-        <div style="font-size:9pt;color:#444">ទូរស័ព្ទ: {{ $clinic->phone }}</div>
-      @endif
+        <div class="clinic-name">{{ $rx->visit?->patient?->clinic?->name ?? 'MediFlow Clinic' }}</div>
+        <div class="clinic-sub">Clinical Prescription / វេជ្ជបញ្ជា</div>
     </div>
-    <div style="text-align:right">
-      <div style="font-size:13pt;font-weight:700;border:1.5px solid #000;padding:4px 12px;display:inline-block">
-        វេជ្ជបញ្ជា
-      </div>
-      <div style="font-size:9pt;margin-top:4px">
-        លេខ: <strong>{{ $rx->code }}</strong><br/>
-        ថ្ងៃ: {{ df_d($rx->prescribed_at) }}
-      </div>
+    <div class="rx-badge">💊 Rx</div>
+</div>
+
+{{-- Prescription meta --}}
+<div style="display:flex;justify-content:space-between;margin-bottom:10px;font-size:10pt">
+    <div>
+        <span style="color:#888">Rx Code: </span>
+        <strong style="font-family:monospace;color:#e91e8c">{{ $rx->code }}</strong>
     </div>
-  </div>
+    <div>
+        <span style="color:#888">Date: </span>
+        <strong>{{ $rx->prescribed_at?->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i') }}</strong>
+    </div>
+    <div>
+        <span style="color:#888">Visit: </span>
+        <strong style="font-family:monospace">{{ $rx->visit_code }}</strong>
+    </div>
+</div>
 
-  {{-- Patient info --}}
-  <table style="width:100%;margin-bottom:10px;font-size:10pt">
-    <tr>
-      <td style="width:50%;padding:2px 0">
-        ឈ្មោះអ្នកជំងឺ: <strong>{{ $patient?->surname }}, {{ $patient?->name }}</strong>
-      </td>
-      <td style="padding:2px 0">
-        លេខ: <strong>{{ $patient?->code }}</strong>
-      </td>
-    </tr>
-    <tr>
-      <td style="padding:2px 0">
-        ភេទ: {{ $patient?->sex === 'M' ? 'ប្រុស' : 'ស្រី' }}
-        &nbsp;&nbsp; អាយុ: {{ $patient?->birthdate ? $patient->birthdate->age.'ឆ្នាំ' : '—' }}
-      </td>
-      <td style="padding:2px 0">
-        ការចូលព្យាបាល: {{ $visit?->code }} ({{ $visit?->visit_type }})
-      </td>
-    </tr>
-    @if($patient?->address)
-    <tr>
-      <td colspan="2" style="padding:2px 0">
-        អាសយដ្ឋាន: {{ $patient->address->full_address }}
-      </td>
-    </tr>
-    @endif
-  </table>
+{{-- Patient --}}
+@php $patient = $rx->visit?->patient; @endphp
+<div class="patient-box">
+    <div class="pt-field">
+        <div class="pt-label">Patient Name / ឈ្មោះ</div>
+        <div class="pt-val">{{ $patient?->surname }}, {{ $patient?->name }}</div>
+    </div>
+    <div class="pt-field">
+        <div class="pt-label">Code / លេខ</div>
+        <div class="pt-val" style="font-family:monospace">{{ $rx->visit?->patient_code }}</div>
+    </div>
+    <div class="pt-field">
+        <div class="pt-label">Visit / ករណី</div>
+        <div class="pt-val" style="font-family:monospace">{{ $rx->visit_code }}</div>
+    </div>
+    <div class="pt-field">
+        <div class="pt-label">Sex / ភេទ</div>
+        <div class="pt-val">{{ $patient?->gender === 'M' ? 'ប្រុស / Male' : 'ស្រី / Female' }}</div>
+    </div>
+    <div class="pt-field">
+        <div class="pt-label">DOB / ថ្ងៃខែ</div>
+        <div class="pt-val">{{ $patient?->birthdate?->format('d/m/Y') ?? '—' }}</div>
+    </div>
+    <div class="pt-field">
+        <div class="pt-label">Phone / ទូរស័ព្ទ</div>
+        <div class="pt-val">{{ $patient?->phone ?? '—' }}</div>
+    </div>
+</div>
 
-  {{-- Medications table --}}
-  <table style="width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:12px">
+{{-- Medications --}}
+<div class="sec-title">💊 Medications / ថ្នាំ</div>
+
+<table class="med-table">
     <thead>
-      <tr style="background:#f0f0f0">
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:30px">#</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:left">ឈ្មោះថ្នាំ / Medication</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:60px">ពេលព្រឹក</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:60px">ពេលថ្ងៃ</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:60px">ពេលល្ងាច</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:60px">ពេលយប់</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:center;width:50px">ថ្ងៃ</th>
-        <th style="border:1px solid #000;padding:4px 6px;text-align:left">ចំណាំ</th>
-      </tr>
+        <tr>
+            <th style="width:5%">#</th>
+            <th style="width:32%">Medicine / ថ្នាំ</th>
+            <th style="width:12%">Strength</th>
+            <th style="width:10%">Form</th>
+            <th style="width:26%">Dosing / កម្រិត</th>
+            <th style="width:10%">Days</th>
+            <th style="width:5%">Unit</th>
+        </tr>
     </thead>
     <tbody>
-      @forelse($rx->medications as $i => $med)
-      <tr>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $i+1 }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px">
-          <strong>{{ $med->medicine_name }}</strong>
-          @if($med->strength)
-            <span style="font-size:9pt;color:#555">({{ $med->strength }})</span>
-          @endif
-          @if($med->form)
-            <span style="font-size:9pt;color:#555">— {{ $med->form }}</span>
-          @endif
-          @if($med->method)
-            <br/><span style="font-size:9pt;color:#444">{{ $med->method }}</span>
-          @endif
-        </td>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $med->morning ?: '—' }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $med->afternoon ?: '—' }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $med->evening ?: '—' }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $med->night ?: '—' }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px;text-align:center">{{ $med->days ?: '—' }}</td>
-        <td style="border:1px solid #ccc;padding:4px 6px;font-size:9pt;color:#555">{{ $med->note }}</td>
-      </tr>
-      @empty
-      <tr><td colspan="8" style="border:1px solid #ccc;padding:8px;text-align:center;color:#999">គ្មានថ្នាំ</td></tr>
-      @endforelse
+        @foreach($rx->medications as $i => $med)
+        <tr>
+            <td style="text-align:center;color:#888">{{ $i+1 }}</td>
+            <td>
+                <div class="med-name">{{ $med->medicine_name }}</div>
+                @if($med->method)<div class="med-detail">Route: {{ $med->method }}</div>@endif
+                @if($med->note)<div class="med-detail" style="color:#e91e8c">⚠ {{ $med->note }}</div>@endif
+            </td>
+            <td style="font-weight:700">{{ $med->strength ?? '—' }}</td>
+            <td>{{ $med->form ?? '—' }}</td>
+            <td>
+                <div class="dose-row">
+                    @if($med->morning)   <span class="dose-chip">ព្រឹក {{ $med->morning }}</span>@endif
+                    @if($med->afternoon) <span class="dose-chip">ថ្ងៃ {{ $med->afternoon }}</span>@endif
+                    @if($med->evening)   <span class="dose-chip">ល្ងាច {{ $med->evening }}</span>@endif
+                    @if($med->night)     <span class="dose-chip">យប់ {{ $med->night }}</span>@endif
+                    @if($med->interval)  <span class="dose-chip">{{ $med->interval }}</span>@endif
+                </div>
+            </td>
+            <td style="text-align:center;font-weight:700">{{ $med->days ?? '—' }}</td>
+            <td style="text-align:center">{{ $med->unit ?? '—' }}</td>
+        </tr>
+        @endforeach
     </tbody>
-  </table>
+</table>
 
-  {{-- Diagnosis (if loaded) --}}
-  @if($visit && $visit->diagnoses->isNotEmpty())
-  <div style="margin-bottom:10px;font-size:10pt">
-    <strong>រោគវិនិច្ឆ័យ:</strong>
-    {{ $visit->diagnoses->where('diagnosis_type','Primary')->first()?->diagnosis_name ?? '—' }}
-  </div>
-  @endif
+{{-- Instructions --}}
+<div style="background:#fff8e1;border-left:3px solid #f59e0b;padding:8px 12px;font-size:10pt;margin-bottom:14px;border-radius:0 6px 6px 0">
+    <strong>⚠ Instructions:</strong> Take medications as prescribed. Complete the full course.
+    Do not share medications. Contact the clinic if symptoms worsen.
+</div>
 
-  {{-- Signature --}}
-  <div style="display:flex;justify-content:space-between;margin-top:20px;font-size:10pt">
-    <div style="text-align:center;width:160px">
-      <div style="border-top:1px solid #000;padding-top:4px;margin-top:40px">
-        ហត្ថលេខាអ្នកជំងឺ
-      </div>
+{{-- Signatures --}}
+<div class="sig-row">
+    <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-label">Prescribed by: {{ $rx->prescribed_by ?? '——————————' }}</div>
+        <div class="sig-label" style="margin-top:2px">Date: {{ now()->format('d/m/Y') }}</div>
     </div>
-    <div style="text-align:center;width:160px">
-      <div style="border-top:1px solid #000;padding-top:4px;margin-top:40px">
-        <div>{{ $rx->prescribed_by }}</div>
-        <div style="font-size:9pt;color:#555">វេជ្ជបណ្ឌិត</div>
-      </div>
+    <div class="sig-box">
+        <div class="sig-line"></div>
+        <div class="sig-label">Patient / Guardian Signature</div>
+        <div class="sig-label" style="margin-top:2px">Date: _______________</div>
     </div>
-  </div>
+</div>
 
-  {{-- Footer --}}
-  <div style="border-top:1px solid #ccc;margin-top:16px;padding-top:6px;font-size:8pt;color:#888;text-align:center">
-    {{ $clinic->name }} — {{ df_dt($rx->prescribed_at) }} — MediFlow EMR
-  </div>
+{{-- Footer --}}
+<div class="rx-footer">
+    <div>MediFlow EMR — Printed: {{ now()->format('d/m/Y H:i') }}</div>
+    <div class="footer-stamp">ORIGINAL</div>
+    <div>Page 1 of 1</div>
+</div>
 
 </div>
+</body>
+</html>

@@ -2,125 +2,155 @@
 @section('title', $ward ? 'Edit Ward' : 'New Ward')
 @section('content')
 
-<div class="pg-header">
-  <div>
-    <h1 class="pg-title">
-      {{ $ward ? 'Edit Ward' : 'New Ward' }}
-      <small>/ {{ $ward ? 'Edit' : 'Create' }}</small>
-    </h1>
-    <div class="breadcrumb-row">
-      <a href="{{ route('dashboard') }}">ដើម</a><span>›</span>
-      <a href="{{ route('beds.index') }}">{{ __('app.bed.title') }}</a><span>›</span>
-      <span>{{ $ward ? 'Edit' : 'New' }}</span>
-    </div>
-  </div>
-  <a href="{{ route('beds.index') }}" class="btn btn-outline-primary btn-sm">
-    <i class="bi bi-arrow-left"></i> {{ __('app.back') }}
-  </a>
-</div>
+<x-page-header :title="$ward ? 'Edit Ward' : 'ផ្នែកថ្មី'"
+    :subtitle="$ward ? 'Edit Ward' : 'New Ward'"
+    :breadcrumbs="[
+        ['label'=>'ដើម','url'=>route('dashboard')],
+        ['label'=>'Wards','url'=>route('beds.index')],
+        ['label'=>$ward ? 'Edit' : 'New'],
+    ]">
+    <a href="{{ route('beds.index') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
+</x-page-header>
 
-<div class="row">
-  <div class="col-12 col-md-6">
-    <div class="card-emr">
-      <div class="card-hd">
+<div class="row g-3">
+<div class="col-12 col-md-7 col-lg-5">
+<div class="card-emr">
+    <div class="card-hd">
         <div class="card-hd-title">
-          <i class="bi bi-building" style="color:#BA7517"></i>
-          {{ $ward ? 'Edit Ward' : 'New Ward' }}
+            <i class="bi bi-building-fill" style="color:#BA7517"></i>
+            {{ $ward ? 'Edit Ward' : 'New Ward' }}
         </div>
-      </div>
-      <div class="card-bd">
+    </div>
+    <div class="card-bd">
         <form method="POST"
               action="{{ $ward ? route('beds.ward.update', $ward->id) : route('beds.ward.store') }}">
-          @csrf
-          @if($ward) @method('PATCH') @endif
+            @csrf
+            @if($ward) @method('PATCH') @endif
 
-          <div class="fld">
-            <label class="flbl">
-              <span class="km">{{ __('app.code') }}</span>
-              <span class="req">*</span>
-              @if(!$ward)<span style="font-size:9px;background:#e8f8ef;color:#1D9E75;padding:1px 6px;border-radius:8px">AUTO</span>@endif
-            </label>
-            <input name="code" class="form-control"
-                   value="{{ old('code', $ward?->code) }}"
-                   placeholder="WD-1-001"
-                   {{ $ward ? 'readonly' : '' }}/>
-          </div>
-
-          <div class="fld">
-            <label class="flbl"><span class="km">{{ __('app.name') }}</span><span class="req">*</span></label>
-            <input name="name" class="form-control"
-                   value="{{ old('name', $ward?->name) }}"
-                   placeholder="Paediatrics Ward"/>
-          </div>
-
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">ឈ្មោះ (KH)</span></label>
-                <input name="name_kh" class="form-control"
-                       value="{{ old('name_kh', $ward?->name_kh) }}"
-                       placeholder="សេវាកុមារ"/>
-              </div>
+            @if($errors->any())
+            <div class="note note-danger mb-3">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <ul style="margin:0;padding-left:16px">
+                    @foreach($errors->all() as $e)<li style="font-size:12px">{{ $e }}</li>@endforeach
+                </ul>
             </div>
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">Name (EN)</span></label>
-                <input name="name_en" class="form-control"
-                       value="{{ old('name_en', $ward?->name_en) }}"
-                       placeholder="Paediatrics"/>
-              </div>
-            </div>
-          </div>
+            @endif
 
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="fld">
-                <label class="flbl"><span class="km">{{ __('app.type') }}</span><span class="req">*</span></label>
-                <select name="type" class="form-select">
-                  @foreach(['IPD','OPD','ICU','Emergency','Theatre','Outpatient'] as $t)
-                  <option value="{{ $t }}" {{ old('type', $ward?->type ?? 'IPD') === $t ? 'selected' : '' }}>
-                    {{ $t }}
-                  </option>
-                  @endforeach
-                </select>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="fld">
+            {{-- Code --}}
+            <div class="fld">
                 <label class="flbl">
-                  <span class="km">{{ __('app.bed.capacity') }}</span>
-                  <span class="req">*</span>
+                    <span class="km">Code</span>
+                    <span style="font-size:9px;background:#e8f8ef;color:#1D9E75;padding:1px 6px;border-radius:8px;margin-left:4px">AUTO</span>
                 </label>
-                <input name="capacity" type="number" min="0" class="form-control"
-                       value="{{ old('capacity', $ward?->capacity ?? 0) }}"/>
-              </div>
+                <input class="form-control ro"
+                       value="{{ $ward?->code ?? 'Auto-generated on save' }}"
+                       readonly
+                       style="{{ !$ward ? 'color:#aaa;font-style:italic' : 'font-family:monospace;color:#4154f1;font-weight:700' }}"/>
             </div>
-          </div>
 
-          @if($ward)
-          <div class="fld d-flex align-items-center gap-3">
-            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
-              <input type="checkbox" name="is_active" value="1"
-                     {{ old('is_active', $ward->is_active) ? 'checked' : '' }}
-                     style="width:16px;height:16px">
-              Active
-            </label>
-          </div>
-          @endif
+            {{-- Name (EN) --}}
+            <x-form.field name="name" km="ឈ្មោះ (EN)" en="Name" :required="true"
+                          placeholder="Paediatrics Ward…"
+                          :value="old('name', $ward?->name)"/>
 
-          <div class="d-flex gap-2 mt-3 pt-3" style="border-top:1px solid #f0f2ff">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-check2-circle"></i>
-              {{ $ward ? __('app.update') : __('app.save') }}
-            </button>
-            <a href="{{ route('beds.index') }}" class="btn btn-outline-primary">
-              {{ __('app.cancel') }}
-            </a>
-          </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <x-form.field name="name_kh" km="ឈ្មោះខ្មែរ" en="Khmer Name"
+                                  placeholder="សេវាកុមារ…"
+                                  :value="old('name_kh', $ward?->name_kh)"/>
+                </div>
+                <div class="col-6">
+                    <x-form.field name="name_en" km="ឈ្មោះអង់គ្លេស" en="English Name"
+                                  placeholder="Paediatrics…"
+                                  :value="old('name_en', $ward?->name_en)"/>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {{-- Type --}}
+                <div class="col-6">
+                    <x-form.select name="type" km="ប្រភេទ" en="Ward Type" :required="true"
+                        :options="[
+                            'IPD'        => 'IPD — Inpatient',
+                            'OPD'        => 'OPD — Outpatient',
+                            'ICU'        => 'ICU',
+                            'Emergency'  => 'Emergency',
+                            'Theatre'    => 'Theatre / OR',
+                            'Outpatient' => 'Outpatient Clinic',
+                        ]"
+                        :value="old('type', $ward?->type ?? 'IPD')"/>
+                </div>
+                {{-- Capacity --}}
+                <div class="col-6">
+                    <x-form.field name="capacity" km="ចំណុះ" en="Capacity (beds)"
+                                  type="number" :required="true" placeholder="20"
+                                  :value="old('capacity', $ward?->capacity ?? 0)"/>
+                </div>
+            </div>
+
+            @if($ward)
+            <div class="fld">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;font-weight:600;color:#374151">
+                    <input type="checkbox" name="is_active" value="1"
+                           {{ old('is_active', $ward->is_active) ? 'checked' : '' }}
+                           style="width:16px;height:16px;accent-color:#4154f1">
+                    Active
+                </label>
+            </div>
+            @endif
+
+            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #f0f2ff">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2-circle"></i>
+                    {{ $ward ? 'Update Ward' : 'Create Ward' }}
+                </button>
+                <a href="{{ route('beds.index') }}" class="btn btn-outline-primary">Cancel</a>
+            </div>
         </form>
-      </div>
     </div>
-  </div>
+</div>
 </div>
 
+@if($ward)
+{{-- Quick-add room from edit page --}}
+<div class="col-12 col-md-5 col-lg-4">
+    <div class="card-emr">
+        <div class="card-hd">
+            <div class="card-hd-title">
+                <i class="bi bi-door-open" style="color:#ff771d"></i>
+                Rooms in this ward
+            </div>
+            <a href="{{ route('beds.room.create', $ward->id) }}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-plus"></i> Add Room
+            </a>
+        </div>
+        <div class="card-bd" style="padding:0">
+            @forelse($ward->rooms ?? [] as $room)
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #f5f6ff">
+                <i class="bi bi-door-open" style="color:#64748b;font-size:14px"></i>
+                <div style="flex:1">
+                    <div style="font-size:13px;font-weight:600;color:#374151">{{ $room->name }}</div>
+                    <div style="font-size:10.5px;color:#94a3b8">{{ ucfirst($room->type) }} · Floor {{ $room->floor }} · {{ $room->beds_count ?? 0 }} beds</div>
+                </div>
+                <div style="display:flex;gap:4px">
+                    <a href="{{ route('beds.room.edit', [$ward->id, $room->id]) }}"
+                       class="btn btn-sm btn-outline-secondary" style="padding:3px 8px">
+                        <i class="bi bi-pencil" style="font-size:11px"></i>
+                    </a>
+                </div>
+            </div>
+            @empty
+            <div style="text-align:center;padding:24px;color:#cbd5e1;font-size:12px">
+                No rooms yet.<br>
+                <a href="{{ route('beds.room.create', $ward->id) }}" style="color:#4154f1">Add first room →</a>
+            </div>
+            @endforelse
+        </div>
+    </div>
+</div>
+@endif
+
+</div>
 @endsection

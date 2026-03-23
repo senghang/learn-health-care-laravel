@@ -1,10 +1,10 @@
 <nav id="sidebar">
 
-    {{-- ── Brand ──────────────────────────────────────────────────────── --}}
+    {{-- ── Brand ──────────────────────────────────────────────────────────── --}}
     <div class="sb-brand">
         <div class="sb-logo-icon">
             @if(currentClinic()?->logo)
-                <img src="{{ asset('storage/' . currentClinic()->logo) }}" alt=""
+                <img src="{{ asset('storage/'.currentClinic()->logo) }}"
                      style="width:34px;height:34px;border-radius:8px;object-fit:cover;display:block">
             @else
                 <span style="font-size:19px;line-height:1">⚕</span>
@@ -14,26 +14,16 @@
             <div class="sb-logo-name">{{ currentClinic()?->name_kh ?? currentClinic()?->name ?? 'MediFlow' }}</div>
             <div class="sb-logo-sub">ប្រព័ន្ធព័ត៌មានសុខភាព</div>
         </div>
-        <button class="sb-pin-btn" id="sbPinBtn" onclick="toggleSidebar()" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <button class="sb-pin-btn" id="sbPinBtn" onclick="toggleSidebar()" title="Collapse sidebar">
             <i class="bi bi-layout-sidebar-reverse" id="sbPinIcon"></i>
         </button>
     </div>
 
-    {{-- ── Navigation ─────────────────────────────────────────────────── --}}
     <div class="sb-nav" id="sbNav">
 
-        {{-- MAIN --}}
-        <div class="sb-group-label">MAIN</div>
-
-        @php
-            function sbLink(string $label, string $icon, string $route = '', bool $active = false, ?string $badge = null, bool $soon = false, string $title = ''): string {
-                // helper not used in Blade — we write directly below
-                return '';
-            }
-        @endphp
-
+        {{-- ── Dashboard ─────────────────────────────────────────────────── --}}
         <a class="sb-item {{ request()->routeIs('dashboard') ? 'sb-item--active' : '' }}"
-           href="{{ route('dashboard') }}" title="Dashboard">
+           href="{{ route('dashboard') }}" data-tooltip="Dashboard">
             <span class="sb-item-icon"><i class="bi bi-grid-1x2-fill"></i></span>
             <span class="sb-item-label">
                 <span class="sb-km">ផ្ទាំងគ្រប់គ្រង</span>
@@ -41,93 +31,157 @@
             </span>
         </a>
 
-        {{-- CLINICAL --}}
-        <div class="sb-group-label">CLINICAL</div>
+        {{-- ── OPERATIONS (primary — top position) ───────────────────────── --}}
+        <div class="sb-group-label">OPERATIONS</div>
 
-        <a class="sb-item {{ request()->routeIs('patients.*') ? 'sb-item--active' : '' }}"
-           href="{{ route('patients.index') }}" title="Patients">
-            <span class="sb-item-icon"><i class="bi bi-people-fill"></i></span>
-            <span class="sb-item-label">
-                <span class="sb-km">អ្នកជំងឺ</span>
-                <span class="sb-en">Patients</span>
+        {{-- New Visit — hero action --}}
+        <a class="sb-item sb-item--new-visit {{ request()->routeIs('workflow.create') ? 'sb-item--active' : '' }}"
+           href="{{ route('workflow.create') }}" data-tooltip="New Visit">
+            <span class="sb-item-icon sb-item-icon--accent">
+                <i class="bi bi-plus-circle-fill"></i>
             </span>
-        </a>
-
-        <a class="sb-item {{ request()->routeIs('visits.*') ? 'sb-item--active' : '' }}"
-           href="{{ route('visits.index') }}" title="Patient Visits">
-            <span class="sb-item-icon"><i class="bi bi-hospital-fill"></i></span>
             <span class="sb-item-label">
-                <span class="sb-km">ការចូលព្យាបាល</span>
-                <span class="sb-en">Patient Visits</span>
-            </span>
-            @php $todayActive = \App\Models\VisitModel::whereDate('admitted_at', today())->whereNull('discharged_at')->count(); @endphp
-            @if($todayActive > 0)
-                <span class="sb-badge">{{ $todayActive > 99 ? '99+' : $todayActive }}</span>
-            @endif
-        </a>
-
-        <a class="sb-item sb-item--new {{ request()->routeIs('workflow.create') ? 'sb-item--active' : '' }}"
-           href="{{ route('workflow.create') }}" title="New Visit">
-            <span class="sb-item-icon"><i class="bi bi-plus-circle-fill"></i></span>
-            <span class="sb-item-label">
-                <span class="sb-km">ការចូលថ្មី</span>
+                <span class="sb-km" style="font-weight:700">ការចូលព្យាបាលថ្មី</span>
                 <span class="sb-en">New Visit</span>
             </span>
         </a>
 
-        <a class="sb-item {{ request()->routeIs('beds.*') ? 'sb-item--active' : '' }}"
-           href="{{ route('beds.index') }}" title="Wards & Beds">
-            <span class="sb-item-icon"><i class="bi bi-building-fill"></i></span>
+        <a class="sb-item {{ request()->routeIs('patients.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('patients.index') }}" data-tooltip="Registration">
+            <span class="sb-item-icon"><i class="bi bi-person-plus-fill"></i></span>
             <span class="sb-item-label">
-                <span class="sb-km">ផ្នែក & គ្រែ</span>
-                <span class="sb-en">Wards & Beds</span>
+                <span class="sb-km">ចុះឈ្មោះ</span>
+                <span class="sb-en">Registration</span>
             </span>
         </a>
 
-        {{-- DATA --}}
-        <div class="sb-group-label">DATA</div>
-
-        <a class="sb-item sb-item--muted" href="#" onclick="return false" title="Laboratory">
-            <span class="sb-item-icon"><i class="bi bi-flask2-fill"></i></span>
+        <a class="sb-item {{ request()->routeIs('visits.*') || request()->routeIs('workflow.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('visits.index') }}" data-tooltip="Consultation">
+            <span class="sb-item-icon"><i class="bi bi-stethoscope"></i></span>
             <span class="sb-item-label">
-                <span class="sb-km">ពិសោធន៍</span>
-                <span class="sb-en">Laboratory</span>
+                <span class="sb-km">ការព្យាបាល</span>
+                <span class="sb-en">Consultation</span>
             </span>
-            <span class="sb-soon-chip">Soon</span>
+            @php $activeVisits = \App\Models\VisitModel::whereHas('patient', fn($q)=>$q->where('clinic_id',currentClinic()->id))->whereNull('discharged_at')->count(); @endphp
+            @if($activeVisits > 0)
+                <span class="sb-badge">{{ $activeVisits > 99 ? '99+' : $activeVisits }}</span>
+            @endif
         </a>
 
-        <a class="sb-item sb-item--muted" href="#" onclick="return false" title="Prescriptions">
+        <a class="sb-item {{ request()->routeIs('prescriptions.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('prescriptions.index') }}" data-tooltip="Prescription">
             <span class="sb-item-icon"><i class="bi bi-capsule-fill"></i></span>
             <span class="sb-item-label">
                 <span class="sb-km">វេជ្ជបញ្ជា</span>
-                <span class="sb-en">Prescriptions</span>
+                <span class="sb-en">Prescription</span>
             </span>
-            <span class="sb-soon-chip">Soon</span>
         </a>
 
-        <a class="sb-item sb-item--muted" href="#" onclick="return false" title="Billing">
+        <a class="sb-item {{ request()->routeIs('invoices.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('invoices.index') }}" data-tooltip="Invoice">
             <span class="sb-item-icon"><i class="bi bi-receipt-cutoff"></i></span>
             <span class="sb-item-label">
                 <span class="sb-km">វិក្កយបត្រ</span>
-                <span class="sb-en">Billing</span>
+                <span class="sb-en">Invoice</span>
             </span>
-            <span class="sb-soon-chip">Soon</span>
+            @php $pendingInv = \App\Models\InvoiceModel::whereHas('patient', fn($q) => $q->where('clinic_id', currentClinic()->id))->whereIn('status', ['pending','partial'])->count(); @endphp
+            @if($pendingInv > 0)
+                <span class="sb-badge" style="background:#ff771d">{{ $pendingInv > 99 ? '99+' : $pendingInv }}</span>
+            @endif
         </a>
 
-        {{-- ADMIN --}}
-        <div class="sb-group-label">ADMIN</div>
+        <a class="sb-item {{ request()->routeIs('invoices.index') && request('status') === 'pending' ? 'sb-item--active' : '' }}"
+           href="{{ route('invoices.index', ['status' => 'pending']) }}" data-tooltip="Payment">
+            <span class="sb-item-icon"><i class="bi bi-cash-stack"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">ការទូទាត់</span>
+                <span class="sb-en">Payment</span>
+            </span>
+        </a>
 
-        <a class="sb-item {{ request()->routeIs('reports.*') ? 'sb-item--active' : '' }}"
-           href="{{ route('reports.visits') }}" title="Reports">
+        {{-- ── INVENTORY ──────────────────────────────────────────────────── --}}
+        <div class="sb-group-label">INVENTORY</div>
+
+        <a class="sb-item {{ request()->routeIs('inventory.products') || request()->routeIs('inventory.product.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('inventory.products') }}" data-tooltip="Products">
+            <span class="sb-item-icon"><i class="bi bi-box-seam-fill"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">ផលិតផល</span>
+                <span class="sb-en">Products</span>
+            </span>
+        </a>
+
+        <a class="sb-item {{ request()->routeIs('inventory.stock-in') ? 'sb-item--active' : '' }}"
+           href="{{ route('inventory.stock-in') }}" data-tooltip="Stock In">
+            <span class="sb-item-icon sb-item-icon--green"><i class="bi bi-box-arrow-in-down-right"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">ស្តុកចូល</span>
+                <span class="sb-en">Stock In</span>
+            </span>
+        </a>
+
+        <a class="sb-item {{ request()->routeIs('inventory.stock-out') ? 'sb-item--active' : '' }}"
+           href="{{ route('inventory.stock-out') }}" data-tooltip="Stock Out">
+            <span class="sb-item-icon sb-item-icon--red"><i class="bi bi-box-arrow-up-right"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">ស្តុកចេញ</span>
+                <span class="sb-en">Stock Out</span>
+            </span>
+        </a>
+
+        <a class="sb-item {{ request()->routeIs('inventory.report') ? 'sb-item--active' : '' }}"
+           href="{{ route('inventory.report') }}" data-tooltip="Inventory Report">
+            <span class="sb-item-icon"><i class="bi bi-clipboard2-data-fill"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">របាយការណ៍ស្តុក</span>
+                <span class="sb-en">Inv. Report</span>
+            </span>
+            @php
+                $outStock = \App\Models\MedicineModel::where('clinic_id', currentClinic()->id)->where('stock', '<=', 0)->count();
+                $lowStock = \App\Models\MedicineModel::where('clinic_id', currentClinic()->id)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count();
+            @endphp
+            @if($outStock > 0)
+                <span class="sb-badge" style="background:#dc2626">{{ $outStock }}</span>
+            @elseif($lowStock > 0)
+                <span class="sb-badge" style="background:#d97706">{{ $lowStock }}</span>
+            @endif
+        </a>
+
+        {{-- ── REPORTS ────────────────────────────────────────────────────── --}}
+        <div class="sb-group-label">REPORTS</div>
+
+        <a class="sb-item {{ request()->routeIs('reports.revenue') ? 'sb-item--active' : '' }}"
+           href="{{ route('reports.revenue') }}" data-tooltip="Revenue">
+            <span class="sb-item-icon"><i class="bi bi-currency-dollar"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">ប្រាក់ចំណូល</span>
+                <span class="sb-en">Revenue</span>
+            </span>
+        </a>
+
+        <a class="sb-item {{ request()->routeIs('reports.visits') || request()->routeIs('reports.daily') ? 'sb-item--active' : '' }}"
+           href="{{ route('reports.visits') }}" data-tooltip="Visit Reports">
             <span class="sb-item-icon"><i class="bi bi-bar-chart-fill"></i></span>
             <span class="sb-item-label">
-                <span class="sb-km">របាយការណ៍</span>
-                <span class="sb-en">Reports</span>
+                <span class="sb-km">របាយការណ៍ចូល</span>
+                <span class="sb-en">Visit Reports</span>
             </span>
         </a>
 
+        <a class="sb-item {{ request()->routeIs('reports.doctor-performance') ? 'sb-item--active' : '' }}"
+           href="{{ route('reports.doctor-performance') }}" data-tooltip="Doctor Performance">
+            <span class="sb-item-icon"><i class="bi bi-person-badge-fill"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">សមត្ថភាពវេជ្ជ</span>
+                <span class="sb-en">Doctor Performance</span>
+            </span>
+        </a>
+
+        {{-- ── SYSTEM SETUP (bottom — rarely used) ───────────────────────── --}}
+        <div class="sb-group-label">SYSTEM SETUP</div>
+
         <a class="sb-item {{ request()->routeIs('settings.*') ? 'sb-item--active' : '' }}"
-           href="{{ route('settings.general') }}" title="Settings">
+           href="{{ route('settings.general') }}" data-tooltip="Settings">
             <span class="sb-item-icon"><i class="bi bi-gear-fill"></i></span>
             <span class="sb-item-label">
                 <span class="sb-km">ការកំណត់</span>
@@ -135,9 +189,18 @@
             </span>
         </a>
 
+        <a class="sb-item {{ request()->routeIs('beds.*') ? 'sb-item--active' : '' }}"
+           href="{{ route('beds.index') }}" data-tooltip="Rooms &amp; Beds">
+            <span class="sb-item-icon"><i class="bi bi-building-fill"></i></span>
+            <span class="sb-item-label">
+                <span class="sb-km">បន្ទប់ & គ្រែ</span>
+                <span class="sb-en">Rooms &amp; Beds</span>
+            </span>
+        </a>
+
     </div>{{-- /sb-nav --}}
 
-    {{-- ── User footer ─────────────────────────────────────────────────── --}}
+    {{-- ── User footer ─────────────────────────────────────────────────────── --}}
     <div class="sb-user-footer" id="sbUser">
         <div class="sb-user-av">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</div>
         <div class="sb-user-meta" id="sbUserTxt">
@@ -155,7 +218,6 @@
 </nav>
 
 <script>
-/* ── Sidebar toggle ─────────────────────────────────────────── */
 const isMobile = () => window.innerWidth < 992;
 
 function _applyCollapsed(collapsed) {
@@ -163,21 +225,20 @@ function _applyCollapsed(collapsed) {
     const tb = document.getElementById('topbar');
     const mn = document.getElementById('main');
     const ic = document.getElementById('sbPinIcon');
-
     [sb, tb, mn].forEach(el => el?.classList.toggle('sb-collapsed', collapsed));
     if (ic) ic.className = collapsed ? 'bi bi-layout-sidebar' : 'bi bi-layout-sidebar-reverse';
-    try { localStorage.setItem('sb_col', collapsed ? '1' : '0'); } catch(e) {}
+    try { localStorage.setItem('sb_col', collapsed ? '1' : '0'); } catch(_) {}
 }
 
 function toggleSidebar() {
     if (isMobile()) {
         const sb = document.getElementById('sidebar');
         const ov = document.getElementById('sidebarOverlay');
-        const open = sb.classList.contains('mobile-open');
-        sb.classList.toggle('mobile-open', !open);
-        ov.classList.toggle('show', !open);
+        const open = sb?.classList.contains('mobile-open');
+        sb?.classList.toggle('mobile-open', !open);
+        ov?.classList.toggle('show', !open);
     } else {
-        _applyCollapsed(!document.getElementById('sidebar').classList.contains('sb-collapsed'));
+        _applyCollapsed(!document.getElementById('sidebar')?.classList.contains('sb-collapsed'));
     }
 }
 
@@ -188,9 +249,25 @@ function closeSidebar() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        if (!isMobile() && localStorage.getItem('sb_col') === '1') _applyCollapsed(true);
-    } catch(e) {}
+    try { if (!isMobile() && localStorage.getItem('sb_col') === '1') _applyCollapsed(true); } catch(_) {}
+
+    // Tooltip for collapsed sidebar
+    document.querySelectorAll('.sb-item[data-tooltip]').forEach(el => {
+        el.addEventListener('mouseenter', function() {
+            const sb = document.getElementById('sidebar');
+            if (!sb?.classList.contains('sb-collapsed')) return;
+            const tip = document.getElementById('sb-tooltip');
+            if (!tip) return;
+            const rect = el.getBoundingClientRect();
+            tip.textContent = el.dataset.tooltip;
+            tip.style.top = (rect.top + rect.height/2) + 'px';
+            tip.style.display = 'block';
+        });
+        el.addEventListener('mouseleave', () => {
+            const tip = document.getElementById('sb-tooltip');
+            if (tip) tip.style.display = 'none';
+        });
+    });
 });
 
 window.addEventListener('resize', () => {
@@ -200,3 +277,6 @@ window.addEventListener('resize', () => {
     }
 });
 </script>
+
+{{-- Tooltip element for collapsed state --}}
+<div id="sb-tooltip" style="display:none;position:fixed;left:68px;transform:translateY(-50%);background:#1e2d5a;color:#fff;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;z-index:9999;pointer-events:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3)"></div>

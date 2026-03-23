@@ -18,10 +18,16 @@
 
     {{-- EMR CSS --}}
     @vite(['resources/css/clinic.css'])
+    <link rel="stylesheet" href="{{ asset('css/ux-enhancements.css') }}">
 
     {{-- Sidebar + Header CSS --}}
     @if(file_exists(public_path('css/sidebar-header.css')))
     <link rel="stylesheet" href="{{ asset('css/sidebar-header.css') }}">
+    @endif
+
+    {{-- Visual enhancement layer: operations-first, live indicators, toasts --}}
+    @if(file_exists(public_path('css/emr-enhance.css')))
+    <link rel="stylesheet" href="{{ asset('css/emr-enhance.css') }}">
     @endif
 
     {{-- Sidebar / Header / Reports improvements --}}

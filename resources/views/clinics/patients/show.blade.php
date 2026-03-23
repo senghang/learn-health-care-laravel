@@ -1,0 +1,200 @@
+@extends('clinics.layout.app')
+@section('title', $patient->surname . ', ' . $patient->name)
+
+@section('content')
+
+@php
+    $ageStr = $patient->birthdate
+        ? $patient->birthdate->age . 'y (' . $patient->birthdate->format('d/m/Y') . ')'
+        : '—';
+    $sexLabel  = match($patient->gender) { 'M' => '♂ ប្រុស / Male', 'F' => '♀ ស្រី / Female', default => '—' };
+    $colors    = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6','#00bcd4','#f39c12','#1abc9c'];
+    $color     = $colors[abs(crc32($patient->code)) % count($colors)];
+    $initials  = strtoupper(substr($patient->surname,0,1).substr($patient->name,0,1));
+    $lastVisit = $patient->visits->first();
+@endphp
+
+<x-page-header
+    title="{{ $patient->surname }}, {{ $patient->name }}"
+    subtitle="Patient Profile"
+    :breadcrumbs="[
+        ['label' => 'ដើម',      'url' => url('/')],
+        ['label' => 'អ្នកជំងឺ', 'url' => url('/patients')],
+        ['label' => $patient->code],
+    ]"
+>
+    <a href="{{ url('/patients/' . $patient->code . '/edit') }}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-pencil-fill"></i> កែប្រែ
+    </a>
+    <a href="{{ url('/workflow/create') }}?patient_code={{ $patient->code }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> ការចូលថ្មី
+    </a>
+</x-page-header>
+
+<div class="row g-3">
+
+{{-- ── Profile card ────────────────────────────────────────── --}}
+<div class="col-12 col-lg-4">
+
+  {{-- Avatar + core info --}}
+  <div class="card-emr mb-3">
+    <div class="card-bd" style="text-align:center;padding:24px 18px 16px">
+      <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,{{ $color }},{{ $color }}cc);color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+        {{ $initials }}
+      </div>
+      <div style="font-size:18px;font-weight:800;color:#012970">{{ $patient->surname }}, {{ $patient->name }}</div>
+      <div style="font-size:12px;color:#aaa;margin-top:3px;font-family:monospace">{{ $patient->code }}</div>
+
+      <div style="display:flex;justify-content:center;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <span class="badge-s {{ $patient->gender === 'M' ? 'b-opd' : 'b-ipd' }}">
+          {{ $patient->gender === 'M' ? '♂ ប្រុស' : '♀ ស្រី' }}
+        </span>
+        @if($patient->visits_count > 0)
+        <span class="badge-s" style="background:#eef0fd;color:#4154f1">
+          {{ $patient->visits_count }} Visits
+        </span>
+        @else
+        <span class="badge-s" style="background:#e8f8ef;color:#2eca6a">New Patient</span>
+        @endif
+        @if($patient->spid)
+        <span class="badge-s" style="background:#fff3e8;color:#ff771d">SPID</span>
+        @endif
+      </div>
+    </div>
+
+    <div style="border-top:1px solid #f0f2ff">
+      @php
+        $rows = [
+          ['bi-calendar3',       'ថ្ងៃខែឆ្នាំ / DOB', $ageStr],
+          ['bi-telephone-fill',  'ទូរស័ព្ទ / Phone',   $patient->phone ?? '—'],
+          ['bi-flag-fill',       'សញ្ជាតិ / Nationality', $patient->nationality ?? '—'],
+          ['bi-briefcase-fill',  'មុខរបរ / Occupation', $patient->occupation ?? '—'],
+          ['bi-heart-fill',      'អាពាហ៍ / Marital',   $patient->marital_status ?? '—'],
+          ['bi-shield-fill',     'SPID',                $patient->spid ?? '—'],
+        ];
+      @endphp
+      @foreach($rows as [$icon, $label, $val])
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #f8f9ff">
+        <i class="bi {{ $icon }}" style="width:16px;text-align:center;color:#aaa;font-size:12px;flex-shrink:0"></i>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;color:#bbb">{{ $label }}</div>
+          <div style="font-size:12.5px;color:#333;font-weight:{{ $val === '—' ? '400' : '600' }};color:{{ $val === '—' ? '#ccc' : '#222' }}">{{ $val }}</div>
+        </div>
+      </div>
+      @endforeach
+    </div>
+  </div>
+
+  {{-- Address --}}
+  @if($patient->address)
+  <div class="card-emr">
+    <div class="card-hd">
+      <div class="card-hd-title">
+        <i class="bi bi-geo-alt-fill" style="color:#ff771d"></i>
+        អាសយដ្ឋាន <small style="font-weight:400;color:#aaa">/ Address</small>
+      </div>
+    </div>
+    <div class="card-bd" style="font-size:12.5px;line-height:1.8;color:#555">
+      @php $addr = $patient->address; @endphp
+      @if($addr->house_number || $addr->street_number)
+        <div><i class="bi bi-house-fill" style="color:#bbb;width:14px"></i>
+          ផ្ទះ{{ $addr->house_number ?? '' }} ផ្លូវ{{ $addr->street_number ?? '' }}
+        </div>
+      @endif
+      @if($addr->village_name)  <div><i class="bi bi-map" style="color:#bbb;width:14px"></i> ភូមិ{{ $addr->village_name }}</div> @endif
+      @if($addr->commune_name)  <div><i class="bi bi-signpost" style="color:#bbb;width:14px"></i> ឃុំ{{ $addr->commune_name }}</div> @endif
+      @if($addr->district_name) <div><i class="bi bi-building" style="color:#bbb;width:14px"></i> ស្រុក{{ $addr->district_name }}</div> @endif
+      @if($addr->province_name) <div><i class="bi bi-geo" style="color:#bbb;width:14px"></i> ខេត្ត{{ $addr->province_name }}</div> @endif
+      @if(!$addr->province_name && !$addr->district_name)
+        <div style="color:#ccc;font-size:11px">— No address recorded —</div>
+      @endif
+    </div>
+  </div>
+  @endif
+
+</div>{{-- /col-lg-4 --}}
+
+{{-- ── Visit history ───────────────────────────────────────── --}}
+<div class="col-12 col-lg-8">
+
+  <div class="card-emr">
+    <div class="card-hd">
+      <div class="card-hd-title">
+        <i class="bi bi-clock-history" style="color:#4154f1"></i>
+        ប្រវត្តិការព្យាបាល <small style="font-weight:400;color:#aaa">/ Visit History</small>
+      </div>
+      <a href="{{ url('/workflow/create') }}?patient_code={{ $patient->code }}" class="btn btn-sm btn-primary">
+        <i class="bi bi-plus-lg"></i> ការចូលថ្មី
+      </a>
+    </div>
+
+    @forelse($patient->visits as $visit)
+    @php
+      $isActive  = is_null($visit->discharged_at);
+      $doneCount = count($visit->done_steps ?? []);
+      $skipCount = count($visit->skipped_steps ?? []);
+    @endphp
+    <a href="{{ url('/workflow/' . $visit->code) }}"
+       class="visit-row" style="text-decoration:none">
+      <div class="v-avatar" style="background:linear-gradient(135deg,{{ $visit->visit_type === 'IPD' ? '#ff771d' : '#4154f1' }},{{ $visit->visit_type === 'IPD' ? '#e65a00' : '#717ff5' }});border-radius:10px">
+        <i class="bi bi-{{ $visit->visit_type === 'IPD' ? 'bed-fill' : 'person-fill' }}" style="font-size:15px"></i>
+      </div>
+      <div class="v-info">
+        <div class="v-name" style="display:flex;align-items:center;gap:8px">
+          {{ $visit->code }}
+          <x-status-badge :status="strtolower($visit->visit_type)" :label="$visit->visit_type"/>
+          @if($isActive)
+            <x-status-badge status="active"/>
+          @else
+            <x-status-badge status="done"/>
+          @endif
+        </div>
+        <div class="v-meta">
+          <i class="bi bi-calendar3" style="font-size:10px"></i>
+          {{ $visit->admitted_at?->format('d/m/Y H:i') ?? '—' }}
+          @if($visit->discharged_at)
+            → {{ $visit->discharged_at->format('d/m/Y H:i') }}
+          @endif
+          @if($visit->admission_type)
+            · {{ $visit->admission_type }}
+          @endif
+        </div>
+        @if($doneCount > 0)
+        <div style="margin-top:4px;display:flex;align-items:center;gap:8px">
+          <x-progress-bar :done="$doneCount" :total="10" :show-text="true" :skipped="$skipCount" width="100px"/>
+        </div>
+        @endif
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        @if($visit->visit_outcome)
+          <div style="font-size:10.5px;font-weight:600;color:{{ in_array($visit->visit_outcome, ['Improved','Resolved']) ? '#2eca6a' : '#888' }}">
+            {{ $visit->visit_outcome }}
+          </div>
+        @endif
+        <i class="bi bi-chevron-right" style="color:#ddd;font-size:12px"></i>
+      </div>
+    </a>
+    @empty
+    <div style="text-align:center;padding:40px 24px;color:#bbb">
+      <div style="font-size:36px;margin-bottom:10px;opacity:.3">🏥</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:12px">មិនទាន់មានការចូលព្យាបាល</div>
+      <a href="{{ url('/workflow/create') }}?patient_code={{ $patient->code }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> ចាប់ផ្ដើមការចូលព្យាបាល
+      </a>
+    </div>
+    @endforelse
+
+    @if($patient->visits->count() >= 10)
+    <div style="padding:12px 16px;text-align:center;border-top:1px solid #f0f2ff;font-size:12px">
+      <a href="{{ url('/visits?patient_code=' . $patient->code) }}" style="color:#4154f1">
+        View all visits →
+      </a>
+    </div>
+    @endif
+  </div>
+
+</div>{{-- /col-lg-8 --}}
+
+</div>{{-- /row --}}
+
+@endsection
