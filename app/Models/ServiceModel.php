@@ -3,16 +3,16 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
+use App\Models\Base\ClinicScope;
 use App\Models\Concerns\HasTranslations;
 use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ServiceModel extends Model
 {
-    use SoftDeletes, Auditable, HasTranslations, LogsActivity;
+    use SoftDeletes, Auditable, ClinicScope, HasTranslations, LogsActivity;
 
     protected $table = 'services';
 
@@ -20,13 +20,11 @@ class ServiceModel extends Model
 
     protected $fillable = [
         'clinic_id', 'code', 'name', 'name_kh', 'name_en',
-        'category', 'price', 'is_active',
+        'category', 'service_type', 'price',
+        'duration_minutes', 'department_id', 'is_billable', 'is_active',
     ];
 
-    protected $casts = ['price' => 'float', 'is_active' => 'boolean'];
+    protected $casts = ['price' => 'float', 'is_active' => 'boolean', 'is_billable' => 'boolean'];
 
-    public function clinic(): BelongsTo
-    {
-        return $this->belongsTo(ClinicModel::class);
-    }
+    public function clinic(): BelongsTo { return $this->belongsTo(ClinicModel::class); }
 }

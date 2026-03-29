@@ -7,72 +7,80 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
 /**
- * ClinicScope Trait
- *
- * Multi-tenant data isolation enforced at the Eloquent ORM layer.
- *
- * This trait provides THREE layers of protection:
- *
- *   Layer 1 — Query scope:
- *     Every SELECT, UPDATE, DELETE automatically gets WHERE clinic_id = ?
- *     No developer can forget — it's always applied.
- *
- *   Layer 2 — Auto-fill on create:
- *     clinic_id is set automatically from currentClinic() when creating records.
- *     Developers never need to pass clinic_id manually.
- *
- *   Layer 3 — Explicit named scope:
- *     forClinic($id) allows safe scoping in Artisan commands and queue jobs.
+ * ClinicScope Trait — Multi-tenant data isolation via Eloquent ORM.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * MODELS THAT MUST USE THIS TRAIT (tenant-specific data)
+ * THREE LAYERS OF PROTECTION
  * ─────────────────────────────────────────────────────────────────────────────
+ *
+ *   Layer 1 — Global Query Scope:
+ *     Every SELECT/UPDATE/DELETE gets WHERE clinic_id = ? automatically.
+ *
+ *   Layer 2 — Auto-fill on Create:
+ *     clinic_id set from currentClinic() — developers never pass it manually.
+ *
+ *   Layer 3 — Explicit Named Scope:
+ *     forClinic($id) for Artisan commands and queue jobs.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * PERFORMANCE REQUIREMENT
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
+ *   Every table using this trait MUST have an index on `clinic_id`.
+ *   The migration 2026_04_15_000001 adds missing indexes automatically.
+ *
+ *   In new migrations, always add:
+ *     $table->foreignId('clinic_id')->constrained()->cascadeOnDelete();
+ *     $table->index('clinic_id');  // ← REQUIRED for ClinicScope performance
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * MODELS THAT MUST USE THIS TRAIT
+ * ─────────────────────────────────────────────────────────────────────────────
+ *
  *   PatientModel, VisitModel, InvoiceModel, InvoiceMedicationModel,
  *   InvoiceServiceModel, PrescriptionModel, PrescriptionMedicationModel,
- *   PaymentModel, LaboratoryModel, ImageryModel, TriageModel,
- *   VitalSignModel, DiagnosisModel, MedicalHistoryModel, SoapModel,
- *   ReferralModel, WardModel, RoomModel, BedModel,
- *   MedicineModel, ServiceModel, StockMovementModel,
- *   PrintTemplateModel, TranslationModel, AuditLogModel,
- *   RoleModel, PermissionModel, ClinicSettingModel
+ *   PaymentModel, LaboratoryModel, LaboratoryResultModel, ImageryModel,
+ *   ImageryResultModel, TriageModel, VitalSignModel, DiagnosisModel,
+ *   MedicalHistoryModel, PhysicalExaminationModel, SoapModel,
+ *   OutInPatientModel, ReferralModel, WardModel, RoomModel, BedModel,
+ *   MedicineModel, ServiceModel, StockMovementModel, InventoryTransactionModel,
+ *   PrintTemplateModel, AuditLogModel,
+ *   EmployeeModel, SupplierModel, PharmacyDispenseModel,
+ *   LabTestCatalogModel, StoreSettingModel
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * MODELS THAT MUST NOT USE THIS TRAIT (shared reference data)
+ * MODELS THAT MUST NOT USE THIS TRAIT
  * ─────────────────────────────────────────────────────────────────────────────
+ *
  *   ProvinceModel, DistrictModel, CommuneModel, VillageModel
- *   (These are administrative reference data shared across all clinics)
+ *   (Shared administrative reference data)
+ *
+ *   RoleModel, PermissionModel
+ *   (Scoped manually via clinic_id where clause in controllers,
+ *    not via global scope — because permission seeding needs cross-clinic access)
+ *
+ *   User, SuperAdmin
+ *   (Authenticated separately — not tenant-scoped)
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * USAGE
+ * BYPASSING (admin / Artisan ONLY)
  * ─────────────────────────────────────────────────────────────────────────────
- *   class VisitModel extends Model
- *   {
- *       use SoftDeletes, Auditable, ClinicScope;  ← add here
- *   }
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * BYPASSING (admin and Artisan ONLY)
- * ─────────────────────────────────────────────────────────────────────────────
- *   // Admin controller listing all clinics' visits:
  *   VisitModel::withoutGlobalScope('clinic')->paginate();
+ *   VisitModel::forClinic($clinicId)->get();
  *
- *   // Queue job for a specific clinic:
- *   VisitModel::forClinic($clinicId)->whereDate('admitted_at', today())->get();
- *
- *   ⚠️  NEVER bypass the clinic scope in user-facing controllers.
+ *   ⚠️  NEVER bypass in user-facing controllers.
  */
 trait ClinicScope
 {
     protected static function bootClinicScope(): void
     {
-        // ── Layer 1: Global query scope ───────────────────────────────────────
+        // Layer 1: Global query scope
         static::addGlobalScope('clinic', function ($query) {
             if (!app()->has('currentClinic')) {
-                // Artisan/queue context: allow but log for debugging
                 if (app()->runningInConsole()) {
-                    return; // Commands may intentionally query all clinics
+                    return; // Artisan — allow cross-clinic queries
                 }
-                // HTTP without clinic context = bug in middleware setup
                 Log::warning('[ClinicScope] currentClinic not bound in HTTP context', [
                     'model' => static::class,
                     'url'   => request()?->fullUrl(),
@@ -84,7 +92,7 @@ trait ClinicScope
             $query->where("{$table}.clinic_id", app('currentClinic')->id);
         });
 
-        // ── Layer 2: Auto-fill clinic_id on create ────────────────────────────
+        // Layer 2: Auto-fill on create
         static::creating(function (self $model) {
             if (app()->has('currentClinic') && empty($model->clinic_id)) {
                 $model->clinic_id = app('currentClinic')->id;
@@ -101,20 +109,11 @@ trait ClinicScope
 
     // ── Layer 3: Explicit scopes ──────────────────────────────────────────────
 
-    /**
-     * Scope queries to a specific clinic by ID.
-     * Use in Artisan commands and queue jobs where currentClinic() is not set.
-     *
-     * Usage: VisitModel::forClinic(3)->get();
-     */
     public function scopeForClinic($query, int $clinicId): void
     {
         $query->where($this->getTable() . '.clinic_id', $clinicId);
     }
 
-    /**
-     * Convenience: get the current clinic's ID from this model instance.
-     */
     public function getClinicIdSafeAttribute(): ?int
     {
         return $this->clinic_id

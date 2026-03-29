@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
+use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovementModel extends Model
 {
-    use SoftDeletes, Auditable;
+    use SoftDeletes, Auditable, ClinicScope;
 
     protected $table = 'stock_movements';
 
@@ -21,44 +22,28 @@ class StockMovementModel extends Model
     ];
 
     protected $casts = [
-        'unit_cost'   => 'float',
-        'expiry_date' => 'date',
-        'quantity'    => 'integer',
-        'stock_before'=> 'integer',
-        'stock_after' => 'integer',
+        'unit_cost'    => 'float',
+        'expiry_date'  => 'date',
+        'quantity'     => 'integer',
+        'stock_before' => 'integer',
+        'stock_after'  => 'integer',
     ];
 
-    public function medicine(): BelongsTo
-    {
-        return $this->belongsTo(MedicineModel::class, 'medicine_id');
-    }
+    public function medicine(): BelongsTo { return $this->belongsTo(MedicineModel::class, 'medicine_id'); }
+    public function clinic(): BelongsTo { return $this->belongsTo(ClinicModel::class); }
 
-    public function clinic(): BelongsTo
-    {
-        return $this->belongsTo(ClinicModel::class);
-    }
-
-    /** Human-readable type labels */
     public static function typeLabel(string $type): string
     {
         return match($type) {
-            'in'         => 'Stock In',
-            'out'        => 'Stock Out',
-            'adjustment' => 'Adjustment',
-            'expired'    => 'Expired',
-            'return'     => 'Return',
-            default      => ucfirst($type),
+            'in' => 'Stock In', 'out' => 'Stock Out', 'adjustment' => 'Adjustment',
+            'expired' => 'Expired', 'return' => 'Return', default => ucfirst($type),
         };
     }
 
-    /** Badge color per type */
     public static function typeColor(string $type): string
     {
         return match($type) {
-            'in'     => '#2eca6a',
-            'out'    => '#e74c3c',
-            'return' => '#ff771d',
-            default  => '#aaa',
+            'in' => '#2eca6a', 'out' => '#e74c3c', 'return' => '#ff771d', default => '#aaa',
         };
     }
 }

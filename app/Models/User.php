@@ -2,47 +2,66 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Base\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Auditable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'clinic_id', 'role_id', 'employee_id',
+        'name', 'email', 'password', 'phone',
+        'is_active', 'avatar_path',
+        'last_login_at', 'last_login_ip',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
+    public function clinic(): BelongsTo
+    {
+        return $this->belongsTo(ClinicModel::class);
+    }
+
+    // ── Relationships ─────────────────────────────────────────────────────────
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(RoleModel::class);
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(EmployeeModel::class);
+    }
+
+    public function can($ability, $arguments = []): bool
+    {
+        // Check slug-based permissions first
+        if (is_string($ability) && str_contains($ability, '.')) {
+            return $this->hasPermission($ability);
+        }
+
+        return parent::can($ability, $arguments);
+    }
+
+    // ── Permission check ──────────────────────────────────────────────────────
+
+    public function hasPermission(string $slug): bool
+    {
+        return $this->role?->hasPermission($slug) ?? false;
+    }
+
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'last_login_at' => 'datetime',
         ];
     }
 }

@@ -16,30 +16,30 @@
     </div>
 
     {{-- Banner --}}
-    <div
-        style="background:linear-gradient(135deg,#012970,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;overflow:hidden;position:relative">
-        <div
-            style="position:absolute;right:-20px;top:-20px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)"></div>
-        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
-            <div style="font-size:34px;flex-shrink:0">⚕</div>
-            <div style="flex:1;min-width:200px">
-                <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:4px">MediFlow EMR —
-                    ការចូលព្យាបាលថ្មី
-                </div>
-                <div style="font-size:12px;color:#8aabdc;margin-bottom:10px">Search an existing patient to pre-fill
-                    their data, or enter new patient details below.
-                </div>
-                <div style="display:flex;flex-wrap:wrap;gap:5px">
-                    @foreach($steps as $step)
-                        <span
-                            style="background:rgba(255,255,255,.1);color:#fff;font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.13)">
-                    {{ $step->icon() }} {{ $step->labelKm() }}
-                </span>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
+    {{--    <div--}}
+    {{--        style="background:linear-gradient(135deg,#012970,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;overflow:hidden;position:relative">--}}
+    {{--        <div--}}
+    {{--            style="position:absolute;right:-20px;top:-20px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)"></div>--}}
+    {{--        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">--}}
+    {{--            <div style="font-size:34px;flex-shrink:0">⚕</div>--}}
+    {{--            <div style="flex:1;min-width:200px">--}}
+    {{--                <div style="font-size:16px;font-weight:800;color:#fff;margin-bottom:4px">MediFlow EMR —--}}
+    {{--                    ការចូលព្យាបាលថ្មី--}}
+    {{--                </div>--}}
+    {{--                <div style="font-size:12px;color:#8aabdc;margin-bottom:10px">Search an existing patient to pre-fill--}}
+    {{--                    their data, or enter new patient details below.--}}
+    {{--                </div>--}}
+    {{--                <div style="display:flex;flex-wrap:wrap;gap:5px">--}}
+    {{--                    @foreach($steps as $step)--}}
+    {{--                        <span--}}
+    {{--                            style="background:rgba(255,255,255,.1);color:#fff;font-size:10px;padding:2px 9px;border-radius:20px;border:1px solid rgba(255,255,255,.13)">--}}
+    {{--                    {{ $step->icon() }} {{ $step->labelKm() }}--}}
+    {{--                </span>--}}
+    {{--                    @endforeach--}}
+    {{--                </div>--}}
+    {{--            </div>--}}
+    {{--        </div>--}}
+    {{--    </div>--}}
 
     <div class="row g-3">
 

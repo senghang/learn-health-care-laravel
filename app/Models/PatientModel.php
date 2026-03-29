@@ -5,22 +5,11 @@ namespace App\Models;
 use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * PatientModel
- *
- * Column notes:
- *   name    — given name (not family name)
- *   surname — family name
- *   gender  — 'M' or 'F' (DB column)
- *
- * The registration form uses 'sex' as the field name for gender to avoid
- * clashing with HTML reserved attributes. The getSexAttribute() accessor
- * makes $patient->sex work as an alias for $patient->gender.
- */
 class PatientModel extends Model
 {
     use SoftDeletes, Auditable, ClinicScope;
@@ -28,27 +17,27 @@ class PatientModel extends Model
     protected $table = 'patients';
 
     protected $fillable = [
-        'clinic_id',
-        'code',
-        'surname',
-        'name',            // given name
-        'sex',          // 'M' or 'F'
-        'birthdate',
-        'phone',
-        'nationality',
-        'occupation',
-        'marital_status',
-        'status',
-        'spid',
-        'created_by',
-        'updated_by',
+        'clinic_id', 'code', 'surname', 'name', 'sex',
+        'birthdate', 'phone', 'nationality', 'occupation',
+        'marital_status', 'status', 'spid',
+        'blood_type', 'emergency_contact_name', 'emergency_contact_phone',
+        'photo_path', 'photos', 'disabilities', 'death_date',
+        'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'birthdate' => 'date',
+        'death_date' => 'datetime',
+        'photos' => 'array',
+        'disabilities' => 'array',
     ];
 
-    // ── Relationships ─────────────────────────────────────────────────────────
+    // ── Core Relationships ────────────────────────────────────────────────────
+
+    public function clinic(): BelongsTo
+    {
+        return $this->belongsTo(ClinicModel::class);
+    }
 
     public function address(): HasOne
     {
@@ -60,10 +49,7 @@ class PatientModel extends Model
         return $this->hasMany(PatientIdentificationModel::class, 'patient_code', 'code');
     }
 
-    public function visits(): HasMany
-    {
-        return $this->hasMany(VisitModel::class, 'patient_code', 'code');
-    }
+    // ── Clinical (OPD) ────────────────────────────────────────────────────────
 
     public function triages(): HasMany
     {
@@ -90,46 +76,64 @@ class PatientModel extends Model
         return $this->hasMany(PrescriptionModel::class, 'patient_code', 'code');
     }
 
-    public function invoices(): HasMany
-    {
-        return $this->hasMany(InvoiceModel::class, 'patient_code', 'code');
-    }
-
     public function laboratories(): HasMany
     {
         return $this->hasMany(LaboratoryModel::class, 'patient_code', 'code');
     }
 
-    // ── Computed Attributes ───────────────────────────────────────────────────
-
-    /**
-     * Alias: $patient->sex → reads $patient->gender
-     * Lets form views use the 'sex' field name without confusion.
-     */
-    public function getSexAttribute(): ?string
+    public function imageries(): HasMany
     {
-        return $this->gender;
+        return $this->hasMany(ImageryModel::class, 'patient_code', 'code');
     }
 
-    /** Full display name */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(ReferralModel::class, 'visit_code', 'code');
+    }
+
+    public function admissions(): HasMany
+    {
+        return $this->hasMany(AdmissionModel::class, 'patient_code', 'code');
+    }
+
+    // ── IPD ───────────────────────────────────────────────────────────────────
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(InvoiceModel::class, 'patient_code', 'code');
+    }
+
+    // ── Billing ───────────────────────────────────────────────────────────────
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(PaymentModel::class, 'patient_code', 'code');
+    }
+
     public function getFullNameAttribute(): string
     {
         return "{$this->surname} {$this->name}";
     }
 
-    /** Age in years (null if no birthdate) */
+    // ── Computed ──────────────────────────────────────────────────────────────
+
     public function getAgeAttribute(): ?int
     {
         return $this->birthdate?->age;
     }
 
-    /** Gender label in Khmer / English */
-    public function getGenderLabelAttribute(): string
+    public function getActiveVisitAttribute(): ?VisitModel
     {
-        return match ($this->gender) {
-            'M' => 'ប្រុស / Male',
-            'F' => 'ស្រី / Female',
-            default => '—',
-        };
+        return $this->visits()->whereNull('discharged_at')->latest('admitted_at')->first();
+    }
+
+    public function visits(): HasMany
+    {
+        return $this->hasMany(VisitModel::class, 'patient_code', 'code');
+    }
+
+    public function getTotalVisitsAttribute(): int
+    {
+        return $this->visits()->count();
     }
 }

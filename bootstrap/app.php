@@ -4,6 +4,7 @@ use App\Http\Middleware\AdminAuthMiddleware;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\AuthUserMiddleware;
 use App\Http\Middleware\BindSubdomainParameter;
+use App\Http\Middleware\CheckPermission;
 use App\Http\Middleware\ClinicMiddleware;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -42,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
             'userauth' => AuthUserMiddleware::class,
             'superadminguard' => AdminAuthMiddleware::class,
+            'can.do' => CheckPermission::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
