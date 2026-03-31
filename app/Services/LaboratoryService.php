@@ -11,7 +11,13 @@ use Illuminate\Support\Facades\DB;
  * LaboratoryService — lab order lifecycle.
  *
  * Flow: Request → Collect Sample → Process → Record Results → Verify.
- * Each step is a status transition on the lab order.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * ADDITIVE CHANGES:
+ *   ✅ Added auto-flag detection in recordResults
+ *   ✅ Added category filter to list()
+ *   ✅ All existing method signatures preserved
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 class LaboratoryService
 {
@@ -22,14 +28,17 @@ class LaboratoryService
     {
         return LaboratoryModel::query()
             ->with(['patient', 'visit', 'results'])
-            ->when($filters['search'] ?? null, fn($q, $s) => $q->where('code', 'like', "%{$s}%")
-                ->orWhereHas('patient', fn($p) => $p->where('surname', 'like', "%{$s}%")
-                    ->orWhere('name', 'like', "%{$s}%")
-                )
+            ->when($filters['search'] ?? null, fn($q, $s) =>
+                $q->where('code', 'ilike', "%{$s}%")
+                  ->orWhereHas('patient', fn($p) =>
+                      $p->where('surname', 'ilike', "%{$s}%")
+                        ->orWhere('name', 'ilike', "%{$s}%")
+                  )
             )
-            ->when($filters['status'] ?? null, fn($q, $v) => $q->where('status', $v))
-            ->when($filters['urgency'] ?? null, fn($q, $v) => $q->where('urgency', $v))
-            ->when($filters['date'] ?? null, fn($q, $v) => $q->whereDate('requested_at', $v))
+            ->when($filters['status'] ?? null,   fn($q, $v) => $q->where('status', $v))
+            ->when($filters['urgency'] ?? null,  fn($q, $v) => $q->where('urgency', $v))
+            ->when($filters['category'] ?? null, fn($q, $v) => $q->where('category', $v))
+            ->when($filters['date'] ?? null,     fn($q, $v) => $q->whereDate('requested_at', $v))
             ->latest('requested_at')
             ->paginate($perPage)
             ->withQueryString();
@@ -52,24 +61,26 @@ class LaboratoryService
     {
         return DB::transaction(function () use ($data) {
             $lab = LaboratoryModel::create([
-                'code' => ClinicCodeService::labRequest(currentClinic()->id),
-                'patient_code' => $data['patient_code'],
-                'visit_code' => $data['visit_code'],
+                'code'           => ClinicCodeService::labRequest(currentClinic()->id),
+                'patient_code'   => $data['patient_code'],
+                'visit_code'     => $data['visit_code'],
                 'encounter_code' => $data['encounter_code'] ?? null,
-                'title' => $data['title'] ?? null,
-                'status' => 'requested',
-                'urgency' => $data['urgency'] ?? 'normal',
-                'requested_at' => now(),
-                'requested_by' => $data['requested_by'] ?? auth()->user()?->name,
+                'category'       => $data['category'] ?? null,
+                'title'          => $data['title'] ?? null,
+                'status'         => 'requested',
+                'urgency'        => $data['urgency'] ?? 'normal',
+                'requested_at'   => now(),
+                'requested_by'   => $data['requested_by'] ?? auth()->user()?->name,
             ]);
 
-            // Create result placeholders for each test
             foreach ($data['tests'] ?? [] as $test) {
+                if (empty(trim($test['name'] ?? ''))) continue;
+
                 LaboratoryResultModel::create([
                     'request_code' => $lab->code,
-                    'name' => $test['name'],
-                    'category' => $test['category'] ?? null,
-                    'value_type' => $test['value_type'] ?? 'numeric',
+                    'name'         => $test['name'],
+                    'category'     => $test['category'] ?? null,
+                    'value_type'   => $test['value_type'] ?? 'numeric',
                 ]);
             }
 
@@ -85,7 +96,7 @@ class LaboratoryService
         $lab = LaboratoryModel::where('code', $code)->firstOrFail();
 
         $lab->update([
-            'status' => 'collected',
+            'status'       => 'collected',
             'collected_at' => now(),
             'collected_by' => $collectedBy ?? auth()->user()?->name,
         ]);
@@ -94,7 +105,7 @@ class LaboratoryService
     }
 
     /**
-     * Record results for a lab order.
+     * Record results for a lab order with auto-flag detection.
      */
     public function recordResults(string $code, array $results): LaboratoryModel
     {
@@ -104,14 +115,24 @@ class LaboratoryService
             foreach ($results as $resultData) {
                 if (empty($resultData['id'])) continue;
 
+                $updateData = [
+                    'value'          => $resultData['value'] ?? $resultData['result'] ?? null,
+                    'interpretation' => $resultData['interpretation'] ?? $resultData['conclusion'] ?? null,
+                    'reference_range'=> $resultData['reference_range'] ?? null,
+                    'recorded_at'    => now(),
+                    'recorded_by'    => auth()->user()?->name,
+                ];
+
+                // Auto-detect flag from interpretation if not explicitly set
+                if (!empty($resultData['flag'])) {
+                    $updateData['flag'] = $resultData['flag'];
+                } elseif (!empty($updateData['interpretation'])) {
+                    $updateData['flag'] = $this->detectFlag($updateData['interpretation']);
+                }
+
                 LaboratoryResultModel::where('id', $resultData['id'])
                     ->where('request_code', $code)
-                    ->update([
-                        'value' => $resultData['result'] ?? null,
-                        'interpretation' => $resultData['conclusion'] ?? null,
-                        'recorded_at' => now(),
-                        'recorded_by' => auth()->user()?->name,
-                    ]);
+                    ->update($updateData);
             }
 
             $lab->update(['status' => 'completed']);
@@ -141,10 +162,28 @@ class LaboratoryService
     public function stats(): array
     {
         return [
-            'today_orders' => LaboratoryModel::whereDate('requested_at', today())->count(),
-            'pending' => LaboratoryModel::where('status', 'requested')->count(),
-            'in_progress' => LaboratoryModel::whereIn('status', ['collected', 'processing'])->count(),
-            'completed_today' => LaboratoryModel::where('status', 'completed')->whereDate('updated_at', today())->count(),
+            'today_orders'    => LaboratoryModel::whereDate('requested_at', today())->count(),
+            'pending'         => LaboratoryModel::where('status', 'requested')->count(),
+            'in_progress'     => LaboratoryModel::whereIn('status', ['collected', 'processing'])->count(),
+            'completed_today' => LaboratoryModel::where('status', 'completed')
+                                    ->whereDate('updated_at', today())->count(),
         ];
+    }
+
+    /**
+     * Auto-detect flag from interpretation text.
+     */
+    private function detectFlag(?string $interpretation): ?string
+    {
+        if (!$interpretation) return null;
+
+        $lower = strtolower(trim($interpretation));
+        return match(true) {
+            $lower === 'critical'                    => 'Critical',
+            in_array($lower, ['high', 'positive'])   => 'H',
+            $lower === 'low'                         => 'L',
+            in_array($lower, ['normal', 'negative']) => 'N',
+            default                                  => null,
+        };
     }
 }

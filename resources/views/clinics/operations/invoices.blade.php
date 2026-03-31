@@ -6,6 +6,9 @@
         :title="__('app.invoices')"
         subtitle="Invoices"
         :breadcrumbs="[['label'=>__('app.home'),'url'=>route('dashboard')],['label'=>__('app.invoices')]]">
+        <a href="{{ route('invoices.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle-fill"></i> New Invoice
+        </a>
     </x-page-header>
 
     {{-- KPI --}}

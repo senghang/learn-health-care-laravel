@@ -49,11 +49,20 @@ class InvoiceModel extends Model
 
     public function recalculateTotal(): void
     {
-        $svcTotal = $this->services()->sum('price');
-        $medTotal = $this->medications()->selectRaw('SUM(price * quantity) as total')->value('total') ?? 0;
+        // Services: multiply by qty (COALESCE handles legacy rows where qty was not stored)
+        $svcTotal = $this->services()
+            ->selectRaw('COALESCE(SUM(price * GREATEST(COALESCE(qty, 1), 1)), 0) as total')
+            ->value('total') ?? 0;
+
+        $medTotal = $this->medications()
+            ->selectRaw('COALESCE(SUM(price * quantity), 0) as total')
+            ->value('total') ?? 0;
+
+        $sub = (float) $svcTotal + (float) $medTotal;
+
         $this->update([
-            'subtotal' => $svcTotal + $medTotal,
-            'total'    => ($svcTotal + $medTotal) - $this->discount_total + $this->tax_total,
+            'subtotal' => $sub,
+            'total'    => $sub - $this->discount_total + $this->tax_total,
         ]);
     }
 }

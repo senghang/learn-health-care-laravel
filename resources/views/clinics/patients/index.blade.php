@@ -1,40 +1,43 @@
 @extends('clinics.layout.app')
-@section('title', __('app.patient.title'))
+@section('title', 'អ្នកជំងឺ / Patients')
+
 @section('content')
 
-<div class="pg-header">
-  <div>
-    <h1 class="pg-title">{{ __('app.patient.title') }} <small>/ Patients</small></h1>
-    <div class="breadcrumb-row">
-      <a href="{{ route('dashboard') }}">ដើម</a><span>›</span>
-      <span>{{ __('app.patient.title') }}</span>
-    </div>
-  </div>
-  <a href="{{ route('patients.create') }}" class="btn btn-primary">
-    <i class="bi bi-person-plus-fill"></i> {{ __('app.patient.new') }}
-  </a>
-</div>
+<x-page-header
+    title="អ្នកជំងឺ"
+    subtitle="Patients"
+    :breadcrumbs="[
+        ['label' => 'ដើម', 'url' => url('/')],
+        ['label' => 'អ្នកជំងឺ'],
+    ]"
+>
+    <a href="{{ route('patients.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus-fill"></i> {{ __('app.patient.new') }}
+    </a>
+</x-page-header>
 
-{{-- Filter bar --}}
+{{-- Search / Filter bar --}}
 <div class="card-emr mb-3">
-  <div class="card-bd">
+  <div class="card-bd" style="padding:12px 16px">
     <form method="GET" action="{{ route('patients.index') }}">
       <div class="row g-2 align-items-end">
-        <div class="col-12 col-sm-6 col-md-5">
-          <label class="flbl"><span class="km">{{ __('app.search') }}</span></label>
-          <div style="position:relative">
-            <i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#bbb;font-size:13px"></i>
-            <input type="text" name="search" class="form-control" style="padding-left:32px"
-                   placeholder="{{ __('app.patient.code') }}, {{ __('app.patient.name') }}, {{ __('app.patient.phone') }}…"
-                   value="{{ request('search') }}" autofocus/>
-          </div>
+        <div class="col-12 col-sm-5 col-md-4">
+          <input type="text" name="search" class="form-control" value="{{ request('search') }}"
+                 placeholder="ស្វែងរក / Search by code, name, phone, SPID…"
+                 style="font-size:13px"/>
         </div>
         <div class="col-6 col-sm-3 col-md-2">
-          <label class="flbl"><span class="km">{{ __('app.patient.sex') }}</span></label>
-          <select name="sex" class="form-select">
-            <option value="">{{ __('app.all') }}</option>
+          <select name="sex" class="form-select" style="font-size:13px">
+            <option value="">{{ __('app.patient.sex') }} — All</option>
             <option value="M" {{ request('sex') === 'M' ? 'selected' : '' }}>{{ __('app.patient.male') }}</option>
             <option value="F" {{ request('sex') === 'F' ? 'selected' : '' }}>{{ __('app.patient.female') }}</option>
+          </select>
+        </div>
+        <div class="col-6 col-sm-3 col-md-2">
+          <select name="status" class="form-select" style="font-size:13px">
+            <option value="">Status — All</option>
+            <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+            <option value="Inactive" {{ request('status') === 'Inactive' ? 'selected' : '' }}>Inactive</option>
           </select>
         </div>
         <div class="col-6 col-sm-3 col-md-2">
@@ -42,7 +45,7 @@
             <i class="bi bi-funnel-fill"></i> {{ __('app.search') }}
           </button>
         </div>
-        @if(request()->hasAny(['search','sex']))
+        @if(request()->hasAny(['search','sex','status']))
         <div class="col-12 col-md-auto">
           <a href="{{ route('patients.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-x-circle"></i> Clear
@@ -54,6 +57,7 @@
   </div>
 </div>
 
+{{-- Results count --}}
 @if($patients->total() > 0)
 <div style="font-size:11px;color:#aaa;padding:4px 2px;margin-bottom:8px">
   {{ $patients->firstItem() }}–{{ $patients->lastItem() }} of {{ number_format($patients->total()) }} patients
@@ -78,9 +82,13 @@
       @if($patient->phone) · {{ $patient->phone }} @endif
       @if($patient->sex) · {{ $patient->sex === 'M' ? __('app.patient.male') : __('app.patient.female') }} @endif
       @if($patient->birthdate) · {{ $patient->birthdate->age }}y @endif
+      @if($patient->blood_type) · <span style="color:#e74c3c">{{ $patient->blood_type }}</span> @endif
     </div>
   </div>
   <div class="v-badges">
+    @if($patient->status === 'Inactive')
+    <span class="badge-s" style="background:#f5f5f5;color:#999">Inactive</span>
+    @endif
     @if($patient->visits_count > 0)
     <span class="badge-s" style="background:#eef0fd;color:#4154f1">
       {{ $patient->visits_count }} {{ __('app.patient.visits_count') }}

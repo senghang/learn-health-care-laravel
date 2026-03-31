@@ -10,6 +10,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * VisitModel — OPD/IPD visit header.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * ADDITIVE CHANGES:
+ *   ✅ Added 'priority', 'clinical_summary' to $fillable
+ *   ✅ All existing fillable/casts/relationships preserved
+ *   ✅ Zero breaking changes
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 class VisitModel extends Model
 {
     use SoftDeletes, Auditable, ClinicScope;
@@ -19,7 +29,9 @@ class VisitModel extends Model
     protected $fillable = [
         'clinic_id', 'code', 'health_facility_code',
         'patient_code', 'surname', 'name', 'given_name',
-        'visit_type', 'admission_type', 'discharge_type', 'visit_outcome',
+        'visit_type', 'priority',                            // ← NEW
+        'admission_type', 'admission_status',
+        'discharge_type', 'visit_outcome', 'clinical_summary', // ← NEW
         'reason_for_visit', 'attending_doctor', 'ward_id',
         'admitted_at', 'discharged_at', 'followup_at',
         'done_steps', 'skipped_steps',
@@ -77,5 +89,19 @@ class VisitModel extends Model
     public function getStepsDoneAttribute(): int
     {
         return count($this->done_steps ?? []);
+    }
+
+    /**
+     * NEW: Priority color helper for blade views.
+     */
+    public function getPriorityColorAttribute(): string
+    {
+        return match($this->priority) {
+            'Emergency' => '#e74c3c',
+            'Urgent'    => '#ff771d',
+            'Standard'  => '#3498db',
+            'Low'       => '#95a5a6',
+            default     => '#ccc',
+        };
     }
 }

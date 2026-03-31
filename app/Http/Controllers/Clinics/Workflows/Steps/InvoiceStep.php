@@ -168,7 +168,11 @@ class InvoiceStep extends AbstractWorkflowStep
             }
 
             // ── Deduct stock ──────────────────────────────────────────────
+            // Sort by medicine_id ASC before acquiring locks (deadlock prevention).
+            // Two concurrent transactions covering the same medicines will wait
+            // for the first to complete rather than deadlock.
             if (!empty($dispenseItems)) {
+                usort($dispenseItems, fn($a, $b) => ($a['medicine_id'] ?? 0) <=> ($b['medicine_id'] ?? 0));
                 StockService::dispense(
                     $dispenseItems,
                     $inv->code,

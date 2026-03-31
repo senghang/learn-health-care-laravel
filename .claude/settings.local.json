@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php:*)",
+      "Bash(grep -r \"pharmacy\\\\|medicine\\\\|dispense\\\\|stock\" D:learnlearn-health-care-laravel/resources/views/clinics --include=*.php --include=*.blade.php -l)",
+      "Bash(grep -l \"medication\\\\|pharmacy\" D:learnlearn-health-care-laravel/resources/views/clinics/**/*.blade.php)"
+    ]
+  }
+}

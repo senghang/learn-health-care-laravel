@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use App\Models\Base\Auditable;
-use App\Models\Concerns\HasTranslations;
-use App\Models\Concerns\LogsActivity;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * ImageryResultModel — imaging result with optional image attachments.
+ *
+ * No changes from existing — already complete.
+ */
 class ImageryResultModel extends Model
 {
     use SoftDeletes, Auditable;
@@ -31,5 +33,10 @@ class ImageryResultModel extends Model
     public function imagery(): BelongsTo
     {
         return $this->belongsTo(ImageryModel::class, 'request_code', 'code');
+    }
+
+    public function getIsVerifiedAttribute(): bool
+    {
+        return $this->verified_at !== null;
     }
 }

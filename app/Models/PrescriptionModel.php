@@ -49,4 +49,9 @@ class PrescriptionModel extends Model
     {
         return $this->hasMany(PrescriptionMedicationModel::class, 'prescription_code', 'code');
     }
+
+    public function dispenses(): HasMany
+    {
+        return $this->hasMany(DispenseModel::class, 'prescription_code', 'code');
+    }
 }

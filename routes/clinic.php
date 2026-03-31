@@ -94,11 +94,13 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         Route::get('/{code}', [PatientController::class, 'show'])->name('show');
         Route::get('/{code}/edit', [PatientController::class, 'edit'])->name('edit');
         Route::patch('/{code}', [PatientController::class, 'update'])->name('update');
+        Route::delete('/{code}', [PatientController::class, 'destroy'])->name('destroy');
     });
 
     // ── Visits (unchanged) ────────────────────────────────────────────────────
     Route::get('/visits', [VisitController::class, 'index'])->name('visits.index');
     Route::get('/visits/{code}', [VisitController::class, 'show'])->name('visits.show');
+    Route::post('/visits/{code}/discharge', [VisitController::class, 'discharge'])->name('visits.discharge');
 
     // ── Workflow (unchanged) ──────────────────────────────────────────────────
     Route::prefix('workflow')->name('workflow.')->group(function () {
@@ -111,16 +113,37 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         Route::get('/{code}/{step}/skip', [WorkflowController::class, 'skipStep'])->name('skip');
     });
 
-    // ── Prescriptions (unchanged) ─────────────────────────────────────────────
-    Route::prefix('prescriptions')->name('prescriptions.')->group(function () {
-        Route::get('/', [PrescriptionController::class, 'index'])->name('index');
-        Route::get('/{code}', [PrescriptionController::class, 'show'])->name('show');
+    // ── Prescriptions ─────────────────────────────────────────────────────────
+    Route::prefix('prescriptions')->name('prescriptions.')->group(function () use ($permMiddleware) {
+        Route::get('/',              [PrescriptionController::class, 'index'])->name('index');
+
+        // create/store must be declared before /{code} to avoid route conflict
+        Route::get('/create',        [PrescriptionController::class, 'create'])->name('create');
+        Route::post('/',             [PrescriptionController::class, 'store'])->name('store');
+
+        Route::get('/{code}',        [PrescriptionController::class, 'show'])->name('show');
+        Route::get('/{code}/edit',   [PrescriptionController::class, 'edit'])->name('edit');
+        Route::patch('/{code}',      [PrescriptionController::class, 'update'])->name('update');
+        Route::delete('/{code}',     [PrescriptionController::class, 'destroy'])->name('destroy');
+
+        // Dispensing — updates status + optionally decrements stock
+        Route::post('/{code}/dispense', [PrescriptionController::class, 'dispense'])->name('dispense');
     });
 
-    // ── Invoices + Payment (unchanged) ────────────────────────────────────────
+    // ── Invoices + Payment ────────────────────────────────────────────────────
     Route::prefix('invoices')->name('invoices.')->group(function () {
-        Route::get('/', [InvoiceController::class, 'index'])->name('index');
-        Route::get('/{code}', [InvoiceController::class, 'show'])->name('show');
+        Route::get('/',          [InvoiceController::class, 'index'])->name('index');
+
+        // /create must be declared before /{code}
+        Route::get('/create',    [InvoiceController::class, 'create'])->name('create');
+        Route::post('/',         [InvoiceController::class, 'store'])->name('store');
+
+        Route::get('/{code}',    [InvoiceController::class, 'show'])->name('show');
+        Route::get('/{code}/edit', [InvoiceController::class, 'edit'])->name('edit');
+        Route::patch('/{code}',  [InvoiceController::class, 'update'])->name('update');
+        Route::delete('/{code}', [InvoiceController::class, 'destroy'])->name('destroy');
+
+        Route::post('/{code}/void',    [InvoiceController::class, 'void'])->name('void');
         Route::post('/{code}/payment', [InvoiceController::class, 'collectPayment'])->name('payment');
     });
 
@@ -226,6 +249,7 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
             Route::get('/', [$lab, 'index'])->name('index');
             Route::get('/{code}', [$lab, 'show'])->name('show');
             Route::patch('/{code}', [$lab, 'update'])->name('update')->middleware($permMiddleware('laboratory.manage'));
+            Route::get('/create', [$lab, 'create'])->name('create')->middleware($permMiddleware('laboratory.manage'));
         });
     }
 
@@ -235,6 +259,7 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
             Route::get('/', [$img, 'index'])->name('index');
             Route::get('/{code}', [$img, 'show'])->name('show');
             Route::patch('/{code}', [$img, 'update'])->name('update')->middleware($permMiddleware('imagery.manage'));
+            Route::get('/create', [$img, 'create'])->name('create')->middleware($permMiddleware('laboratory.manage'));
         });
     }
 
@@ -269,10 +294,16 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
 
     // ── Pharmacy ──────────────────────────────────────────────────────────────
     if (class_exists($pharm = PharmacyController::class)) {
-        Route::prefix('pharmacy')->name('pharmacy.')->middleware($permMiddleware('pharmacy.view'))->group(function () use ($pharm, $permMiddleware) {
+        Route::prefix('pharmacy')->name('pharmacy.')->group(function () use ($pharm, $permMiddleware) {
+            // Dispensing queue (pharmacist view)
             Route::get('/', [$pharm, 'index'])->name('index');
             Route::get('/{code}', [$pharm, 'show'])->name('show');
-            Route::post('/{code}/dispense', [$pharm, 'dispense'])->name('dispense')->middleware($permMiddleware('pharmacy.dispense'));
+            Route::post('/{code}/dispense', [$pharm, 'dispense'])->name('dispense')
+                 ->middleware($permMiddleware('pharmacy.dispense'));
+
+            // IPD medication administration (nurse/ward staff)
+            Route::post('/ipd/{medCode}/administer', [$pharm, 'administerIPD'])->name('ipd.administer')
+                 ->middleware($permMiddleware('pharmacy.dispense'));
         });
     }
 

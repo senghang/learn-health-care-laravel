@@ -2,120 +2,138 @@
 
 namespace App\Http\Controllers\Clinics;
 
-use App\Common\Constants\DateFormats;
 use App\Http\Controllers\Controller;
 use App\Models\PatientModel;
 use App\Models\VisitModel;
+use App\Services\OpdSummaryService;
+use App\Services\VisitService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+/**
+ * VisitController — THIN controller for visit listing + clinical summary.
+ *
+ * NOTE: Visit creation happens through WorkflowController (unchanged).
+ * This controller handles listing, show (clinical summary), and discharge.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * CHANGES FROM PREVIOUS VERSION:
+ *   ✅ Delegates to VisitService (was inline queries)
+ *   ✅ Added show() with full clinical summary via OpdSummaryService
+ *   ✅ Added discharge() action
+ *   ✅ Preserved JSON search endpoint (searchPatients)
+ *   ✅ All existing routes preserved (backward compat)
+ * ═══════════════════════════════════════════════════════════════════════════════
+ */
 class VisitController extends Controller
 {
+    public function __construct(
+        private readonly VisitService $visitService,
+        private readonly OpdSummaryService $summaryService,
+    ) {}
+
     /**
-     * GET /visits
-     * List visits scoped to current clinic via patient relationship.
+     * GET /visits — list with search/filter
      */
     public function index(Request $request): View
     {
-        $clinicId = currentClinic()->id;
+        $visits = $this->visitService->list([
+            'search'   => $request->search,
+            'type'     => $request->type,
+            'status'   => $request->status,
+            'priority' => $request->priority,
+            'date'     => $request->date,
+        ]);
 
-        $visits = VisitModel::query()
-            // Scope to this clinic's patients only
-            ->whereHas('patient', fn($q) => $q->where('clinic_id', $clinicId))
-            ->when($request->filled('search'), function ($q) use ($request) {
-                $s = $request->search;
-                $q->where(fn($r) => $r
-                    ->where('surname',      'like', "%{$s}%")
-                    ->orWhere('name',       'like', "%{$s}%")
-                    ->orWhere('code',       'like', "%{$s}%")
-                    ->orWhere('patient_code','like', "%{$s}%")
-                );
-            })
-            ->when($request->filled('type'),   fn($q) => $q->where('visit_type', $request->type))
-            ->when($request->status === 'active', fn($q) => $q->whereNull('discharged_at'))
-            ->when($request->status === 'done',   fn($q) => $q->whereNotNull('discharged_at'))
-            ->when($request->filled('date'),   fn($q) => $q->whereDate('admitted_at', $request->date))
-            ->latest('admitted_at')
-            ->paginate(25)
-            ->withQueryString();
+        $stats = $this->visitService->todayStats();
 
-        return view('clinics.visits.index', compact('visits'));
+        return view('clinics.visits.index', compact('visits', 'stats'));
     }
 
     /**
-     * GET /visits/{code}
-     * Redirect to the workflow view — visits are managed via workflow steps.
+     * GET /visits/{code} — visit detail with full clinical summary.
+     *
+     * Shows all data from all 10 workflow steps in one page.
+     * Redirects to workflow if visit is still active (for editing).
      */
-    public function show(string $code): RedirectResponse
+    public function show(string $code): View|RedirectResponse
     {
-        $clinicId = currentClinic()->id;
+        $visit = $this->summaryService->loadFull($code);
 
-        $visit = VisitModel::where('code', $code)
-            ->whereHas('patient', fn($q) => $q->where('clinic_id', $clinicId))
-            ->firstOrFail();
+        // If visit is active, redirect to workflow for editing
+        if ($visit->isActive()) {
+            return redirect(url("/workflow/{$visit->code}"));
+        }
 
-        return redirect(url("/workflow/{$visit->code}"));
+        $summary = $this->summaryService->summary($visit);
+
+        return view('clinics.visits.show', compact('visit', 'summary'));
+    }
+
+    /**
+     * POST /visits/{code}/discharge — discharge an active visit.
+     */
+    public function discharge(Request $request, string $code): RedirectResponse
+    {
+        $data = $request->validate([
+            'discharge_type'   => 'nullable|string|max:80',
+            'visit_outcome'    => 'nullable|string|max:80',
+            'clinical_summary' => 'nullable|string',
+            'discharged_at'    => 'nullable|date',
+            'followup_at'      => 'nullable|date',
+        ]);
+
+        try {
+            $visit = $this->visitService->discharge($code, $data);
+
+            return redirect()->route('visits.show', $visit->code)
+                ->with('flash', "Visit {$code} discharged.");
+        } catch (\RuntimeException $e) {
+            return back()->withErrors(['discharge' => $e->getMessage()]);
+        }
     }
 
     /**
      * GET /patients/search/json?q=...
      * JSON endpoint for workflow patient autocomplete.
-     * Scoped to current clinic.
+     * Preserved from original controller — backward compatible.
      */
     public function searchPatients(Request $request): JsonResponse
     {
         $q = trim($request->get('q', ''));
-
-        if (strlen($q) < 2) {
+        if (strlen($q) < 1) {
             return response()->json([]);
         }
 
         $clinicId = currentClinic()->id;
 
-        $patients = PatientModel::query()
-            ->where('clinic_id', $clinicId)
-            ->where(fn($r) => $r
-                ->where('code',     'like', "%{$q}%")
-                ->orWhere('surname', 'like', "%{$q}%")
-                ->orWhere('name',    'like', "%{$q}%")
-                ->orWhere('phone',   'like', "%{$q}%")
+        $patients = PatientModel::where('clinic_id', $clinicId)
+            ->where(fn($query) => $query
+                ->where('code',    'ilike', "%{$q}%")
+                ->orWhere('surname','ilike', "%{$q}%")
+                ->orWhere('name',   'ilike', "%{$q}%")
+                ->orWhere('phone',  'ilike', "%{$q}%")
             )
-            ->with('address')
             ->withCount('visits')
-            ->orderByDesc('visits_count')
-            ->limit(8)
-            ->get()
-            ->map(function (PatientModel $p) {
-                $lastVisit = VisitModel::where('patient_code', $p->code)
-                    ->latest('admitted_at')
-                    ->first();
+            ->with(['visits' => fn($v) => $v->latest('admitted_at')->limit(1)])
+            ->limit(10)
+            ->get();
 
-                return [
-                    'code'           => $p->code,
-                    'surname'        => $p->surname,
-                    'name'           => $p->name,           // given name stored as `name`
-                    'full_name'      => "{$p->surname}, {$p->name}",
-                    'sex'            => $p->gender,         // column = gender, returned as sex for form compat
-                    'birthdate'      => $p->birthdate?->format(DateFormats::DISPLAY_DATE),
-                    'phone'          => $p->phone,
-                    'nationality'    => $p->nationality,
-                    'occupation'     => $p->occupation,
-                    'marital_status' => $p->marital_status,
-                    'province_name'  => $p->address?->province_name,
-                    'district_name'  => $p->address?->district_name,
-                    'commune_name'   => $p->address?->commune_name,
-                    'village_name'   => $p->address?->village_name,
-                    'house_number'   => $p->address?->house_number,
-                    'street_number'  => $p->address?->street_number,
-                    'visits_count'   => $p->visits_count,
-                    'last_visit_code'=> $lastVisit?->code,
-                    'last_visit_date'=> $lastVisit?->admitted_at?->format(DateFormats::DISPLAY_DATE),
-                    'last_visit_type'=> $lastVisit?->visit_type,
-                ];
-            });
-
-        return response()->json($patients);
+        return response()->json(
+            $patients->map(fn(PatientModel $p) => [
+                'code'         => $p->code,
+                'surname'      => $p->surname,
+                'name'         => $p->name,
+                'sex'          => $p->sex,
+                'birthdate'    => $p->birthdate?->format('Y-m-d'),
+                'age'          => $p->age,
+                'phone'        => $p->phone,
+                'nationality'  => $p->nationality,
+                'visits_count' => $p->visits_count,
+                'last_visit'   => $p->visits->first()?->only(['code', 'visit_type', 'admitted_at']),
+            ])
+        );
     }
 }

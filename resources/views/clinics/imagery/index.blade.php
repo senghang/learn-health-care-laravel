@@ -1,101 +1,106 @@
 @extends('clinics.layout.app')
-@section('title', __('app.imagery'))
+@section('title', 'រូបភាព / Imaging')
 
 @section('content')
-<x-page-header :title="__('app.imagery') ?? 'Imaging'" subtitle="Imaging Orders"
-    :breadcrumbs="[['label'=>__('app.nav.dashboard'),'url'=>route('dashboard')],['label'=>'Imaging']]">
+<x-page-header title="រូបភាពវេជ្ជសាស្ត្រ" subtitle="Imaging / Radiology"
+    :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Imaging']]">
+    <a href="{{ route('imagery.create') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> New Imaging Order
+    </a>
 </x-page-header>
 
-{{-- KPI Stats --}}
-<div class="row g-3 mb-3">
-    @foreach([
-        ['label'=>'Today','value'=>$stats['today_orders'],'icon'=>'bi-camera-fill','color'=>'#4154f1','bg'=>'#eef0fd'],
-        ['label'=>'Pending','value'=>$stats['pending'],'icon'=>'bi-hourglass-split','color'=>'#ff771d','bg'=>'#fff3e8'],
-        ['label'=>'Completed Today','value'=>$stats['completed_today'],'icon'=>'bi-check-circle-fill','color'=>'#2eca6a','bg'=>'#e8f8ef'],
-    ] as $s)
-    <div class="col-6 col-xl-4">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:{{ $s['bg'] }};color:{{ $s['color'] }}"><i class="bi {{ $s['icon'] }}"></i></div>
-            <div><div class="stat-num" style="color:{{ $s['color'] }}">{{ $s['value'] }}</div><div class="stat-lbl">{{ $s['label'] }}</div></div>
-        </div>
+{{-- Stats --}}
+<div class="row g-2 mb-3">
+  @foreach([
+    ['label'=>'Today','val'=>$stats['today_orders'],'icon'=>'bi-camera-fill','color'=>'#4154f1'],
+    ['label'=>'Pending','val'=>$stats['pending'],'icon'=>'bi-hourglass-split','color'=>'#ff771d'],
+    ['label'=>'Done Today','val'=>$stats['completed_today'],'icon'=>'bi-check-circle-fill','color'=>'#2eca6a'],
+  ] as $c)
+  <div class="col-6 col-lg-4">
+    <div class="card-emr" style="text-align:center;padding:14px 10px">
+      <i class="bi {{ $c['icon'] }}" style="font-size:20px;color:{{ $c['color'] }}"></i>
+      <div style="font-size:22px;font-weight:800;color:#012970;margin-top:4px">{{ $c['val'] }}</div>
+      <div style="font-size:10px;color:#aaa;font-weight:600">{{ $c['label'] }}</div>
     </div>
-    @endforeach
+  </div>
+  @endforeach
 </div>
 
-{{-- Filter --}}
+{{-- Filters --}}
 <div class="card-emr mb-3">
-    <div class="card-bd">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-12 col-sm-3">
-                <input type="text" name="search" class="form-control" placeholder="{{ __('app.search') }}…" value="{{ request('search') }}"/>
-            </div>
-            <div class="col-6 col-sm-2">
-                <select name="status" class="form-select">
-                    <option value="">All Status</option>
-                    @foreach(['requested','completed'] as $st)
-                        <option value="{{ $st }}" {{ request('status')===$st?'selected':'' }}>{{ ucfirst($st) }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-6 col-sm-2">
-                <select name="category" class="form-select">
-                    <option value="">All Types</option>
-                    @foreach(['xray'=>'X-Ray','ultrasound'=>'Ultrasound','ct_scan'=>'CT Scan','mri'=>'MRI','ecg'=>'ECG'] as $k=>$v)
-                        <option value="{{ $k }}" {{ request('category')===$k?'selected':'' }}>{{ $v }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-6 col-sm-2">
-                <input type="date" name="date" class="form-control" value="{{ request('date') }}"/>
-            </div>
-            <div class="col-6 col-sm-3 d-flex gap-2">
-                <button class="btn btn-primary btn-sm flex-fill"><i class="bi bi-search"></i></button>
-                <a href="{{ route('imagery.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-lg"></i></a>
-            </div>
-        </form>
-    </div>
+  <div class="card-bd" style="padding:12px 16px">
+    <form method="GET" class="row g-2 align-items-end">
+      <div class="col-12 col-sm-4 col-md-3">
+        <input type="text" name="search" class="form-control" placeholder="Code, patient…" value="{{ request('search') }}" style="font-size:13px"/>
+      </div>
+      <div class="col-6 col-sm-2">
+        <select name="status" class="form-select" style="font-size:13px" onchange="this.form.submit()">
+          <option value="">Status — All</option>
+          <option value="requested" {{ request('status')==='requested'?'selected':'' }}>Requested</option>
+          <option value="completed" {{ request('status')==='completed'?'selected':'' }}>Completed</option>
+        </select>
+      </div>
+      <div class="col-6 col-sm-2">
+        <select name="category" class="form-select" style="font-size:13px" onchange="this.form.submit()">
+          <option value="">Category — All</option>
+          @foreach(['X-ray','Ultrasound','CT','MRI','ECG','Endoscopy'] as $cat)
+          <option value="{{ $cat }}" {{ request('category')===$cat?'selected':'' }}>{{ $cat }}</option>
+          @endforeach
+        </select>
+      </div>
+      <div class="col-6 col-sm-2">
+        <input type="date" name="date" class="form-control" value="{{ request('date') }}" style="font-size:13px" onchange="this.form.submit()"/>
+      </div>
+      @if(request()->hasAny(['search','status','category','date']))
+      <div class="col-auto">
+        <a href="{{ route('imagery.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i> Clear</a>
+      </div>
+      @endif
+    </form>
+  </div>
 </div>
 
-{{-- Table --}}
-<div class="card-emr">
-    <div class="card-bd" style="padding:0">
-        <div class="table-responsive">
-            <table class="tbl">
-                <thead>
-                    <tr>
-                        <th>Code</th><th>Patient</th><th>Category</th><th>Urgency</th><th>Status</th><th>Requested</th><th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($imageries as $img)
-                    @php
-                        $sc = ['requested'=>'#ff771d','completed'=>'#2eca6a'][$img->status] ?? '#aaa';
-                        $catIcons = ['xray'=>'📷','ultrasound'=>'🔊','ct_scan'=>'🔬','mri'=>'🧲','ecg'=>'💓'];
-                    @endphp
-                    <tr>
-                        <td><code style="font-size:11px;color:#4154f1">{{ $img->code }}</code></td>
-                        <td>
-                            <div style="font-weight:700;color:#012970;font-size:12.5px">{{ $img->patient?->surname }}, {{ $img->patient?->name }}</div>
-                            <div style="font-size:10px;color:#aaa">{{ $img->patient_code }}</div>
-                        </td>
-                        <td>
-                            <span style="font-size:12px">{{ $catIcons[$img->category] ?? '📋' }} {{ ucfirst(str_replace('_', ' ', $img->category ?? '—')) }}</span>
-                        </td>
-                        <td style="font-size:10px;font-weight:700;color:{{ ['normal'=>'#2eca6a','urgent'=>'#ff771d','stat'=>'#e74c3c'][$img->urgency] ?? '#aaa' }}">
-                            {{ strtoupper($img->urgency ?? 'normal') }}
-                        </td>
-                        <td><span style="background:{{ $sc }}22;color:{{ $sc }};font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">{{ ucfirst($img->status) }}</span></td>
-                        <td style="font-size:11px;color:#888">{{ $img->requested_at?->format('d/m H:i') }}</td>
-                        <td><a href="{{ route('imagery.show', $img->code) }}" class="btn btn-sm btn-outline-primary" style="font-size:11px;padding:2px 8px"><i class="bi bi-eye"></i></a></td>
-                    </tr>
-                    @empty
-                    <tr><td colspan="7" style="text-align:center;padding:40px;color:#bbb">{{ __('app.no_records') }}</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+{{-- List --}}
+@forelse($imageries as $img)
+@php
+  $sc = $img->status_color;
+  $catColors = ['X-ray'=>'#4154f1','Ultrasound'=>'#9b59b6','CT'=>'#ff771d','MRI'=>'#e74c3c','ECG'=>'#2eca6a','Endoscopy'=>'#3498db'];
+  $cc = $catColors[$img->category] ?? '#aaa';
+@endphp
+<div class="visit-row" onclick="window.location='{{ route('imagery.show', $img->code) }}'">
+  <div class="v-avatar" style="background:linear-gradient(135deg,{{ $cc }},{{ $cc }}cc);border-radius:10px">
+    <i class="bi bi-camera-fill" style="font-size:15px"></i>
+  </div>
+  <div class="v-info">
+    <div class="v-name">
+      {{ $img->patient?->surname }}, {{ $img->patient?->name }}
+      <span style="font-size:11px;color:#aaa;margin-left:6px">{{ $img->patient_code }}</span>
     </div>
+    <div class="v-meta">
+      <code style="font-size:11px;color:#4154f1">{{ $img->code }}</code>
+      · {{ $img->requested_at?->format('d/m/Y H:i') }}
+      @if($img->title) · {{ $img->title }} @endif
+    </div>
+  </div>
+  <div class="v-badges">
+    <span class="badge-s" style="background:{{ $cc }}15;color:{{ $cc }}">{{ $img->category }}</span>
+    @if($img->urgency !== 'normal')
+    <span class="badge-s" style="background:#fce4ec;color:#e74c3c">{{ ucfirst($img->urgency) }}</span>
+    @endif
+    <span class="badge-s" style="background:{{ $sc }}15;color:{{ $sc }}">{{ ucfirst($img->status) }}</span>
+  </div>
+  <i class="bi bi-chevron-right" style="color:#ddd;flex-shrink:0"></i>
 </div>
+@empty
+<div style="text-align:center;padding:56px 24px;color:#bbb">
+  <div style="font-size:48px;margin-bottom:12px;opacity:.3">📷</div>
+  <div style="font-size:14px;font-weight:600;margin-bottom:8px">No imaging orders found</div>
+  <a href="{{ route('imagery.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Create Order</a>
+</div>
+@endforelse
 
-{{ $imageries->links() }}
+@if($imageries->hasPages())
+<div class="mt-3">{{ $imageries->links() }}</div>
+@endif
+
 @endsection

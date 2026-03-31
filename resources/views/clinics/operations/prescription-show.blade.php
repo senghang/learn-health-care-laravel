@@ -10,9 +10,12 @@
         ['label'=>__('app.prescriptions'),'url'=>route('prescriptions.index')],
         ['label'=>$prescription->code],
     ]">
-        <a href="{{ route('print.prescription', $prescription->code) }}" class="btn btn-outline-primary btn-sm"
+        <a href="{{ route('print.prescription', $prescription->code) }}" class="btn btn-outline-secondary btn-sm"
            target="_blank">
             <i class="bi bi-printer-fill"></i> {{ __('app.print') }}
+        </a>
+        <a href="{{ route('prescriptions.edit', $prescription->code) }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil-fill"></i> Edit
         </a>
         @if($prescription->visit_code)
             <a href="{{ url('/workflow/'.$prescription->visit_code) }}" class="btn btn-primary btn-sm">
@@ -188,6 +191,78 @@
                         </div>
                     </div>
                 </div>
+            @endif
+
+            {{-- Dispense Panel --}}
+            @if($prescription->dispensed_status !== 'dispensed')
+            <div class="card-emr mt-3">
+                <div class="card-hd" style="background:#f5f3ff">
+                    <div class="card-hd-title">
+                        <i class="bi bi-bag-heart-fill" style="color:#7c3aed"></i>
+                        Dispense
+                    </div>
+                </div>
+                <div class="card-bd">
+                    @if(session('success'))
+                        <div class="note note-success mb-3" style="font-size:12px">
+                            <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
+                        </div>
+                    @endif
+                    @error('dispense')
+                        <div class="note note-danger mb-3" style="font-size:12px">
+                            <i class="bi bi-exclamation-triangle-fill"></i> {{ $message }}
+                        </div>
+                    @enderror
+
+                    {{-- Current status badge --}}
+                    <div style="margin-bottom:12px">
+                        @if(!$prescription->dispensed_status)
+                            <span style="background:#fff3cd;color:#856404;border:1px solid #ffc107;font-size:11px;padding:3px 10px;border-radius:8px;font-weight:700">
+                                ⏸ Not dispensed
+                            </span>
+                        @elseif($prescription->dispensed_status === 'partial')
+                            <span style="background:#fff8e1;color:#b45309;border:1px solid #fde68a;font-size:11px;padding:3px 10px;border-radius:8px;font-weight:700">
+                                ⏳ Partially dispensed
+                            </span>
+                            @if($prescription->dispensed_by)
+                                <div style="font-size:10.5px;color:#aaa;margin-top:4px">by {{ $prescription->dispensed_by }}</div>
+                            @endif
+                        @endif
+                    </div>
+
+                    <form method="POST" action="{{ route('prescriptions.dispense', $prescription->code) }}">
+                        @csrf
+                        <div class="fld mb-2">
+                            <label class="flbl" style="color:#7c3aed;font-size:11px;font-weight:800">Update Status</label>
+                            <select name="dispensed_status" class="form-select form-select-sm" style="border-color:#c4b5fd">
+                                <option value="partial">⏳ Partially dispensed</option>
+                                <option value="dispensed">✅ Fully dispensed (decrements stock)</option>
+                            </select>
+                        </div>
+                        <div class="fld mb-3">
+                            <label class="flbl" style="color:#7c3aed;font-size:11px;font-weight:800">Dispensed By</label>
+                            <input type="text" name="dispensed_by" class="form-control form-control-sm"
+                                   style="border-color:#c4b5fd"
+                                   placeholder="Pharmacist name"
+                                   value="{{ $prescription->dispensed_by ?? auth()->user()?->name ?? '' }}"/>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-w100"
+                                style="background:#7c3aed;color:#fff;font-weight:700;padding:9px 0">
+                            <i class="bi bi-bag-check-fill"></i> Confirm Dispense
+                        </button>
+                    </form>
+                </div>
+            </div>
+            @else
+            <div class="card-emr mt-3">
+                <div class="card-bd" style="text-align:center;padding:16px">
+                    <div style="font-size:28px;margin-bottom:6px">✅</div>
+                    <div style="font-weight:800;color:#1D9E75;font-size:13px">Fully Dispensed</div>
+                    @if($prescription->dispensed_by)
+                        <div style="font-size:11px;color:#aaa;margin-top:4px">by {{ $prescription->dispensed_by }}</div>
+                    @endif
+                </div>
+            </div>
             @endif
         </div>
 

@@ -26,10 +26,31 @@
         style="background:{{ $sc['bg'] }};color:{{ $sc['color'] }};padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid {{ $sc['color'] }}44">
         {{ $sc['label'] }}
     </span>
+    @if(!in_array($status, ['paid', 'void']))
+        <a href="{{ route('invoices.edit', $invoice->code) }}" class="btn btn-outline-warning btn-sm">
+            <i class="bi bi-pencil-fill"></i> {{ __('app.edit') }}
+        </a>
+    @endif
+    @if($status !== 'void')
+        <form method="POST" action="{{ route('invoices.void', $invoice->code) }}" class="d-inline"
+              onsubmit="return confirm('Void this invoice?')">
+            @csrf
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-slash-circle"></i> Void
+            </button>
+        </form>
+    @endif
         <a href="{{ route('print.invoice', $invoice->code) }}" class="btn btn-outline-primary btn-sm" target="_blank">
             <i class="bi bi-printer-fill"></i> {{ __('app.print') }}
         </a>
     </x-page-header>
+
+    @if(session('success'))
+        <div class="note note-success mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="note note-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}</div>
+    @endif
 
     <div class="row g-3">
 
@@ -80,15 +101,20 @@
                                 <tr>
                                     <th>{{ __('app.service') }}</th>
                                     <th>{{ __('app.category') }}</th>
-                                    <th style="text-align:right">{{ __('app.price') }} KHR</th>
+                                    <th style="text-align:center">Qty</th>
+                                    <th style="text-align:right">Unit Price KHR</th>
+                                    <th style="text-align:right">Subtotal KHR</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 @foreach($invoice->services as $svc)
+                                    @php $qty = $svc->qty ?? 1; @endphp
                                     <tr>
                                         <td style="font-weight:600">{{ $svc->service_name }}</td>
                                         <td style="font-size:11px;color:#aaa">{{ $svc->service_category ?? '—' }}</td>
-                                        <td style="text-align:right;font-weight:700">{{ number_format($svc->price) }}</td>
+                                        <td style="text-align:center;color:#aaa">{{ $qty }}</td>
+                                        <td style="text-align:right">{{ number_format($svc->price) }}</td>
+                                        <td style="text-align:right;font-weight:700">{{ number_format($qty * $svc->price) }}</td>
                                     </tr>
                                 @endforeach
                                 </tbody>

@@ -11,7 +11,10 @@ use Illuminate\Support\Facades\DB;
  * ImageryService — imaging/radiology order lifecycle.
  *
  * Flow: Request → Perform → Record Result → Verify.
- * Mirrors LaboratoryService pattern for consistency.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * ADDITIVE: Fixed ilike for PostgreSQL, all existing methods preserved.
+ * ═══════════════════════════════════════════════════════════════════════════════
  */
 class ImageryService
 {
@@ -20,10 +23,10 @@ class ImageryService
         return ImageryModel::query()
             ->with(['patient', 'visit', 'results'])
             ->when($filters['search'] ?? null, fn($q, $s) =>
-                $q->where('code', 'like', "%{$s}%")
+                $q->where('code', 'ilike', "%{$s}%")
                   ->orWhereHas('patient', fn($p) =>
-                      $p->where('surname', 'like', "%{$s}%")
-                        ->orWhere('name', 'like', "%{$s}%")
+                      $p->where('surname', 'ilike', "%{$s}%")
+                        ->orWhere('name', 'ilike', "%{$s}%")
                   )
             )
             ->when($filters['status'] ?? null,   fn($q, $v) => $q->where('status', $v))
@@ -61,7 +64,6 @@ class ImageryService
                 'requested_by'   => $data['requested_by'] ?? auth()->user()?->name,
             ]);
 
-            // Create empty result placeholder
             ImageryResultModel::create([
                 'request_code' => $imagery->code,
                 'name'         => $data['title'] ?? $data['category'],
@@ -80,9 +82,7 @@ class ImageryService
         return DB::transaction(function () use ($code, $resultData) {
             $imagery = ImageryModel::where('code', $code)->firstOrFail();
 
-            // Update existing result or create new one
             $result = $imagery->results()->first();
-
             if ($result) {
                 $result->update([
                     'result'      => $resultData['result'] ?? null,
@@ -103,6 +103,9 @@ class ImageryService
         });
     }
 
+    /**
+     * Verify imaging results (final sign-off).
+     */
     public function verify(string $code, ?string $verifiedBy = null): ImageryModel
     {
         $imagery = ImageryModel::where('code', $code)->firstOrFail();
@@ -115,12 +118,16 @@ class ImageryService
         return $imagery;
     }
 
+    /**
+     * Imaging statistics for dashboard.
+     */
     public function stats(): array
     {
         return [
             'today_orders'    => ImageryModel::whereDate('requested_at', today())->count(),
             'pending'         => ImageryModel::where('status', 'requested')->count(),
-            'completed_today' => ImageryModel::where('status', 'completed')->whereDate('updated_at', today())->count(),
+            'completed_today' => ImageryModel::where('status', 'completed')
+                                    ->whereDate('updated_at', today())->count(),
         ];
     }
 }

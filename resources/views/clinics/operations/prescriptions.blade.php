@@ -6,8 +6,11 @@
         :title="__('app.prescriptions')"
         subtitle="Prescriptions"
         :breadcrumbs="[['label'=>__('app.home'),'url'=>route('dashboard')],['label'=>__('app.prescriptions')]]">
-        <a href="{{ route('workflow.create') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg"></i> {{ __('app.new_visit') }}
+        <a href="{{ route('prescriptions.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg"></i> New Prescription
+        </a>
+        <a href="{{ route('workflow.create') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-diagram-3-fill"></i> {{ __('app.new_visit') }}
         </a>
     </x-page-header>
 
