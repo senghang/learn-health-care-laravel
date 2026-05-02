@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Clinics\Operations;
 
 use App\Http\Controllers\Controller;
 use App\Models\BedModel;
+use App\Models\MedicineModel;
 use App\Models\WardModel;
 use App\Services\AdmissionService;
 use Illuminate\Http\JsonResponse;
@@ -27,7 +28,7 @@ class AdmissionController extends Controller
     {
         $admissions = $this->admissionService->list($request->all());
         $stats = $this->admissionService->stats();
-        $wards = WardModel::where('is_active', true)->orderBy('name')->get();
+        $wards = WardModel::where('clinic_id', currentClinic()->id)->where('is_active', true)->orderBy('name')->get();
 
         return view('clinics.ipd.admissions', compact('admissions', 'stats', 'wards'));
     }
@@ -38,8 +39,17 @@ class AdmissionController extends Controller
     public function show(string $code): View
     {
         $admission = $this->admissionService->findByCode($code);
+        $medicines = MedicineModel::where('clinic_id', currentClinic()->id)
+            ->where('is_active', true)
+            ->where('stock', '>', 0)
+            ->orderBy('name')
+            ->get(['id', 'name', 'form', 'strength', 'unit', 'stock']);
+        $wards = WardModel::where('clinic_id', currentClinic()->id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
-        return view('clinics.ipd.admission-show', compact('admission'));
+        return view('clinics.ipd.admission-show', compact('admission', 'medicines', 'wards'));
     }
 
     /**

@@ -14,7 +14,8 @@
     ]">
     {{-- Void button --}}
     <form method="POST" action="{{ route('invoices.void', $invoice->code) }}"
-          onsubmit="return confirm('Void this invoice? This cannot be undone.')">
+          data-confirm="Void invoice #{{ $invoice->code }}? It will be marked as voided and cannot be reversed."
+          data-confirm-type="warn" data-confirm-title="Void Invoice">
         @csrf
         <button type="submit" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-slash-circle"></i> Void Invoice
@@ -272,7 +273,8 @@
             {{-- Delete (only if pending + no payments) --}}
             @if($invoice->status === 'pending' && $paid == 0)
             <form method="POST" action="{{ route('invoices.destroy', $invoice->code) }}"
-                  onsubmit="return confirm('Delete this invoice permanently?')">
+                  data-confirm="Permanently delete invoice #{{ $invoice->code }}? This cannot be undone."
+                  data-confirm-type="danger" data-confirm-title="Delete Invoice">
                 @csrf @method('DELETE')
                 <button type="submit" class="btn btn-outline-danger btn-w100 btn-sm mt-1">
                     <i class="bi bi-trash3-fill"></i> Delete Invoice

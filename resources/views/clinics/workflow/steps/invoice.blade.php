@@ -291,6 +291,36 @@
         <i class="bi bi-capsule-fill"></i> Medicines: <strong id="medTotal">{{ khr($meds->sum('payment')) }}</strong>
     </div>
 
+    {{-- ══ DISCOUNT & NOTES ════════════════════════════════════════════════════ --}}
+    <div class="row g-2 mt-2 mb-2">
+        <div class="col-6 col-sm-3">
+            <div class="fld">
+                <label class="flbl">
+                    <span class="km">បញ្ចុះតម្លៃ</span><span class="en">/ Discount (KHR)</span>
+                </label>
+                <input name="discount" type="number" id="discountInput" class="form-control"
+                       min="0" placeholder="0"
+                       value="{{ old('discount', $invoice?->discount ?? 0) }}"
+                       oninput="recalc()"/>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="fld">
+                <label class="flbl"><span class="en">Discount %</span></label>
+                <input type="number" id="discountPct" class="form-control"
+                       min="0" max="100" placeholder="0"
+                       oninput="applyDiscountPct(this.value)"/>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6">
+            <div class="fld">
+                <label class="flbl"><span class="km">កំណត់ចំណាំ</span><span class="en">/ Notes</span></label>
+                <input name="notes" class="form-control" placeholder="Internal notes…"
+                       value="{{ old('notes', $invoice?->notes ?? '') }}"/>
+            </div>
+        </div>
+    </div>
+
     {{-- ══ TOTAL AREA ══════════════════════════════════════════════════════════ --}}
     <div class="inv-total-area">
         <div class="inv-breakdown">
@@ -302,16 +332,23 @@
                 <span><i class="bi bi-capsule-fill" style="color:#7c3aed"></i> Medicines</span>
                 <span id="bdMed" style="color:#7c3aed;font-weight:700">{{ khr($meds->sum('payment')) }}</span>
             </div>
+            <div id="bdDiscountRow" class="inv-breakdown-row"
+                 style="{{ ($invoice?->discount ?? 0) > 0 ? '' : 'display:none' }};color:#2eca6a">
+                <span><i class="bi bi-tag-fill"></i> Discount</span>
+                <span id="bdDiscount" style="color:#2eca6a;font-weight:700">
+                    − {{ khr($invoice?->discount ?? 0) }}
+                </span>
+            </div>
             <div style="border-top:1px dashed #cbd5e1;margin:8px 0"></div>
             <div class="inv-breakdown-row" style="font-size:12px;color:#64748b">
-                <span>Computed Total</span>
-                <span id="bdComputed"
-                      style="font-weight:700">{{ khr($services->sum('price') + $meds->sum('payment')) }}</span>
+                <span>Subtotal (after discount)</span>
+                <span id="bdComputed" style="font-weight:700;color:#012970">
+                    {{ khr(max(0, $services->sum('price') + $meds->sum('payment') - ($invoice?->discount ?? 0))) }}
+                </span>
             </div>
         </div>
         <div class="inv-declared">
-            <div
-                style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
+            <div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">
                 ប្រាក់សរុបប្រកាស / Declared Total (KHR)
             </div>
             <div style="display:flex;align-items:center;gap:8px">
@@ -399,6 +436,7 @@
 
 </x-step.card>
 
+{{-- Invoice CSS is in public/css/app-layout.css --}}
 <style>
     .inv-banner {
         background: linear-gradient(135deg, #012970, #1a3a7c);
@@ -634,23 +672,39 @@
 
     // ── Totals ──────────────────────────────────────────────────────────────────
     function recalc() {
-        var svcSum = sum('.svc-price');
-        var medSum = medRowSum();
-        var total = svcSum + medSum;
+        var svcSum  = sum('.svc-price');
+        var medSum  = medRowSum();
+        var disc    = parseFloat(document.getElementById('discountInput')?.value || 0);
+        var subtotal = Math.max(0, svcSum + medSum - disc);
 
-        setText('svcTotal', fmt(svcSum));
-        setText('medTotal', fmt(medSum));
-        setText('bdSvc', fmt(svcSum));
-        setText('bdMed', fmt(medSum));
-        setText('bdComputed', fmt(total));
+        setText('svcTotal',  fmt(svcSum));
+        setText('medTotal',  fmt(medSum));
+        setText('bdSvc',     fmt(svcSum));
+        setText('bdMed',     fmt(medSum));
+        setText('bdComputed',fmt(subtotal));
+
+        // Discount row visibility
+        var bdDiscRow = document.getElementById('bdDiscountRow');
+        var bdDisc    = document.getElementById('bdDiscount');
+        if (bdDiscRow) bdDiscRow.style.display = (disc > 0) ? 'flex' : 'none';
+        if (bdDisc)    bdDisc.textContent = '− ' + fmt(disc);
 
         var inp = document.getElementById('totalInput');
-        if (inp && (!inp.value || parseFloat(inp.value) === 0) && total > 0) {
-            inp.value = Math.round(total);
+        if (inp && (!inp.value || parseFloat(inp.value) === 0) && subtotal > 0) {
+            inp.value = Math.round(subtotal);
         }
         checkTotal();
         updateSvcCount();
         updateMedCount();
+    }
+
+    function applyDiscountPct(pct) {
+        var svcSum = sum('.svc-price');
+        var medSum = medRowSum();
+        var gross  = svcSum + medSum;
+        var disc   = Math.round(gross * (parseFloat(pct) || 0) / 100);
+        var inp = document.getElementById('discountInput');
+        if (inp) { inp.value = disc; recalc(); }
     }
 
     function sum(sel) {
@@ -682,7 +736,8 @@
 
     function checkTotal() {
         var declared = parseFloat(document.getElementById('totalInput')?.value || 0);
-        var computed = sum('.svc-price') + medRowSum();
+        var disc     = parseFloat(document.getElementById('discountInput')?.value || 0);
+        var computed = Math.max(0, sum('.svc-price') + medRowSum() - disc);
         var status = document.getElementById('totalStatus');
         if (!status) return;
         if (!declared) {

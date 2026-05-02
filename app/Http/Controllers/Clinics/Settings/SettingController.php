@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Clinics\Settings;
 use App\Http\Controllers\Controller;
 use App\Models\ClinicSettingModel;
 use App\Models\MedicineModel;
-use App\Models\PrintTemplateModel;
 use App\Models\ServiceModel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,75 +69,6 @@ class SettingController extends Controller
         }
 
         return back()->with('flash', 'ការកំណត់ត្រូវបានរក្សាទុក / Settings saved.');
-    }
-
-    // ── Print templates ───────────────────────────────────────────────────────
-
-    public function templates(): View
-    {
-        $templates = PrintTemplateModel::where('clinic_id', $this->clinicId)
-            ->orderBy('type')->orderBy('locale')
-            ->get();
-
-        return view('clinics.settings.templates', compact('templates'));
-    }
-
-    public function templateCreate(): View
-    {
-        return view('clinics.settings.template-form', [
-            'template' => null,
-            'types'    => PrintTemplateModel::TYPES,
-        ]);
-    }
-
-    public function templateStore(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            // code is auto-generated
-            'type'        => 'required|in:' . implode(',', PrintTemplateModel::TYPES),
-            'name'        => 'required|string|max:120',
-            'locale'      => 'required|in:km,en,all',
-            'content'     => 'required|string',
-            'paper_size'  => 'required|in:A4,A5,Letter',
-            'orientation' => 'required|in:portrait,landscape',
-            'is_default'  => 'boolean',
-        ]);
-
-        PrintTemplateModel::create(array_merge($data, [
-            'clinic_id' => $this->clinicId,
-            'is_active' => true,
-        ]));
-
-        return redirect()->route('settings.templates')
-            ->with('flash', 'Template created.');
-    }
-
-    public function templateEdit(int $id): View
-    {
-        $template = PrintTemplateModel::where('clinic_id', $this->clinicId)->findOrFail($id);
-
-        return view('clinics.settings.template-form', [
-            'template' => $template,
-            'types'    => PrintTemplateModel::TYPES,
-        ]);
-    }
-
-    public function templateUpdate(Request $request, int $id): RedirectResponse
-    {
-        $template = PrintTemplateModel::where('clinic_id', $this->clinicId)->findOrFail($id);
-
-        $template->update($request->validate([
-            'name'        => 'required|string|max:120',
-            'locale'      => 'required|in:km,en,all',
-            'content'     => 'required|string',
-            'paper_size'  => 'required|in:A4,A5,Letter',
-            'orientation' => 'required|in:portrait,landscape',
-            'is_default'  => 'boolean',
-            'is_active'   => 'boolean',
-        ]));
-
-        return redirect()->route('settings.templates')
-            ->with('flash', 'Template updated.');
     }
 
     // ── Services master ───────────────────────────────────────────────────────

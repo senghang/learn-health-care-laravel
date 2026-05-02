@@ -58,6 +58,90 @@
 
 @endsection
 
+{{-- ── Auto-save system ──────────────────────────────────────────────── --}}
+<script>
+(function () {
+    var SAVE_URL    = '{{ route("workflow.step.save", [$visit->code, $currentStep]) }}';
+    var CSRF        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    var saveTimer   = null;
+    var formDirty   = false;
+    var lastSaved   = null;
+    var AUTO_MS     = 90000; // 90 seconds
+    var DEBOUNCE_MS = 3000;  // 3 seconds after last keystroke
+
+    function getIndicator() { return document.getElementById('wfAutoSaveIndicator'); }
+
+    function showIndicator(state, msg) {
+        var el = getIndicator();
+        if (!el) return;
+        var states = {
+            saving: { color:'#4154f1', icon:'bi-cloud-arrow-up', text: msg || 'Saving…' },
+            saved:  { color:'#2eca6a', icon:'bi-cloud-check',    text: msg || 'Auto-saved' },
+            error:  { color:'#e74c3c', icon:'bi-cloud-slash',    text: msg || 'Auto-save failed' },
+            dirty:  { color:'#f59e0b', icon:'bi-pencil',         text: msg || 'Unsaved changes' },
+        };
+        var cfg = states[state] || states.saved;
+        el.style.display = 'inline-flex';
+        el.style.color   = cfg.color;
+        el.innerHTML = '<i class="bi ' + cfg.icon + '" style="font-size:11px"></i> <span>' + cfg.text + '</span>';
+    }
+
+    function autoSave() {
+        var form = document.getElementById('stepForm');
+        if (!form || !formDirty) return;
+        showIndicator('saving');
+        var data = new FormData(form);
+        data.set('_method', 'PATCH');
+        fetch(SAVE_URL, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'X-Requested-With': 'XMLHttpRequest' },
+            body: data
+        })
+        .then(function(r) {
+            if (r.ok) {
+                formDirty = false;
+                lastSaved = new Date();
+                var t = lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                showIndicator('saved', 'Saved ' + t);
+            } else {
+                showIndicator('error');
+            }
+        })
+        .catch(function() { showIndicator('error'); });
+    }
+
+    function scheduleAutoSave() {
+        clearTimeout(saveTimer);
+        formDirty = true;
+        showIndicator('dirty');
+        // Debounce: save 3s after last change
+        saveTimer = setTimeout(autoSave, DEBOUNCE_MS);
+    }
+
+    // Periodic save every 90s
+    setInterval(function() {
+        if (formDirty) autoSave();
+    }, AUTO_MS);
+
+    // Warn on unload if dirty
+    window.addEventListener('beforeunload', function(e) {
+        if (formDirty) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
+    });
+
+    // Don't warn if submitting the form intentionally
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('stepForm');
+        if (!form) return;
+        form.addEventListener('submit', function() { formDirty = false; });
+        form.addEventListener('input',  scheduleAutoSave);
+        form.addEventListener('change', scheduleAutoSave);
+    });
+})();
+</script>
+
 {{-- ── Client-side form validation for ALL step forms ─────────────── --}}
 <script>
     (function () {
@@ -127,6 +211,37 @@
                 el.remove();
             });
         }
+
+        // ── Keyboard shortcuts ──────────────────────────────────────────
+        document.addEventListener('keydown', function (e) {
+            // Ctrl+S / Cmd+S → submit the step form
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                var form = document.getElementById('stepForm');
+                if (form) {
+                    var btn = document.querySelector('[type="submit"][form="stepForm"]');
+                    if (btn) btn.click();
+                    else form.requestSubmit ? form.requestSubmit() : form.submit();
+                }
+            }
+
+            // Arrow keys for prev/next (only when NOT in a text/textarea/select)
+            var tag = document.activeElement?.tagName?.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+
+            @if($prevUrl)
+            if (e.altKey && e.key === 'ArrowLeft') {
+                e.preventDefault();
+                window.location.href = '{{ $prevUrl }}';
+            }
+            @endif
+            @if($nextUrl)
+            if (e.altKey && e.key === 'ArrowRight') {
+                e.preventDefault();
+                window.location.href = '{{ $nextUrl }}';
+            }
+            @endif
+        });
 
         function labelFor(el) {
             var fld = el.closest('.fld');

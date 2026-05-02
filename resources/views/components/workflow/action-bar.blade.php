@@ -10,7 +10,13 @@
 <div class="wf-action-bar">
 
     {{-- ── Left: Save + Skip ────────────────────────────────────────── --}}
-    <div class="d-flex gap-2 flex-wrap align-items-center">
+    <div class="d-flex gap-2 flex-wrap align-items-center" style="min-width:0">
+
+        {{-- Auto-save status --}}
+        <span id="wfAutoSaveIndicator"
+              style="display:none;align-items:center;gap:4px;font-size:10.5px;color:#bbb;
+                     font-family:inherit;flex-shrink:0">
+        </span>
 
         <button type="submit" form="{{ $formId }}" class="wf-save-btn">
             <i class="bi bi-check2-circle"></i>
@@ -21,7 +27,8 @@
         @if($skipRoute)
         <a href="{{ $skipRoute }}"
            class="wf-skip-btn"
-           onclick="return confirm('Skip this step? You can come back to fill it later.\n\nដកចោលមុន? អ្នកអាចវិលត្រឡប់ក្រោយ។')">
+           data-confirm="Skip this step? You can return to fill it later.&#10;&#10;ដកចោលមុន? អ្នកអាចវិលត្រឡប់ក្រោយ។"
+           data-confirm-type="info" data-confirm-title="Skip Step">
             <i class="bi bi-skip-forward-fill"></i>
             <span>Skip</span>
             <span class="d-none d-sm-inline" style="opacity:.7;font-size:11px">/ ដកចោលមុន</span>

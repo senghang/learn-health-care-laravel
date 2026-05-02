@@ -195,7 +195,9 @@
                                     </button>
                                     @if(!($item->is_system && $item->clinic_id === null))
                                     <form method="POST" action="{{ route('settings.store-settings.destroy', $item->id) }}"
-                                          class="inline" onsubmit="return confirm('{{ __('app.confirm') }}?')">
+                                          class="inline"
+                                          data-confirm="Delete this item? This cannot be undone."
+                                          data-confirm-type="danger" data-confirm-title="Delete Item">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="p-1.5 rounded-lg text-red-500 hover:bg-red-100 transition" title="{{ __('app.delete') }}">
                                             <i class="bi bi-trash3 text-xs"></i>

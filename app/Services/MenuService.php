@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 
 /**
  * MenuService — Dynamic role-based sidebar menu.
@@ -25,86 +26,156 @@ class MenuService
 
         foreach ($menu as &$group) {
             foreach ($group['items'] as &$item) {
-                $item['visible'] = $this->canSee($user, $item['permission'] ?? null);
-                $item['url'] = $this->resolveUrl($item);
-                $item['active'] = $this->isActive($item);
+                $hasChildren = !empty($item['children']);
+
+                // Normalize label keys (config uses label_en/label_km)
+                $item['en']       = $item['label_en'] ?? ($item['en'] ?? '');
+                $item['km']       = $item['label_km'] ?? ($item['km'] ?? '');
+                $item['css']      = $item['css'] ?? '';
+                $item['icon_css'] = $item['icon_css'] ?? '';
+                $item['badge']    = $item['badge'] ?? null;
+                // Parent entries with children are toggles; they can stay visible without a direct route.
+                $item['visible']  = $this->canSee($user, $item['permission'] ?? null)
+                    && ($hasChildren || $this->routeExists($item));
+                $item['url']      = $this->resolveUrl($item);
+                $item['active']   = $this->isActive($item);
+
+                // Process children (submenu items)
+                if ($hasChildren) {
+                    $hasVisibleChild = false;
+                    $hasActiveChild  = false;
+
+                    foreach ($item['children'] as &$child) {
+                        $child['en']      = $child['label_en'] ?? ($child['en'] ?? '');
+                        $child['km']      = $child['label_km'] ?? ($child['km'] ?? '');
+                        $child['badge']   = $child['badge'] ?? null;
+                        $child['visible'] = $this->canSee($user, $child['permission'] ?? null)
+                            && $this->routeExists($child);
+                        $child['url']     = $this->resolveUrl($child);
+                        $child['active']  = $this->isActive($child);
+
+                        if ($child['visible']) $hasVisibleChild = true;
+                        if ($child['active'])  $hasActiveChild  = true;
+                    }
+
+                    // Promote active state to parent if any child is active
+                    if ($hasActiveChild) $item['active'] = true;
+
+                    // Hide parent if it has children but none are visible
+                    if (!$hasVisibleChild) $item['visible'] = false;
+                }
             }
         }
+
+        $this->dedupeVisibleRoutes($menu);
 
         return $menu;
     }
 
+    /**
+     * Remove duplicate visible routes in sidebar items.
+     *
+     * Rules:
+     * - Parent items (with children) are not deduped by their own route because they are toggles.
+     * - Visible leaf items are deduped globally by route name.
+     * - Child items can opt out by setting ['allow_duplicate_route' => true] in config.
+     */
+    private function dedupeVisibleRoutes(array &$menu): void
+    {
+        $seen = [];
+
+        foreach ($menu as &$group) {
+            if (empty($group['items']) || !is_array($group['items'])) {
+                continue;
+            }
+
+            foreach ($group['items'] as &$item) {
+                if (($item['visible'] ?? false) !== true) {
+                    continue;
+                }
+
+                $hasChildren = !empty($item['children']) && is_array($item['children']);
+
+                if ($hasChildren) {
+                    foreach ($item['children'] as &$child) {
+                        if (($child['visible'] ?? false) !== true) {
+                            continue;
+                        }
+
+                        $route = $child['route'] ?? null;
+                        $allowDuplicate = (bool)($child['allow_duplicate_route'] ?? false);
+                        if (!$route || $allowDuplicate) {
+                            continue;
+                        }
+
+                        if (isset($seen[$route])) {
+                            $child['visible'] = false;
+                            continue;
+                        }
+
+                        $seen[$route] = true;
+                    }
+
+                    // Hide empty parents after child dedupe.
+                    $hasVisibleChild = collect($item['children'])->contains(fn($c) => ($c['visible'] ?? false) === true);
+                    if (!$hasVisibleChild) {
+                        $item['visible'] = false;
+                    }
+                    continue;
+                }
+
+                $route = $item['route'] ?? null;
+                $allowDuplicate = (bool)($item['allow_duplicate_route'] ?? false);
+                if (!$route || $allowDuplicate) {
+                    continue;
+                }
+
+                if (isset($seen[$route])) {
+                    $item['visible'] = false;
+                    continue;
+                }
+
+                $seen[$route] = true;
+            }
+        }
+    }
+
+    /**
+     * Menu definition — loaded from config/sidebar.php.
+     * Falls back to a minimal built-in definition if the config is missing.
+     */
     private function definition(): array
     {
+        $config = config('sidebar');
+
+        if (!empty($config)) {
+            return $config;
+        }
+
+        // ── Legacy built-in fallback (kept for safety) ────────────────────────
         return [
-            // ── 🧾 OPERATIONS ─────────────────────────────────────────────────
             [
                 'key' => 'operations', 'label' => 'OPERATIONS', 'emoji' => '🧾',
                 'items' => [
-                    $this->item('dashboard',     'dashboard',           'bi-grid-1x2-fill',            'ផ្ទាំងគ្រប់គ្រង',          'Dashboard',           null),
-                    $this->item('new_visit',     'workflow.create',     'bi-plus-circle-fill',         'ការចូលព្យាបាលថ្មី',       'New Visit',           'visits.create',     'sb-item--new-visit', 'sb-item-icon--accent'),
-                    $this->item('patients',      'patients.index',      'bi-people-fill',              'អ្នកជំងឺ',                'Patients',            'patients.view',     '', '', null, ['patients.*']),
-                    $this->item('visits',        'visits.index',        'bi-hospital-fill',            'ការចូលព្យាបាល',           'Visits',              'visits.view',       '', '', 'visits_today', ['visits.*']),
-                    $this->item('consultation',  'workflow.index',      'bi-clipboard2-pulse-fill',    'ពិគ្រោះព្យាបាល',           'Consultation',        'workflow.manage',   '', '', null, ['workflow.index', 'workflow.show', 'workflow.step']),
-                    $this->item('lab_imaging',   'laboratory.index',    'bi-droplet-fill',             'មន្ទីរពិសោធន៍ & រូបភាព',  'Lab & Imaging',       'laboratory.view',   '', '', 'pending_labs', ['laboratory.*', 'imagery.*']),
-                    $this->item('prescriptions', 'prescriptions.index', 'bi-file-earmark-medical-fill','វេជ្ជបញ្ជា',               'Prescription',        'pharmacy.view',     '', '', null, ['prescriptions.*']),
-                    $this->item('services',      'settings.services',   'bi-heart-pulse-fill',         'សេវា',                    'Services',            'settings.view'),
-                    $this->item('referrals',     'referrals.index',     'bi-arrow-left-right',         'បញ្ជូន',                  'Referrals',           'referral.view',     '', '', null, ['referrals.*']),
+                    $this->item('dashboard',     'dashboard',           'bi-grid-1x2-fill',            'ផ្ទាំងគ្រប់គ្រង',   'Dashboard',      null),
+                    $this->item('new_visit',     'workflow.create',     'bi-plus-circle-fill',         'ការចូលព្យាបាលថ្មី', 'New Visit',      'visits.create', 'sb-item--new-visit', 'sb-item-icon--accent'),
+                    $this->item('patients',      'patients.index',      'bi-people-fill',              'អ្នកជំងឺ',          'Patients',       'patients.view', '', '', null, ['patients.*']),
+                    $this->item('visits',        'visits.index',        'bi-hospital-fill',            'ការចូលព្យាបាល',     'Visits',         'visits.view',   '', '', 'visits_today', ['visits.*']),
+                    $this->item('prescriptions', 'prescriptions.index', 'bi-file-earmark-medical-fill','វេជ្ជបញ្ជា',        'Prescriptions',  'pharmacy.view', '', '', null, ['prescriptions.*']),
                 ],
             ],
-
-            // ── 🏥 IPD ────────────────────────────────────────────────────────
-            [
-                'key' => 'ipd', 'label' => 'IPD', 'emoji' => '🏥',
-                'items' => [
-                    $this->item('admissions', 'admissions.index', 'bi-door-open-fill',    'ការចូលសម្រាក',  'Admissions',     'visits.create',    '', '', 'active_ipd', ['admissions.*']),
-                    $this->item('beds',       'beds.index',       'bi-grid-3x3-gap-fill', 'គ្រែ',          'Bed Management', 'inventory.view',   '', '', null, ['beds.ward', 'beds.bed.*']),
-                    $this->item('wards',      'beds.index',       'bi-building-fill',     'វ៉ត / បន្ទប់',  'Ward / Room',    'inventory.manage', '', '', null, ['beds.index', 'beds.ward.create', 'beds.room.*']),
-                    $this->item('discharge',  'discharge.index',  'bi-box-arrow-right',   'ចាកចេញ',       'Discharge',      'visits.create',    '', '', null, ['discharge.*']),
-                ],
-            ],
-
-            // ── 💊 PHARMACY & INVENTORY ───────────────────────────────────────
-            [
-                'key' => 'pharmacy_inventory', 'label' => 'PHARMACY & INVENTORY', 'emoji' => '💊',
-                'items' => [
-                    $this->item('pharmacy',      'pharmacy.index',      'bi-capsule',              'ឱសថស្ថាន',          'Pharmacy (Dispense)', 'pharmacy.dispense', '', '', 'pending_rx', ['pharmacy.*']),
-                    $this->item('products',      'inventory.products',  'bi-box-seam-fill',        'ថ្នាំ / ផលិតផល',     'Products / Medicines','inventory.view',    '', '', null, ['inventory.products', 'inventory.product.*']),
-                    $this->item('stock_in',      'inventory.stock-in',  'bi-box-arrow-in-down',    'ស្តុកចូល',           'Stock In',            'inventory.manage',  '', 'sb-item-icon--green'),
-                    $this->item('stock_out',     'inventory.stock-out', 'bi-box-arrow-up',         'ស្តុកចេញ',           'Stock Out',           'inventory.manage',  '', 'sb-item-icon--red'),
-                    $this->item('inv_report',    'inventory.report',    'bi-clipboard-data-fill',  'របាយការណ៍ស្តុក',     'Inventory Report',    'inventory.view'),
-                ],
-            ],
-
-            // ── 💰 BILLING ────────────────────────────────────────────────────
             [
                 'key' => 'billing', 'label' => 'BILLING', 'emoji' => '💰',
                 'items' => [
-                    $this->item('invoices', 'invoices.index',  'bi-receipt-cutoff',  'វិក្កយបត្រ',   'Invoices', 'invoices.view',  '', '', 'pending_invoices', ['invoices.*']),
-                    $this->item('payments', 'payments.index',  'bi-cash-stack',      'ការបង់ប្រាក់', 'Payments', 'payments.manage', '', '', null, ['payments.*']),
-                    $this->item('revenue',  'reports.revenue', 'bi-graph-up-arrow',  'ប្រាក់ចំណូល',  'Revenue',  'reports.view'),
+                    $this->item('invoices', 'invoices.index', 'bi-receipt-cutoff', 'វិក្កយបត្រ',   'Invoices', 'invoices.view',   '', '', 'pending_invoices', ['invoices.*']),
+                    $this->item('payments', 'payments.index', 'bi-cash-stack',     'ការបង់ប្រាក់', 'Payments', 'payments.manage', '', '', null, ['payments.*']),
                 ],
             ],
-
-            // ── 👨‍💼 HR & REPORTS ──────────────────────────────────────────────
-            [
-                'key' => 'hr_reports', 'label' => 'HR & REPORTS', 'emoji' => '👨‍💼',
-                'items' => [
-                    $this->item('employees',  'employees.index',            'bi-person-badge-fill',   'បុគ្គលិក',             'Employees',          'employees.view', '', '', null, ['employees.*']),
-                    $this->item('reports',    'reports.visits',             'bi-bar-chart-line-fill', 'របាយការណ៍',            'Reports',            'reports.view',   '', '', null, ['reports.visits', 'reports.daily']),
-                    $this->item('dr_perf',    'reports.doctor-performance', 'bi-award-fill',          'សមត្ថភាពវេជ្ជបណ្ឌិត', 'Doctor Performance', 'reports.view'),
-                ],
-            ],
-
-            // ── ⚙️ SYSTEM ────────────────────────────────────────────────────
             [
                 'key' => 'system', 'label' => 'SYSTEM', 'emoji' => '⚙️',
                 'items' => [
-                    $this->item('general_settings', 'settings.general',        'bi-gear-fill',        'ការកំណត់ទូទៅ',      'General Settings',          'settings.view'),
-                    $this->item('system_settings',  'settings.store-settings', 'bi-sliders2',         'ការកំណត់ប្រព័ន្ធ',   'System Settings (Key/Value)','settings.manage', '', '', null, ['settings.store-settings*']),
-                    $this->item('localization',      'settings.templates',      'bi-translate',        'ភាសា',              'Localization (EN/KM)',       'settings.view'),
-                    $this->item('roles',             'settings.roles',          'bi-shield-lock-fill', 'តួនាទី & សិទ្ធិ',    'Roles & Permissions',       'settings.manage', '', '', null, ['settings.roles*']),
-                    $this->item('users',             'users.index',             'bi-person-gear',      'អ្នកប្រើប្រាស់',     'Users',                     'settings.manage', '', '', null, ['users.*']),
+                    $this->item('settings', 'settings.general', 'bi-gear-fill',        'ការកំណត់',       'Settings',          'settings.view'),
+                    $this->item('roles',    'settings.roles',   'bi-shield-lock-fill', 'តួនាទី & សិទ្ធិ', 'Roles & Permissions','settings.manage', '', '', null, ['settings.roles*']),
                 ],
             ],
         ];
@@ -141,15 +212,31 @@ class MenuService
 
     private function resolveUrl(array $item): string
     {
+        if (!$this->routeExists($item)) {
+            return '#';
+        }
+
         try { return route($item['route']); } catch (\Throwable) { return '#'; }
     }
 
     private function isActive(array $item): bool
     {
-        foreach ($item['active_routes'] as $pattern) {
+        // Config uses 'active'; legacy definition uses 'active_routes'
+        $patterns = $item['active'] ?? $item['active_routes'] ?? [$item['route'] ?? ''];
+        foreach ((array) $patterns as $pattern) {
             if (request()->routeIs($pattern)) return true;
         }
         return false;
+    }
+
+    private function routeExists(array $item): bool
+    {
+        $route = $item['route'] ?? null;
+        if (!$route) {
+            return false;
+        }
+
+        return Route::has($route);
     }
 
     /**
@@ -161,11 +248,11 @@ class MenuService
         $cid = currentClinic()->id;
 
         return match ($key) {
-            'visits_today'     => $this->cached("menu_visits_{$cid}",     fn() => \App\Models\VisitModel::whereDate('admitted_at', today())->count()),
-            'pending_invoices' => $this->cached("menu_inv_{$cid}",        fn() => \App\Models\InvoiceModel::whereIn('status', ['pending','partial'])->count()),
-            'active_ipd'       => $this->cached("menu_ipd_{$cid}",        fn() => \App\Models\VisitModel::where('visit_type','IPD')->whereNull('discharged_at')->count()),
-            'pending_labs'     => $this->cached("menu_labs_{$cid}",        fn() => \App\Models\LaboratoryModel::where('status','requested')->count()),
-            'pending_rx'       => $this->cached("menu_rx_{$cid}",         fn() => \App\Models\PrescriptionModel::whereNull('dispensed_status')->orWhere('dispensed_status','pending')->count()),
+            'visits_today'     => $this->cached("menu_visits_{$cid}",     fn() => \App\Models\VisitModel::whereHas('patient', fn($q) => $q->where('clinic_id', $cid))->whereDate('admitted_at', today())->count()),
+            'pending_invoices' => $this->cached("menu_inv_{$cid}",        fn() => \App\Models\InvoiceModel::where('clinic_id', $cid)->whereIn('status', ['pending','partial'])->count()),
+            'active_ipd'       => $this->cached("menu_ipd_{$cid}",        fn() => \App\Models\VisitModel::whereHas('patient', fn($q) => $q->where('clinic_id', $cid))->where('visit_type','IPD')->whereNull('discharged_at')->count()),
+            'pending_labs'     => $this->cached("menu_labs_{$cid}",       fn() => \App\Models\LaboratoryModel::where('clinic_id', $cid)->where('status','requested')->count()),
+            'pending_rx'       => $this->cached("menu_rx_{$cid}",         fn() => \App\Models\PrescriptionModel::where('clinic_id', $cid)->where(fn($q) => $q->whereNull('dispensed_status')->orWhere('dispensed_status','pending'))->count()),
             default            => null,
         };
     }

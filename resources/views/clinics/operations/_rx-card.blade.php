@@ -1,42 +1,44 @@
 @php
-/**
- * _rx-card.blade.php
- *
- * Reusable medication card partial for standalone prescription CRUD forms.
- * Used by prescription-create.blade.php and prescription-edit.blade.php.
- *
- * Variables:
- *   $i           int                          — card index (0-based)
- *   $med         ?PrescriptionMedicationModel — null for new cards
- *   $formOptions array                        — form type options
- *   $catalog     Collection<MedicineModel>    — active medicine catalog
- */
-$v = fn(string $field, mixed $default = '') => old("meds.{$i}.{$field}", $med?->{$field} ?? $default);
+    /**
+     * _rx-card.blade.php
+     *
+     * Reusable medication card partial for standalone prescription CRUD forms.
+     * Used by prescription-create.blade.php and prescription-edit.blade.php.
+     *
+     * Variables:
+     *   $i           int                          — card index (0-based)
+     *   $med         ?PrescriptionMedicationModel — null for new cards
+     *   $formOptions array                        — form type options
+     *   $catalog     Collection<MedicineModel>    — active medicine catalog
+     */
+    $v = fn(string $field, mixed $default = '') => old("meds.{$i}.{$field}", $med?->{$field} ?? $default);
 
-// Stock indicator for pre-filled cards
-$currentCode = $med?->medication_code ?? null;
-$stockItem   = $currentCode ? $catalog->firstWhere('code', $currentCode) : null;
-$stockQty    = $stockItem?->stock;
-$stockAlert  = $stockItem?->stock_alert ?? 10;
-$stockCls    = $stockQty === null ? 'stock-ok'
-             : ($stockQty <= 0           ? 'stock-out'
-             : ($stockQty <= $stockAlert ? 'stock-low' : 'stock-ok'));
-$stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($stockQty <= $stockAlert ? 'Low: '.$stockQty : '✓ '.$stockQty));
+    // Stock indicator for pre-filled cards
+    $currentCode = $med?->medication_code ?? null;
+    $stockItem   = $currentCode ? $catalog->firstWhere('code', $currentCode) : null;
+    $stockQty    = $stockItem?->stock;
+    $stockAlert  = $stockItem?->stock_alert ?? 10;
+    $stockCls    = $stockQty === null ? 'stock-ok'
+                 : ($stockQty <= 0           ? 'stock-out'
+                 : ($stockQty <= $stockAlert ? 'stock-low' : 'stock-ok'));
+    $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($stockQty <= $stockAlert ? 'Low: '.$stockQty : '✓ '.$stockQty));
 @endphp
 
 <div class="rx-med-card" id="rx-card-{{ $i }}"
      style="border:1.5px solid #fce7f3;border-radius:12px;margin-bottom:10px;overflow:hidden;background:#fff">
 
     {{-- Card header --}}
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 16px;background:#fdf4ff;cursor:pointer;border-bottom:1px solid #fce7f3"
-         onclick="this.nextElementSibling.style.display === 'none' ? this.nextElementSibling.style.display='block' : this.nextElementSibling.style.display='none'">
+    <div
+        style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 16px;background:#fdf4ff;cursor:pointer;border-bottom:1px solid #fce7f3"
+        onclick="this.nextElementSibling.style.display === 'none' ? this.nextElementSibling.style.display='block' : this.nextElementSibling.style.display='none'">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
             <span style="font-size:18px">💊</span>
             <strong id="rx-card-title-{{ $i }}" style="font-size:14px;color:#012970">
-                {{ $med?->medicine_name ?: ('ថ្នាំ #' . ($i + 1)) }}
+                {{ $med?->medicine_name ?: ('ថ្នាំ #' . ((int)$i + 1)) }}
             </strong>
             @if($med?->strength)
-                <code style="font-size:11px;background:#eef0fd;color:#4154f1;padding:1px 7px;border-radius:5px">{{ $med->strength }}</code>
+                <code
+                    style="font-size:11px;background:#eef0fd;color:#4154f1;padding:1px 7px;border-radius:5px">{{ $med->strength }}</code>
             @endif
             <span id="stock-badge-{{ $i }}"
                   class="stock-badge {{ $stockCls }}"
@@ -70,7 +72,9 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
                     @endphp
                     <option value="{{ $c->code }}"
                         {{ ($v('medicine_code') === $c->code) ? 'selected' : '' }}>
-                        {{ $c->name }}@if($c->strength) ({{ $c->strength }})@endif · {{ $c->form }} — {{ $badge }}
+                        {{ $c->name }}@if($c->strength)
+                            ({{ $c->strength }})
+                        @endif · {{ $c->form }} — {{ $badge }}
                     </option>
                 @endforeach
             </select>
@@ -92,7 +96,7 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
                            class="form-control" required
                            placeholder="Medicine name…"
                            value="{{ $v('medicine_name') }}"
-                           oninput="document.getElementById('rx-card-title-{{ $i }}').textContent = this.value || 'ថ្នាំ #{{ $i+1 }}'"/>
+                           oninput="document.getElementById('rx-card-title-{{ $i }}').textContent = this.value || 'ថ្នាំ #{{ (int)$i + 1 }}'"/>
                 </div>
             </div>
             <div class="col-6 col-sm-3">
@@ -148,21 +152,25 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
             </div>
             <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
                 @foreach(['morning'=>['ព្រឹក','Morning'],'afternoon'=>['ថ្ងៃ','Afternoon'],'evening'=>['ល្ងាច','Evening'],'night'=>['យប់','Night']] as $field=>[$km,$en])
-                <div style="background:#fff;border:1px solid #e6eaf5;border-radius:8px;padding:9px 4px;text-align:center">
-                    <div style="font-size:9px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
-                        {{ $km }}<br><span style="font-size:8px;opacity:.7">{{ $en }}</span>
+                    <div
+                        style="background:#fff;border:1px solid #e6eaf5;border-radius:8px;padding:9px 4px;text-align:center">
+                        <div
+                            style="font-size:9px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
+                            {{ $km }}<br><span style="font-size:8px;opacity:.7">{{ $en }}</span>
+                        </div>
+                        <input type="number" step="0.5" min="0"
+                               name="meds[{{ $i }}][{{ $field }}]"
+                               value="{{ $v($field, 0) }}"
+                               style="border:none;background:transparent;text-align:center;font-size:20px;font-weight:800;color:#012970;width:100%;outline:none"
+                               oninput="calcTotal({{ $i }})"/>
                     </div>
-                    <input type="number" step="0.5" min="0"
-                           name="meds[{{ $i }}][{{ $field }}]"
-                           value="{{ $v($field, 0) }}"
-                           style="border:none;background:transparent;text-align:center;font-size:20px;font-weight:800;color:#012970;width:100%;outline:none"
-                           oninput="calcTotal({{ $i }})"/>
-                </div>
                 @endforeach
 
                 {{-- Days --}}
-                <div style="background:#fff;border:1px solid #e6eaf5;border-radius:8px;padding:9px 4px;text-align:center">
-                    <div style="font-size:9px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
+                <div
+                    style="background:#fff;border:1px solid #e6eaf5;border-radius:8px;padding:9px 4px;text-align:center">
+                    <div
+                        style="font-size:9px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
                         ថ្ងៃ<br><span style="font-size:8px;opacity:.7">Days</span>
                     </div>
                     <input type="number" min="1"
@@ -173,8 +181,10 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
                 </div>
 
                 {{-- Total qty (calculated) --}}
-                <div style="background:#eef0fd;border:2px solid #c5cbf9;border-radius:8px;padding:9px 4px;text-align:center">
-                    <div style="font-size:9px;color:#4154f1;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
+                <div
+                    style="background:#eef0fd;border:2px solid #c5cbf9;border-radius:8px;padding:9px 4px;text-align:center">
+                    <div
+                        style="font-size:9px;color:#4154f1;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px">
                         Total<br><span style="font-size:8px;opacity:.7">qty</span>
                     </div>
                     <div id="rx-total-{{ $i }}"
@@ -189,7 +199,8 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
 
             {{-- Interval --}}
             <div class="fld mt-3">
-                <label class="flbl" style="font-size:11px"><span class="km">ចន្លោះ</span><span class="en">/ Interval</span></label>
+                <label class="flbl" style="font-size:11px"><span class="km">ចន្លោះ</span><span
+                        class="en">/ Interval</span></label>
                 <input type="text" name="meds[{{ $i }}][interval]"
                        class="form-control form-control-sm"
                        placeholder="e.g. q8h, q12h, PRN"
@@ -201,11 +212,31 @@ $stockLbl    = $stockQty === null ? '' : ($stockQty <= 0 ? 'Out of stock' : ($st
 </div>{{-- end rx-med-card --}}
 
 <style>
-.stock-badge {
-    font-size:10px;padding:2px 8px;border-radius:10px;
-    font-weight:700;display:inline-flex;align-items:center;gap:3px;
-}
-.stock-ok  { background:#e8f8ef;color:#1D9E75;border:1px solid #b7eacf; }
-.stock-low { background:#fff8e1;color:#b45309;border:1px solid #fde68a; }
-.stock-out { background:#fde8e8;color:#dc2626;border:1px solid #fca5a5; }
+    .stock-badge {
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+
+    .stock-ok {
+        background: #e8f8ef;
+        color: #1D9E75;
+        border: 1px solid #b7eacf;
+    }
+
+    .stock-low {
+        background: #fff8e1;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .stock-out {
+        background: #fde8e8;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
 </style>

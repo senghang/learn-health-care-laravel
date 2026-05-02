@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediFlow EMR — User Guide</title>
+<style>
+/* ── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+  font-size: 10.5pt;
+  color: #1e293b;
+  line-height: 1.65;
+  background: #e8eeff;
+}
+
+/* ── Book container ──────────────────────────────────────── */
+.book {
+  max-width: 960px;
+  margin: 32px auto 48px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 8px 60px rgba(65,84,241,.13), 0 2px 12px rgba(0,0,0,.07);
+  overflow: hidden;
+}
+
+/* ── Cover ───────────────────────────────────────────────── */
+.cover {
+  background: linear-gradient(140deg, #4154f1 0%, #1a2fc0 55%, #07138a 100%);
+  color: #fff;
+  padding: 72px 64px 56px;
+  position: relative;
+  overflow: hidden;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  right: -80px; bottom: -80px;
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+}
+.cover::before {
+  content: '';
+  position: absolute;
+  right: 60px; top: -40px;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.04);
+}
+.cover-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 20px;
+  padding: 5px 16px;
+  font-size: 9pt;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.cover h1 { font-size: 38pt; font-weight: 900; letter-spacing: -1px; line-height: 1.05; }
+.cover h1 span { color: rgba(255,255,255,.6); font-weight: 300; }
+.cover-desc {
+  font-size: 12pt; opacity: .82;
+  margin: 12px 0 32px;
+  max-width: 540px;
+  line-height: 1.5;
+}
+.cover-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.cover-chip {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 30px;
+  padding: 5px 14px;
+  font-size: 9.5pt;
+}
+
+/* ── TOC ─────────────────────────────────────────────────── */
+.toc { padding: 40px 64px; background: #f7f9ff; border-bottom: 2px solid #e2eaff; }
+.toc-heading {
+  font-size: 11pt; font-weight: 800; color: #4154f1;
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 22px;
+  display: flex; align-items: center; gap: 10px;
+}
+.toc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 24px;
+}
+.toc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #334155;
+  font-size: 9.5pt;
+  transition: background .15s;
+}
+.toc-row:hover { background: #eef1ff; color: #4154f1; }
+.toc-n {
+  min-width: 22px; height: 22px;
+  background: #4154f1; color: #fff;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8pt; font-weight: 800; flex-shrink: 0;
+}
+.toc-row:hover .toc-n { background: #3046e0; }
+
+/* ── Main Content ────────────────────────────────────────── */
+.content { padding: 16px 64px 72px; }
+
+/* ── Section ─────────────────────────────────────────────── */
+.section { margin-top: 56px; }
+.section-hd {
+  display: flex; align-items: stretch; gap: 0;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+.section-accent {
+  width: 6px;
+  background: linear-gradient(180deg, #4154f1, #6875f5);
+  flex-shrink: 0;
+}
+.section-title-area {
+  flex: 1;
+  background: #f0f3ff;
+  padding: 18px 22px;
+  border: 1.5px solid #d4dbff;
+  border-left: none;
+  border-radius: 0 14px 0 0;
+}
+.section-num {
+  font-size: 8.5pt; font-weight: 800; color: #4154f1;
+  text-transform: uppercase; letter-spacing: .10em;
+  margin-bottom: 2px;
+}
+.section-title {
+  font-size: 14pt; font-weight: 800; color: #1e293b;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-sub { font-size: 9.5pt; color: #6b7280; margin-top: 2px; }
+.section-body {
+  border: 1.5px solid #d4dbff;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  padding: 28px 28px 24px;
+}
+
+/* ── Sub-headings ────────────────────────────────────────── */
+.sh {
+  font-size: 10.5pt; font-weight: 700; color: #1e293b;
+  margin: 22px 0 10px;
+  padding-left: 12px;
+  border-left: 3px solid #4154f1;
+  display: flex; align-items: center; gap: 8px;
+}
+.sh:first-child { margin-top: 0; }
+
+/* ── Steps ───────────────────────────────────────────────── */
+ol.steps { list-style: none; counter-reset: step; }
+ol.steps li {
+  counter-increment: step;
+  display: flex; gap: 13px; align-items: flex-start;
+  margin-bottom: 9px;
+}
+ol.steps li::before {
+  content: counter(step);
+  min-width: 24px; height: 24px;
+  background: #4154f1; color: #fff;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8.5pt; font-weight: 800; flex-shrink: 0;
+}
+ol.steps li p { margin: 0; padding-top: 2px; }
+ol.steps li strong { color: #1e293b; }
+
+/* ── Callouts ────────────────────────────────────────────── */
+.callout {
+  border-radius: 10px;
+  padding: 11px 16px 11px 14px;
+  margin: 14px 0;
+  font-size: 10pt;
+  display: flex; gap: 11px; align-items: flex-start;
+  line-height: 1.5;
+}
+.callout-tip  { background: #f0fdf4; border-left: 4px solid #22c55e; }
+.callout-info { background: #eff6ff; border-left: 4px solid #3b82f6; }
+.callout-warn { background: #fffbeb; border-left: 4px solid #f59e0b; }
+.callout-danger{ background: #fef2f2; border-left: 4px solid #ef4444; }
+.ci { font-size: 14px; flex-shrink: 0; line-height: 1.4; }
+
+/* ── Tables ──────────────────────────────────────────────── */
+table.dt { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 12px 0; }
+table.dt th {
+  background: #f0f3ff; color: #4154f1;
+  padding: 8px 12px; text-align: left;
+  font-weight: 700; font-size: 9pt;
+  border: 1px solid #dde3f5;
+}
+table.dt td {
+  padding: 7px 12px;
+  border: 1px solid #dde3f5;
+  vertical-align: top;
+  line-height: 1.5;
+}
+table.dt tbody tr:nth-child(even) td { background: #f8f9ff; }
+.req { color: #ef4444; font-weight: 700; }
+
+/* ── Badges ──────────────────────────────────────────────── */
+.b {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 8.5pt; font-weight: 700;
+  white-space: nowrap;
+}
+.b-blue   { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+.b-green  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.b-orange { background: #fff7ed; color: #ea580c; border: 1px solid #fed7aa; }
+.b-red    { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.b-purple { background: #faf5ff; color: #7c3aed; border: 1px solid #ddd6fe; }
+.b-gray   { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+.b-teal   { background: #f0fdfa; color: #0d9488; border: 1px solid #99f6e4; }
+
+/* ── Flow bar ────────────────────────────────────────────── */
+.flow {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 2px;
+  background: #f7f9ff; border-radius: 12px; padding: 14px 18px;
+  border: 1px solid #e0e7ff; margin: 12px 0;
+}
+.flow-box {
+  background: #fff; border: 1.5px solid #c7d2fe;
+  border-radius: 8px; padding: 7px 13px;
+  font-size: 9pt; font-weight: 600; color: #4154f1;
+  white-space: nowrap; text-align: center;
+}
+.flow-arr { color: #c7d2fe; padding: 0 4px; font-size: 14px; font-weight: 700; }
+
+/* ── Step card grid ──────────────────────────────────────── */
+.step-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0;
+}
+.step-card {
+  background: #f8f9ff; border: 1.5px solid #e0e7ff;
+  border-radius: 10px; padding: 13px 15px;
+}
+.step-card-hd {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 7px;
+}
+.step-card-icon {
+  font-size: 15px; width: 28px; height: 28px;
+  background: #4154f1; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.step-card-title { font-size: 9.5pt; font-weight: 700; color: #1e293b; }
+.step-card-role  { font-size: 8.5pt; color: #6b7280; }
+.step-card ul { padding-left: 16px; font-size: 9pt; color: #374151; }
+.step-card ul li { margin-bottom: 3px; }
+
+/* ── Two-column boxes ────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 12px 0; }
+.box {
+  background: #f8f9ff; border: 1.5px solid #e0e7ff;
+  border-radius: 10px; padding: 15px 16px;
+}
+.box h4 { font-size: 10pt; font-weight: 700; color: #4154f1; margin-bottom: 8px; }
+.box ul { padding-left: 16px; font-size: 9.5pt; }
+.box ul li { margin-bottom: 4px; }
+.box p { font-size: 9.5pt; }
+
+/* ── Three-column boxes ──────────────────────────────────── */
+.three-col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+
+/* ── Permission grid ─────────────────────────────────────── */
+.perm-group { margin-bottom: 12px; }
+.perm-group-title {
+  font-size: 8.5pt; font-weight: 800; color: #4154f1;
+  text-transform: uppercase; letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+.perm-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.perm-chip {
+  background: #f0f3ff; border: 1px solid #c7d2fe;
+  border-radius: 6px; padding: 3px 10px;
+  font-size: 8.5pt; font-family: 'Courier New', monospace;
+  color: #3730a3;
+}
+
+/* ── Vital signs grid ────────────────────────────────────── */
+.vital-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.vital-card {
+  background: #f8f9ff; border: 1.5px solid #e0e7ff;
+  border-radius: 9px; padding: 11px 13px;
+  text-align: center;
+}
+.vital-name { font-size: 8.5pt; font-weight: 700; color: #4154f1; margin-bottom: 3px; }
+.vital-range { font-size: 8pt; color: #6b7280; }
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider { height: 1px; background: #e8eeff; margin: 20px 0; }
+
+/* ── Quick ref card ──────────────────────────────────────── */
+.qref {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8edff 100%);
+  border: 2px solid #c7d2fe;
+  border-radius: 14px; padding: 24px 28px; margin-top: 24px;
+}
+.qref h3 { font-size: 11pt; font-weight: 800; color: #4154f1; margin-bottom: 16px; }
+
+/* ── Workflow step full detail ───────────────────────────── */
+.ws-wrap { margin: 12px 0; }
+.ws-item {
+  display: flex; gap: 0; margin-bottom: 8px;
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid #e0e7ff;
+}
+.ws-num {
+  min-width: 42px; background: #4154f1; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13pt; font-weight: 900; flex-shrink: 0;
+}
+.ws-body { flex: 1; background: #f8f9ff; padding: 10px 15px; }
+.ws-title { font-size: 10pt; font-weight: 700; color: #1e293b; }
+.ws-role  { font-size: 8.5pt; color: #4154f1; font-weight: 600; background: #e8edff; border-radius: 4px; padding: 1px 7px; margin-left: 6px; }
+.ws-fields { font-size: 9pt; color: #4b5563; margin-top: 4px; }
+
+/* ── Bed status dots ─────────────────────────────────────── */
+.bed-status-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 10px 0; }
+.bed-dot {
+  text-align: center; border-radius: 8px; padding: 8px 4px;
+  font-size: 8.5pt; font-weight: 600;
+}
+
+/* ── Print ───────────────────────────────────────────────── */
+@media print {
+  body { background: #fff; font-size: 9.5pt; }
+  .book { max-width: 100%; margin: 0; border-radius: 0; box-shadow: none; }
+  .cover, .toc, .section-hd, .section-title-area,
+  .callout, .step-card, .box, .ws-item, .flow, .vital-card,
+  .qref, table.dt th, .perm-chip, .b, .toc-n, .section-accent
+    { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .section { page-break-inside: avoid; margin-top: 40px; }
+  .content { padding: 10px 48px 48px; }
+  .toc { padding: 28px 48px; }
+  .cover { padding: 52px 48px 44px; }
+  a { color: inherit; text-decoration: none; }
+  .no-print { display: none; }
+}
+@page { size: A4; margin: 12mm 10mm; }
+</style>
+</head>
+<body>
+<div class="book">
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <div class="cover-pill">📋 User Guide &nbsp;·&nbsp; v2.0</div>
+  <h1>MediFlow<span> EMR</span></h1>
+  <p class="cover-desc">
+    Electronic Medical Records &amp; Clinic Management System —
+    complete operational guide for clinic staff and administrators.
+  </p>
+  <div class="cover-chips">
+    <span class="cover-chip">🏥 OPD &amp; IPD Management</span>
+    <span class="cover-chip">💊 Pharmacy &amp; Inventory</span>
+    <span class="cover-chip">💰 Billing &amp; Payments</span>
+    <span class="cover-chip">🔬 Lab &amp; Imaging</span>
+    <span class="cover-chip">🌐 ខ្មែរ / English</span>
+    <span class="cover-chip">📅 2026</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════ TABLE OF CONTENTS ════════════════════════ -->
+<div class="toc">
+  <div class="toc-heading">📑 Table of Contents</div>
+  <div class="toc-grid">
+    <a href="#s1"  class="toc-row"><span class="toc-n">1</span>Getting Started &amp; Login</a>
+    <a href="#s2"  class="toc-row"><span class="toc-n">2</span>Dashboard Overview</a>
+    <a href="#s3"  class="toc-row"><span class="toc-n">3</span>Patient Registration</a>
+    <a href="#s4"  class="toc-row"><span class="toc-n">4</span>OPD Workflow (10 Steps)</a>
+    <a href="#s5"  class="toc-row"><span class="toc-n">5</span>Prescriptions</a>
+    <a href="#s6"  class="toc-row"><span class="toc-n">6</span>Lab &amp; Imaging Orders</a>
+    <a href="#s7"  class="toc-row"><span class="toc-n">7</span>Billing &amp; Invoices</a>
+    <a href="#s8"  class="toc-row"><span class="toc-n">8</span>Pharmacy &amp; Dispensing</a>
+    <a href="#s9"  class="toc-row"><span class="toc-n">9</span>Inventory Management</a>
+    <a href="#s10" class="toc-row"><span class="toc-n">10</span>IPD — Inpatient Admissions</a>
+    <a href="#s11" class="toc-row"><span class="toc-n">11</span>Employees</a>
+    <a href="#s12" class="toc-row"><span class="toc-n">12</span>Users, Roles &amp; Permissions</a>
+    <a href="#s13" class="toc-row"><span class="toc-n">13</span>Settings &amp; Configuration</a>
+    <a href="#s14" class="toc-row"><span class="toc-n">14</span>Troubleshooting</a>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CONTENT ═════════════════════════════ -->
+<div class="content">
+
+<!-- ──────────────────────────────────────────────────────────
+     1. GETTING STARTED
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s1">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 1</div>
+      <div class="section-title">🔐 Getting Started &amp; Login</div>
+      <div class="section-sub">Accessing the system and navigating the interface</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Logging In</div>
+    <ol class="steps">
+      <li><p>Open your browser and go to your clinic's URL (e.g. <strong>https://yourclinic.mediflow.com</strong>).</p></li>
+      <li><p>Enter the <strong>Email Address</strong> and <strong>Password</strong> provided by your administrator.</p></li>
+      <li><p>Click <strong>Login</strong> — you are redirected to the Dashboard.</p></li>
+    </ol>
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>The interface is bilingual. Toggle between <strong>ខ្មែរ</strong> and <strong>English</strong> using the language flag button in the top-right navigation bar at any time.</span>
+    </div>
+
+    <div class="sh">Sidebar Navigation</div>
+    <p style="font-size:9.5pt;margin-bottom:10px">All features are accessible from the <strong>left sidebar</strong>. Click a section label to expand or collapse it. Use the pin button to collapse the sidebar to icon-only mode.</p>
+    <table class="dt">
+      <thead><tr><th>Sidebar Group</th><th>Contains</th><th>Who Uses It</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MAIN</strong></td><td>Dashboard, Patients</td><td>All staff</td></tr>
+        <tr><td><strong>OPD</strong></td><td>Visits, Triage, Consultations, Prescriptions</td><td>Reception, Nurse, Doctor</td></tr>
+        <tr><td><strong>LAB &amp; IMAGING</strong></td><td>Lab orders/results, Imaging orders/results</td><td>Nurse, Lab Tech, Doctor</td></tr>
+        <tr><td><strong>BILLING</strong></td><td>Invoices, Payments</td><td>Cashier</td></tr>
+        <tr><td><strong>PHARMACY</strong></td><td>Medicines, Dispensing queue</td><td>Pharmacist</td></tr>
+        <tr><td><strong>INVENTORY</strong></td><td>Stock movements, Stock balance</td><td>Pharmacist, Store</td></tr>
+        <tr><td><strong>IPD</strong></td><td>Admissions, Wards, Beds, Treatments</td><td>Nurse, Doctor</td></tr>
+        <tr><td><strong>EMPLOYEE</strong></td><td>Employee profiles, User accounts</td><td>HR, Admin</td></tr>
+        <tr><td><strong>SYSTEM</strong></td><td>Roles &amp; Permissions, Settings</td><td>Administrator</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-info">
+      <span class="ci">ℹ️</span>
+      <span>Menu items are only shown if your user role has the required permission. If a section is missing, contact your administrator to update your role permissions.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     2. DASHBOARD
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s2">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 2</div>
+      <div class="section-title">📊 Dashboard Overview</div>
+      <div class="section-sub">Real-time clinic activity at a glance</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">KPI Summary Cards</div>
+    <table class="dt">
+      <thead><tr><th>Card</th><th>What It Shows</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Active Visits</strong> (hero)</td><td>All visits not yet discharged — OPD + IPD combined</td></tr>
+        <tr><td><strong>Today's Visits</strong></td><td>All visits admitted today regardless of type</td></tr>
+        <tr><td><strong>IPD Inpatients</strong></td><td>Patients currently admitted (IPD type, not discharged)</td></tr>
+        <tr><td><strong>This Month</strong></td><td>Total visits in the current calendar month</td></tr>
+        <tr><td><strong>Pending Invoices</strong></td><td>Invoices with status <span class="b b-orange">Pending</span> or <span class="b b-blue">Partial</span></td></tr>
+        <tr><td><strong>Low Stock</strong></td><td>Medicines with stock ≤ alert level (but > 0)</td></tr>
+        <tr><td><strong>Out of Stock</strong></td><td>Medicines with stock = 0</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Quick Action Tiles</div>
+    <div class="three-col">
+      <div class="box"><h4>➕ New Visit</h4><p>Shortcut to Triage — starts a new patient visit immediately.</p></div>
+      <div class="box"><h4>📋 Active Visits</h4><p>View all open visits with a badge showing count. Links to filtered list.</p></div>
+      <div class="box"><h4>💰 Pending Invoices</h4><p>Jump directly to unpaid invoices with a count badge.</p></div>
+    </div>
+
+    <div class="sh">7-Day Activity Chart</div>
+    <p style="font-size:9.5pt">A bar chart showing daily OPD and IPD visit counts for the past 7 days. Totals for the week are shown below the chart: 7-Day total, OPD total, IPD total, and OPD%. Today's column is highlighted.</p>
+
+    <div class="sh">Recent Activity Feed</div>
+    <p style="font-size:9.5pt">The last 10 visits are shown in a live feed table with: visit code, patient name, visit type, status (Active / Done), workflow step progress (e.g. <strong>3/10</strong>), and a quick-action button to open the consultation.</p>
+
+    <div class="callout callout-info">
+      <span class="ci">ℹ️</span>
+      <span>Sidebar badge counters (pending prescriptions, active IPD, pending invoices, etc.) refresh automatically every 60 seconds and are filtered to your clinic only.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     3. PATIENTS
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s3">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 3</div>
+      <div class="section-title">👥 Patient Registration</div>
+      <div class="section-sub">Creating and managing patient records</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Registering a New Patient</div>
+    <ol class="steps">
+      <li><p>Navigate to <strong>Patients → Register</strong>.</p></li>
+      <li><p>Fill in the form. Fields marked <span class="req">*</span> are required.</p></li>
+      <li><p>Click <strong>Save</strong>. A unique patient code (e.g. <code>PT-00142</code>) is auto-generated.</p></li>
+    </ol>
+
+    <table class="dt">
+      <thead><tr><th>Field</th><th>Details</th><th>Required</th></tr></thead>
+      <tbody>
+        <tr><td>Surname</td><td>Family / last name</td><td><span class="req">✓</span></td></tr>
+        <tr><td>Given Name</td><td>First / given name</td><td><span class="req">✓</span></td></tr>
+        <tr><td>Sex</td><td>M (Male) or F (Female)</td><td><span class="req">✓</span></td></tr>
+        <tr><td>Date of Birth</td><td>Used to auto-calculate age; stored as date</td><td></td></tr>
+        <tr><td>Phone</td><td>Primary contact number (max 30 chars)</td><td></td></tr>
+        <tr><td>Nationality</td><td>Country / nationality (max 80 chars)</td><td></td></tr>
+        <tr><td>Occupation</td><td>Patient's occupation (max 120 chars)</td><td></td></tr>
+        <tr><td>Marital Status</td><td>Single / Married / Widowed / Divorced (max 30 chars)</td><td></td></tr>
+        <tr><td>Blood Type</td><td>A / B / AB / O (+/-) — shown as warning on prescriptions</td><td></td></tr>
+        <tr><td>Address</td><td>Province, District, Commune, Village, House No., Street No.</td><td></td></tr>
+        <tr><td>Emergency Contact</td><td>Name and phone of emergency contact</td><td></td></tr>
+        <tr><td>Disabilities</td><td>Any disabilities (stored as list)</td><td></td></tr>
+        <tr><td>Patient Photo</td><td>Photo upload for identity verification</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Search &amp; View Patients</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Patients → List</strong>.</p></li>
+      <li><p>Use the search bar — search by name, patient code, or phone number.</p></li>
+      <li><p>Click a patient row to open their full profile with visit history and records.</p></li>
+    </ol>
+
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>You can also search for a patient directly from the <strong>Triage</strong> (New Visit) screen using the inline patient search — it auto-fills the visit form and jumps to a previously registered patient without navigating away.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     4. OPD WORKFLOW
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s4">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 4</div>
+      <div class="section-title">🩺 OPD Workflow — 10 Steps</div>
+      <div class="section-sub">Managing the complete outpatient visit cycle from triage to invoice</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Visit Flow</div>
+    <div class="flow">
+      <div class="flow-box">1<br>Registration</div><div class="flow-arr">→</div>
+      <div class="flow-box">2<br>Triage</div><div class="flow-arr">→</div>
+      <div class="flow-box">3<br>Vitals</div><div class="flow-arr">→</div>
+      <div class="flow-box">4<br>History</div><div class="flow-arr">→</div>
+      <div class="flow-box">5<br>Labs</div><div class="flow-arr">→</div>
+      <div class="flow-box">6<br>Diagnosis</div><div class="flow-arr">→</div>
+      <div class="flow-box">7<br>SOAP</div><div class="flow-arr">→</div>
+      <div class="flow-box">8<br>Prescription</div><div class="flow-arr">→</div>
+      <div class="flow-box">9<br>Referral</div><div class="flow-arr">→</div>
+      <div class="flow-box">10<br>Invoice</div>
+    </div>
+    <p style="font-size:9pt;color:#6b7280;margin-top:-6px">Progress is tracked as completed steps / 10. You can navigate to any step at any time and revisit completed steps.</p>
+
+    <div class="sh">Starting a New Visit (Triage)</div>
+    <ol class="steps">
+      <li><p>Click <strong>OPD → Triage</strong> or the <strong>"New Visit"</strong> button on the Dashboard.</p></li>
+      <li><p>Search for the patient by name or code. If new, register them first (Patients → Register).</p></li>
+      <li><p>Select <strong>Visit Type</strong>: <span class="b b-blue">OPD</span> for outpatient, <span class="b b-purple">IPD</span> for inpatient admission.</p></li>
+      <li><p>Click <strong>Start Visit</strong>. You are taken to the consultation workflow screen.</p></li>
+    </ol>
+
+    <div class="sh">Detailed Step Reference</div>
+
+    <div class="ws-wrap">
+      <div class="ws-item">
+        <div class="ws-num">1</div>
+        <div class="ws-body">
+          <div><span class="ws-title">📋 Registration</span><span class="ws-role">Reception</span></div>
+          <div class="ws-fields">Updates patient demographic info directly in the visit: name, sex, birthdate, phone, address (province → village), service type, ward, bed, follow-up date. An encounter code is assigned automatically.</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">2</div>
+        <div class="ws-body">
+          <div><span class="ws-title">🩺 Triage</span><span class="ws-role">Nurse / Reception</span></div>
+          <div class="ws-fields">
+            <strong>Triage Level</strong> (Emergency / Urgent / Standard / Low) · <strong>Chief Complaint</strong> (required) · <strong>Height</strong> (cm) · <strong>Weight</strong> (kg) · <strong>BMI</strong> (auto-calculated) · Recorded By · Title (Doctor / Nurse / Paramedic)
+          </div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">3</div>
+        <div class="ws-body">
+          <div><span class="ws-title">❤️ Vital Signs</span><span class="ws-role">Nurse</span></div>
+          <div class="ws-fields">All vitals are optional. Recorded By and time are logged for each entry.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vital-grid">
+      <div class="vital-card"><div class="vital-name">🌡️ Temperature</div><div class="vital-range">30–45 °C</div></div>
+      <div class="vital-card"><div class="vital-name">❤️ Heart Rate</div><div class="vital-range">20–300 bpm</div></div>
+      <div class="vital-card"><div class="vital-name">🫁 Resp. Rate</div><div class="vital-range">4–60 /min</div></div>
+      <div class="vital-card"><div class="vital-name">🩸 BP Systolic</div><div class="vital-range">50–300 mmHg</div></div>
+      <div class="vital-card"><div class="vital-name">🩸 BP Diastolic</div><div class="vital-range">20–200 mmHg</div></div>
+      <div class="vital-card"><div class="vital-name">💧 SpO2</div><div class="vital-range">50–100 %</div></div>
+      <div class="vital-card"><div class="vital-name">🍬 Blood Glucose</div><div class="vital-range">1–50 mmol/L</div></div>
+    </div>
+
+    <div class="ws-wrap" style="margin-top:10px">
+      <div class="ws-item">
+        <div class="ws-num">4</div>
+        <div class="ws-body">
+          <div><span class="ws-title">📖 Medical History</span><span class="ws-role">Nurse / Doctor</span></div>
+          <div class="ws-fields"><strong>HPI</strong> (History of Present Illness) · Past Medical History · Past Surgical History · Family History · Social History · Current Medications · Allergies · Immunizations · Physical Examination (multi-system checkboxes)</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">5</div>
+        <div class="ws-body">
+          <div><span class="ws-title">🔬 Laboratory</span><span class="ws-role">Doctor</span></div>
+          <div class="ws-fields">Request lab tests within the visit context: Test Name · Category · Interpretation · Reference Range · Value. Requested By and At are recorded. These orders also appear in the Lab &amp; Imaging module.</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">6</div>
+        <div class="ws-body">
+          <div><span class="ws-title">🎯 Diagnosis</span><span class="ws-role">Doctor</span></div>
+          <div class="ws-fields"><strong>Diagnosis Type</strong>: Primary / Secondary / In / Out · <strong>ICD-10 Code</strong> (optional) · <strong>Diagnosis Name</strong> (required) · Description · Diagnosed By and At</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">7</div>
+        <div class="ws-body">
+          <div><span class="ws-title">📝 SOAP Notes</span><span class="ws-role">Doctor</span></div>
+          <div class="ws-fields"><strong>S</strong> (Subjective — patient's complaints) · <strong>O</strong> (Objective — examination findings) · <strong>A</strong> (Assessment — clinical impression) · <strong>E</strong> (Evaluation) · <strong>P</strong> (Plan — management steps)</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">8</div>
+        <div class="ws-body">
+          <div><span class="ws-title">💊 Prescription</span><span class="ws-role">Doctor</span></div>
+          <div class="ws-fields">Add medicine lines. Each line: Medicine Name · Strength · Form · Method · Morning / Afternoon / Evening / Night doses · Duration (days) · Interval · Notes. Total daily dose and total quantity are auto-calculated. Prescribed By and At are recorded.</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">9</div>
+        <div class="ws-body">
+          <div><span class="ws-title">➡️ Referral</span><span class="ws-role">Doctor</span></div>
+          <div class="ws-fields"><strong>Direction</strong>: FROM or TO · Referral Number · Reason · Transportation · Has Called · Caretaker Name &amp; Phone · Referred By and contact · Referred At · Medications being transferred</div>
+        </div>
+      </div>
+      <div class="ws-item">
+        <div class="ws-num">10</div>
+        <div class="ws-body">
+          <div><span class="ws-title">🧾 Invoice</span><span class="ws-role">Cashier</span></div>
+          <div class="ws-fields"><strong>Payment Type</strong>: HEF / NSSF / CASH / CARD · Add Services from catalogue · Add Medicines dispensed · Subtotal, discount, tax, and total auto-calculated · Invoice Date · Cashier name</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sh">Saving, Skipping &amp; Navigation</div>
+    <div class="three-col">
+      <div class="box"><h4>💾 Save &amp; Next</h4><p>Saves current step data and advances to the next step.</p></div>
+      <div class="box"><h4>⏭ Skip</h4><p>Moves to the next step without saving. The step is marked as skipped.</p></div>
+      <div class="box"><h4>🔀 Jump</h4><p>Click any step in the left panel to jump directly to it — completed or not.</p></div>
+    </div>
+
+    <div class="sh">Active Visits Queue</div>
+    <p style="font-size:9.5pt">Go to <strong>OPD → Consultations</strong> to see all active visits. The list shows patient name, triage priority, step progress, and waiting time. Click any row to continue the consultation from where it was left off.</p>
+
+    <div class="callout callout-warn">
+      <span class="ci">⚠️</span>
+      <span>A visit is only <strong>discharged</strong> after the Invoice (step 10) is completed and payment collected. Until discharged, the patient remains in the active visits list and occupies an IPD bed (if IPD).</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     5. PRESCRIPTIONS
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s5">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 5</div>
+      <div class="section-title">💊 Prescriptions</div>
+      <div class="section-sub">Creating, editing, and managing medication prescriptions</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Creating a Prescription</div>
+    <div class="two-col">
+      <div class="box">
+        <h4>Via OPD Workflow (recommended)</h4>
+        <ul>
+          <li>Open a visit → navigate to <strong>Step 8: Prescription</strong></li>
+          <li>Patient &amp; visit code are pre-filled automatically</li>
+          <li>Linked to the visit for a complete medical record</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h4>Standalone Prescription</h4>
+        <ul>
+          <li>Go to <strong>OPD → Prescriptions → New</strong></li>
+          <li>Search and select patient manually</li>
+          <li>Useful for repeat prescriptions outside a visit</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sh">Adding Medicine Lines</div>
+    <ol class="steps">
+      <li><p>Click <strong>"+ Add Medicine"</strong> in the prescription form.</p></li>
+      <li><p>Type to search the medicine catalogue (auto-complete by name or code).</p></li>
+      <li><p>Fill in the dosing fields — the system uses <strong>time-of-day dosing</strong>:</p></li>
+    </ol>
+
+    <table class="dt">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Medicine Name</td><td>Auto-filled from catalogue; current stock shown <span class="req">*</span></td></tr>
+        <tr><td>Strength</td><td>e.g. 500mg, 250mg/5ml</td></tr>
+        <tr><td>Form</td><td>Tablet / Capsule / Syrup / Injection / Ointment / Drops / Inhaler / Powder</td></tr>
+        <tr><td>Method</td><td>Route of administration (Oral, IV, IM, Topical, etc.)</td></tr>
+        <tr><td>Morning / Afternoon / Evening / Night</td><td>Doses per time slot (e.g. 1 / 0 / 1 / 0)</td></tr>
+        <tr><td>Days</td><td>Duration of treatment in days (integer)</td></tr>
+        <tr><td>Interval</td><td>Optional dosing interval (e.g. "every 8 hours")</td></tr>
+        <tr><td>Notes</td><td>Special instructions for the pharmacist or patient</td></tr>
+        <tr><td colspan="2" style="background:#f0f3ff;font-size:9pt"><strong>Auto-calculated:</strong> Total daily dose (sum of 4 slots) and Total Quantity (daily × days)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Dispensing Statuses</div>
+    <table class="dt">
+      <thead><tr><th>Status</th><th>Meaning</th><th>Stock Effect</th></tr></thead>
+      <tbody>
+        <tr><td><span class="b b-gray">—</span> (null)</td><td>Prescription not yet sent to pharmacy</td><td>None</td></tr>
+        <tr><td><span class="b b-orange">Partial</span></td><td>Some medicines dispensed, others pending</td><td>None (manual tracking)</td></tr>
+        <tr><td><span class="b b-green">Dispensed</span></td><td>All medicines fully dispensed</td><td>Stock automatically deducted for all lines</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>Click the <strong>Print</strong> icon on the prescription detail page to generate a formatted printable prescription for the patient, including clinic header, medicine list with dosing schedule, and prescriber name.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     6. LAB & IMAGING
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s6">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 6</div>
+      <div class="section-title">🔬 Lab &amp; Imaging Orders</div>
+      <div class="section-sub">Requesting tests and recording results</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Laboratory Orders</div>
+    <div class="flow">
+      <div class="flow-box"><span class="b b-orange">Requested</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-blue">Collected</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-purple">Processing</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-green">Completed</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-red">Cancelled</span></div>
+    </div>
+
+    <ol class="steps">
+      <li><p>Go to <strong>Lab &amp; Imaging → Lab Orders → New</strong> (or from the visit Labs step).</p></li>
+      <li><p>Enter <strong>Patient Code</strong> and <strong>Visit Code</strong>.</p></li>
+      <li><p>Set <strong>Urgency</strong>: <span class="b b-gray">Normal</span> / <span class="b b-orange">Urgent</span> / <span class="b b-red">STAT</span>.</p></li>
+      <li><p>Add test items: Test Name and Category (Hematology, Biochemistry, Microbiology, Urinalysis, Serology). Add multiple tests per order.</p></li>
+      <li><p>Submit — order is created with status <span class="b b-orange">Requested</span>.</p></li>
+    </ol>
+
+    <div class="sh">Recording Lab Results</div>
+    <ol class="steps">
+      <li><p>Open the order from <strong>Lab &amp; Imaging → Lab Results</strong>.</p></li>
+      <li><p>Click <strong>"Collect Sample"</strong> — records collected_by and time. Status → <span class="b b-blue">Collected</span>.</p></li>
+      <li><p>Click <strong>"Enter Results"</strong> — enter Value, Interpretation, and Reference Range per test item. Status → <span class="b b-purple">Processing</span>.</p></li>
+      <li><p>Click <strong>"Verify"</strong> — a senior staff member confirms results. Status → <span class="b b-green">Completed</span>.</p></li>
+    </ol>
+
+    <div class="divider"></div>
+
+    <div class="sh">Imaging Orders</div>
+    <div class="flow">
+      <div class="flow-box"><span class="b b-orange">Requested</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-green">Completed</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-red">Cancelled</span></div>
+    </div>
+
+    <ol class="steps">
+      <li><p>Go to <strong>Lab &amp; Imaging → Imaging Orders → New</strong>.</p></li>
+      <li><p>Select <strong>Category</strong>: X-ray / Ultrasound / CT Scan / MRI / ECG / Endoscopy.</p></li>
+      <li><p>Enter <strong>Urgency</strong>, <strong>Exam Title</strong> (e.g. "Chest X-ray PA view"), Patient Code and Visit Code.</p></li>
+      <li><p>To record results: open the order → click <strong>"Enter Result"</strong> → write narrative and conclusion → click <strong>"Verify"</strong>.</p></li>
+    </ol>
+
+    <div class="callout callout-info">
+      <span class="ci">ℹ️</span>
+      <span>Lab and Imaging orders created from <strong>OPD Workflow Step 5 (Labs)</strong> are automatically linked to the patient's visit — they appear in both the visit record and the standalone Lab/Imaging results list.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     7. BILLING
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s7">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 7</div>
+      <div class="section-title">💰 Billing &amp; Invoices</div>
+      <div class="section-sub">Creating invoices and collecting patient payments</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Invoice Life Cycle</div>
+    <div class="flow">
+      <div class="flow-box"><span class="b b-orange">Pending</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-blue">Partial</span><br><span style="font-size:8pt;color:#6b7280">(part-payment)</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-green">Paid</span><br><span style="font-size:8pt;color:#6b7280">(locked)</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-red">Void</span><br><span style="font-size:8pt;color:#6b7280">(cancelled)</span></div>
+    </div>
+
+    <div class="sh">Creating an Invoice</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Billing → Invoices → New Invoice</strong>, or use <strong>OPD Workflow Step 10 (Invoice)</strong>.</p></li>
+      <li><p>Search and select the patient. Enter a <strong>Visit Code</strong> if applicable.</p></li>
+      <li><p>Select <strong>Payment Type</strong>: <span class="b b-gray">CASH</span> / <span class="b b-blue">HEF</span> / <span class="b b-blue">NSSF</span> / <span class="b b-purple">CARD</span>.</p></li>
+      <li><p>Add <strong>Services</strong> from the catalogue (consultation fees, procedures, etc.).</p></li>
+      <li><p>Add <strong>Medicines</strong> dispensed to the patient.</p></li>
+      <li><p>Apply a <strong>Discount</strong> or <strong>Tax</strong> if applicable. The total auto-updates.</p></li>
+      <li><p>Click <strong>Create Invoice</strong>. A code like <code>INV-00287</code> is assigned. Status is <span class="b b-orange">Pending</span>.</p></li>
+    </ol>
+
+    <div class="sh">Collecting Payment</div>
+    <ol class="steps">
+      <li><p>Open the invoice and click <strong>"Collect Payment"</strong>.</p></li>
+      <li><p>Enter the <strong>Amount</strong> received (can be partial).</p></li>
+      <li><p>Select <strong>Payment Method</strong>:</p>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="b b-gray">CASH</span>
+          <span class="b b-blue">HEF (Health Equity Fund)</span>
+          <span class="b b-blue">NSSF</span>
+          <span class="b b-purple">CARD</span>
+          <span class="b b-teal">BAKONG</span>
+        </div>
+      </li>
+      <li><p>Enter a <strong>Reference Number</strong> for non-cash payments (card/transfer).</p></li>
+      <li><p>Click <strong>Record Payment</strong>. If amount = remaining balance → status changes to <span class="b b-green">Paid</span>. If partial → <span class="b b-blue">Partial</span>.</p></li>
+    </ol>
+
+    <div class="callout callout-info">
+      <span class="ci">ℹ️</span>
+      <span><strong>Multiple payments</strong> can be recorded against one invoice (partial payments). The invoice shows a running balance: <code>Total − Paid = Balance due</code>. Each payment is logged individually with method, reference, and collector name.</span>
+    </div>
+
+    <div class="sh">Editing &amp; Voiding</div>
+    <table class="dt">
+      <thead><tr><th>Action</th><th>Allowed When</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Edit Invoice</td><td>Status is Pending only</td><td>Paid or voided invoices are locked</td></tr>
+        <tr><td>Void Invoice</td><td>Any status</td><td>Marks as <span class="b b-red">Void</span> — cannot be undone</td></tr>
+        <tr><td>Delete Invoice</td><td>Status is Pending only</td><td>Permanently removes invoice and its service/medicine lines</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Payments History</div>
+    <p style="font-size:9.5pt">Go to <strong>Billing → Payments</strong> to see all transactions. Filter by date range, payment method, or search by patient/invoice code. Today's total, count, and month-to-date total are shown at the top.</p>
+
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>Click the <strong>Print</strong> icon on the invoice detail page to generate a printable receipt/invoice for the patient, including clinic logo, service breakdown, payment history, and outstanding balance.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     8. PHARMACY
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s8">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 8</div>
+      <div class="section-title">🏪 Pharmacy &amp; Dispensing</div>
+      <div class="section-sub">Dispensing medicines to OPD and IPD patients</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">OPD Dispensing Queue</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Pharmacy → Dispensing</strong>. All prescriptions with status null or <span class="b b-orange">Partial</span> are listed.</p></li>
+      <li><p>Click a prescription row to open the dispensing detail view.</p></li>
+      <li><p>Review each medicine line — current stock level is shown next to each item. Items with insufficient stock are highlighted.</p></li>
+      <li><p>Click <strong>"Dispense All"</strong> to mark the entire prescription as <span class="b b-green">Dispensed</span>. Stock is automatically deducted for every medicine line.</p></li>
+      <li><p>Or set status to <span class="b b-orange">Partial</span> if some items are out of stock — note which items were given.</p></li>
+    </ol>
+
+    <div class="callout callout-warn">
+      <span class="ci">⚠️</span>
+      <span>Setting status to <strong>Dispensed</strong> immediately deducts stock from the inventory. This action creates stock movement records. Ensure stock was received via Stock In before dispensing.</span>
+    </div>
+
+    <div class="sh">IPD Medication Administration</div>
+    <p style="font-size:9.5pt;margin-bottom:8px">IPD medication orders are managed separately from the OPD dispensing queue. For admitted patients:</p>
+    <ol class="steps">
+      <li><p>Open the admission record in <strong>IPD → Admissions</strong>.</p></li>
+      <li><p>Under <strong>Medication Orders</strong>, the nurse clicks <strong>"Administer"</strong> next to each dose when given to the patient.</p></li>
+      <li><p>Stock is deducted at the time the medication order is created (not at administration).</p></li>
+    </ol>
+
+    <div class="sh">Viewing the Medicine Catalogue</div>
+    <p style="font-size:9.5pt">Go to <strong>Pharmacy → Medicines</strong> to browse all registered medicines. Filter by name, category, or stock status (low stock, out of stock). Click the ledger icon to view the full stock history of any medicine.</p>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     9. INVENTORY
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s9">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 9</div>
+      <div class="section-title">📦 Inventory Management</div>
+      <div class="section-sub">Receiving stock, adjustments, and reporting</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Stock In — Receiving Stock</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Inventory → Stock Movements</strong> and click the <strong>Stock In</strong> tab.</p></li>
+      <li><p>Select the medicine from the dropdown. Enter the <strong>Quantity</strong> received.</p></li>
+      <li><p>Set the type: <span class="b b-green">In</span> (new purchase) or <span class="b b-blue">Return</span> (patient/supplier return).</p></li>
+      <li><p>Optionally fill in: Supplier name, Reference No., Unit Cost, Expiry Date, Batch No.</p></li>
+      <li><p>Click <strong>Save</strong>. The medicine stock increases and a movement record is created.</p></li>
+    </ol>
+
+    <div class="sh">Stock Out — Manual Removal</div>
+    <ol class="steps">
+      <li><p>Click the <strong>Stock Out</strong> tab.</p></li>
+      <li><p>Select medicine, enter quantity, choose type: <span class="b b-orange">Out</span> (issue/disposal) or <span class="b b-red">Expired</span>.</p></li>
+      <li><p>Enter a reason note. Click <strong>Save</strong>.</p></li>
+    </ol>
+
+    <div class="callout callout-info">
+      <span class="ci">ℹ️</span>
+      <span>Stock Out is for <em>manual</em> removals only. Stock deducted through prescription dispensing or IPD medication orders is recorded automatically — do not double-count these in Stock Out.</span>
+    </div>
+
+    <div class="sh">Physical Count Adjustment</div>
+    <ol class="steps">
+      <li><p>Click the <strong>Adjustment</strong> tab (or go to <strong>Inventory → Stock Movements → Adjustment</strong>).</p></li>
+      <li><p>Select the medicine. Enter the <strong>actual counted quantity</strong> from the physical count.</p></li>
+      <li><p>The system computes the delta (difference) and records a movement showing the adjustment direction (+ or −).</p></li>
+      <li><p>Enter a reason (e.g. "Monthly stock count"). Click <strong>Save</strong>.</p></li>
+    </ol>
+
+    <div class="sh">Stock Movements Ledger</div>
+    <p style="font-size:9.5pt">Go to <strong>Inventory → Stock Movements</strong> (main view) to see a chronological log of all stock movements across all medicines. Filter by movement type, medicine name, or date. Counters show total quantities per movement type.</p>
+
+    <div class="sh">Stock Balance Report</div>
+    <p style="font-size:9.5pt">Go to <strong>Inventory → Stock Balance</strong> for a summary of all medicines with current stock, alert level, stock value, and status. Medicines at or below alert level are highlighted in orange. Out-of-stock items are shown in red.</p>
+
+    <div class="sh">Per-Medicine Ledger</div>
+    <p style="font-size:9.5pt">From <strong>Pharmacy → Medicines</strong>, click the <strong>ledger icon (📒)</strong> on any medicine row to see its complete movement history: every stock in, stock out, dispense, adjustment, and the running balance after each movement.</p>
+
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>Set a <strong>Stock Alert Level</strong> when creating a medicine. The dashboard will flag the medicine when stock reaches this level, giving your team time to reorder before running out.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     10. IPD
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s10">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 10</div>
+      <div class="section-title">🏥 IPD — Inpatient Admissions</div>
+      <div class="section-sub">Managing admitted patients, wards, beds, and discharge</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Admission Life Cycle</div>
+    <div class="flow">
+      <div class="flow-box"><span class="b b-blue">Admitted</span></div><div class="flow-arr">→</div>
+      <div class="flow-box"><span class="b b-green">Discharged</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-orange">Transferred</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-gray">Deceased</span></div>
+      <div class="flow-arr">|</div>
+      <div class="flow-box"><span class="b b-red">Cancelled</span></div>
+    </div>
+
+    <div class="sh">Admitting a Patient</div>
+    <ol class="steps">
+      <li><p>Start a visit with <strong>Visit Type = IPD</strong> via <strong>OPD → Triage</strong>.</p></li>
+      <li><p>From the visit workflow, or from <strong>IPD → Admissions</strong>, click <strong>"Admit"</strong>.</p></li>
+      <li><p>Select a <strong>Ward</strong> and assign a <strong>Bed</strong> (optional if no bed available).</p></li>
+      <li><p>Fill in admission details:</p></li>
+    </ol>
+    <table class="dt">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Admission Type</td><td>Elective, Emergency, Transfer, etc. (free text)</td></tr>
+        <tr><td>Admission Reason</td><td>Brief reason for admission (max 500 chars)</td></tr>
+        <tr><td>Attending Doctor</td><td>Name of the responsible doctor</td></tr>
+        <tr><td>Admitting Doctor</td><td>Doctor who authorised the admission</td></tr>
+        <tr><td>Primary Nurse</td><td>Assigned ward nurse</td></tr>
+        <tr><td>Admitted At</td><td>Date/time of admission (defaults to now)</td></tr>
+        <tr><td>Expected Discharge</td><td>Estimated discharge date</td></tr>
+      </tbody>
+    </table>
+    <ol class="steps" style="margin-top:8px" start="5">
+      <li><p>Click <strong>Admit Patient</strong>. An admission record (e.g. <code>ADM-00012</code>) is created. The selected bed changes to <span class="b b-orange">Occupied</span>.</p></li>
+    </ol>
+
+    <div class="sh">IPD Dashboard Stats</div>
+    <div class="three-col">
+      <div class="box"><h4>🏥 Active Admissions</h4><p>Currently admitted patients (status = Admitted).</p></div>
+      <div class="box"><h4>📥 Admitted Today</h4><p>Patients admitted on today's date.</p></div>
+      <div class="box"><h4>📤 Discharged Today</h4><p>Patients discharged on today's date.</p></div>
+      <div class="box" style="grid-column:span 3"><h4>⏱ Average Length of Stay</h4><p>Mean number of days for all discharged patients — calculated from admitted_at to discharged_at.</p></div>
+    </div>
+
+    <div class="sh">Treatment Orders</div>
+    <ol class="steps">
+      <li><p>Open the admission record from <strong>IPD → Admissions</strong> and click the admission code.</p></li>
+      <li><p>Under <strong>Treatment Orders</strong>, click <strong>"+ Add Treatment"</strong>.</p></li>
+      <li><p>Fill in: Treatment Type (Procedure / Nursing Care / Diet / Therapy) · Name (required) · Instructions · Frequency · Route · Duration · Notes.</p></li>
+      <li><p>Treatments are created with status <span class="b b-orange">Ordered</span> and are automatically marked <span class="b b-green">Completed</span> upon discharge.</p></li>
+    </ol>
+
+    <div class="sh">Medication Orders (IPD)</div>
+    <ol class="steps">
+      <li><p>Under <strong>Medication Orders</strong>, click <strong>"+ Add Medication"</strong>.</p></li>
+      <li><p>Select a medicine from the clinic stock. Stock availability is validated — an error is shown if stock is insufficient.</p></li>
+      <li><p>Enter: Dose · Route · Frequency · Quantity · Start Date · End Date · Notes.</p></li>
+      <li><p>Stock is <strong>immediately deducted</strong> when the medication order is saved (not when administered).</p></li>
+      <li><p>Ward nurses click <strong>"Administer"</strong> on each dose to record the administration time and staff member.</p></li>
+    </ol>
+
+    <div class="sh">Bed Transfer</div>
+    <ol class="steps">
+      <li><p>Click <strong>"Transfer Bed"</strong> on the admission detail page.</p></li>
+      <li><p>Select the new bed from available beds. Click <strong>Confirm Transfer</strong>.</p></li>
+      <li><p>The old bed is automatically freed (status → <span class="b b-teal">Cleaning</span>). Ward, room, and bed are updated on the admission record.</p></li>
+    </ol>
+
+    <div class="sh">Discharging a Patient</div>
+    <ol class="steps">
+      <li><p>Click <strong>"Discharge"</strong> on the admission detail page.</p></li>
+      <li><p>Enter: <strong>Discharge Type</strong> (Cured / Improved / Against Advice / Transferred / Deceased / Other) · <strong>Discharge Summary</strong> · <strong>Patient Condition</strong> · <strong>Visit Outcome</strong> · <strong>Discharge Date/Time</strong>.</p></li>
+      <li><p>Click <strong>Confirm Discharge</strong>. The following happens automatically:</p>
+        <ul style="margin-top:6px;padding-left:18px;font-size:9.5pt">
+          <li>Admission status → <span class="b b-green">Discharged</span></li>
+          <li>Bed freed → status → <span class="b b-teal">Cleaning</span>, patient pointers cleared</li>
+          <li>Encounter closed → status → Completed</li>
+          <li>All active treatments → <span class="b b-green">Completed</span></li>
+          <li>All active IPD medications → <span class="b b-green">Completed</span></li>
+          <li>Parent visit updated</li>
+        </ul>
+      </li>
+    </ol>
+
+    <div class="sh">Ward, Room &amp; Bed Setup</div>
+    <p style="font-size:9.5pt;margin-bottom:10px">The physical structure follows a hierarchy: <strong>Ward → Room → Bed</strong>. All are set up under <strong>IPD → Wards</strong> and <strong>IPD → Beds</strong>.</p>
+
+    <div class="two-col">
+      <div class="box">
+        <h4>Ward Fields</h4>
+        <ul>
+          <li>Name (KH / EN)</li>
+          <li>Type (General / ICU / Maternity / Surgical / Pediatric)</li>
+          <li>Capacity (total beds)</li>
+          <li>Active / Inactive</li>
+          <li>Occupancy rate auto-calculated</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h4>Bed Statuses</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:4px">
+          <span class="b b-green">Available</span>
+          <span class="b b-red">Occupied</span>
+          <span class="b b-teal">Cleaning</span>
+          <span class="b b-blue">Reserved</span>
+          <span class="b b-gray">Maintenance</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     11. EMPLOYEES
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s11">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 11</div>
+      <div class="section-title">👨‍💼 Employee Management</div>
+      <div class="section-sub">Managing clinic staff profiles and HR records</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Adding an Employee</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Employee → Employees → Add New</strong>.</p></li>
+      <li><p>Fill in the form and click <strong>Save</strong>. An employee code is auto-generated.</p></li>
+    </ol>
+
+    <table class="dt">
+      <thead><tr><th>Field</th><th>Description</th><th>Required</th></tr></thead>
+      <tbody>
+        <tr><td>Surname / Name / Name KH</td><td>Full name in English and Khmer</td><td><span class="req">✓</span></td></tr>
+        <tr><td>Gender</td><td>Male / Female</td><td></td></tr>
+        <tr><td>Date of Birth</td><td>Employee DOB</td><td></td></tr>
+        <tr><td>Phone / Email</td><td>Contact details</td><td></td></tr>
+        <tr><td>Department</td><td>Selected from departments list (Clinic / Admin / Lab / etc.)</td><td></td></tr>
+        <tr><td>Employee Type</td><td>Full-time / Part-time / Contract</td><td></td></tr>
+        <tr><td>Specialization</td><td>Medical specialty (e.g. Cardiology, Pediatrics)</td><td></td></tr>
+        <tr><td>License Number</td><td>Professional registration / license number</td><td></td></tr>
+        <tr><td>Hire Date</td><td>Employment start date</td><td></td></tr>
+        <tr><td>End Date</td><td>Employment end date (leave blank for current employees)</td><td></td></tr>
+        <tr><td>Status</td><td><span class="b b-green">Active</span> / <span class="b b-gray">Inactive</span> / <span class="b b-orange">On Leave</span></td><td></td></tr>
+        <tr><td>Photo</td><td>Staff profile photo upload</td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Linking Employee to a User Account</div>
+    <p style="font-size:9.5pt">Employee profiles and login accounts are managed separately. To connect them:</p>
+    <ol class="steps">
+      <li><p>Go to <strong>Employee → Users</strong> and create or edit a user account.</p></li>
+      <li><p>In the <strong>"Link to Employee"</strong> dropdown, select the employee. Only unlinked active employees are shown.</p></li>
+      <li><p>Save. The user account is now tied to the employee profile. An employee can only be linked to one user account.</p></li>
+    </ol>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     12. USERS & ROLES
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s12">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 12</div>
+      <div class="section-title">🔑 Users, Roles &amp; Permissions</div>
+      <div class="section-sub">Managing login accounts and access control</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">Creating a User Account</div>
+    <ol class="steps">
+      <li><p>Go to <strong>Employee → Users → New User</strong>.</p></li>
+      <li><p>Enter: Name, Email (login credential), Phone.</p></li>
+      <li><p>Assign a <strong>Role</strong> from the dropdown.</p></li>
+      <li><p>Optionally link to an Employee record.</p></li>
+      <li><p>Set a password: minimum 8 characters, must include uppercase, lowercase, and numbers.</p></li>
+      <li><p>Set <strong>Active</strong> status (inactive users cannot log in).</p></li>
+      <li><p>Click <strong>Create User</strong>.</p></li>
+    </ol>
+
+    <div class="sh">Managing Roles</div>
+    <p style="font-size:9.5pt;margin-bottom:8px">Go to <strong>System → Roles &amp; Permissions</strong>. Each role is defined by a name, optional description, and a <strong>Level</strong> (0–100, higher = more authority in the hierarchy).</p>
+    <div class="callout callout-warn">
+      <span class="ci">⚠️</span>
+      <span><strong>System roles</strong> (built-in) are protected — they cannot be modified or deleted. Custom roles you create are fully manageable. A role cannot be deleted if it has users assigned to it.</span>
+    </div>
+
+    <div class="sh">Permission Reference</div>
+    <p style="font-size:9.5pt;margin-bottom:10px">The following permissions are available. They are grouped by module. To apply them, go to <strong>Roles &amp; Permissions → select role → Sync Permissions</strong>.</p>
+
+    <div class="perm-group">
+      <div class="perm-group-title">Patients</div>
+      <div class="perm-chips">
+        <span class="perm-chip">patients.view</span>
+        <span class="perm-chip">patients.create</span>
+        <span class="perm-chip">patients.edit</span>
+        <span class="perm-chip">patients.delete</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Visits &amp; Workflow</div>
+      <div class="perm-chips">
+        <span class="perm-chip">visits.view</span>
+        <span class="perm-chip">visits.create</span>
+        <span class="perm-chip">workflow.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Pharmacy</div>
+      <div class="perm-chips">
+        <span class="perm-chip">pharmacy.view</span>
+        <span class="perm-chip">pharmacy.dispense</span>
+        <span class="perm-chip">pharmacy.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Laboratory</div>
+      <div class="perm-chips">
+        <span class="perm-chip">laboratory.view</span>
+        <span class="perm-chip">laboratory.manage</span>
+        <span class="perm-chip">laboratory.verify</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Imaging</div>
+      <div class="perm-chips">
+        <span class="perm-chip">imagery.view</span>
+        <span class="perm-chip">imagery.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Billing</div>
+      <div class="perm-chips">
+        <span class="perm-chip">invoices.view</span>
+        <span class="perm-chip">invoices.manage</span>
+        <span class="perm-chip">payments.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Inventory</div>
+      <div class="perm-chips">
+        <span class="perm-chip">inventory.view</span>
+        <span class="perm-chip">inventory.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">HR &amp; Referrals</div>
+      <div class="perm-chips">
+        <span class="perm-chip">employees.view</span>
+        <span class="perm-chip">employees.manage</span>
+        <span class="perm-chip">referral.view</span>
+        <span class="perm-chip">referral.manage</span>
+      </div>
+    </div>
+    <div class="perm-group">
+      <div class="perm-group-title">Reports &amp; Settings</div>
+      <div class="perm-chips">
+        <span class="perm-chip">reports.view</span>
+        <span class="perm-chip">settings.view</span>
+        <span class="perm-chip">settings.manage</span>
+      </div>
+    </div>
+
+    <div class="sh">Seeding Default Permissions</div>
+    <p style="font-size:9.5pt">If you create a new clinic or add new modules, click <strong>"Seed Default Permissions"</strong> on the Roles &amp; Permissions page. This creates any missing permission records without changing existing ones — safe to run at any time.</p>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     13. SETTINGS
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s13">
+  <div class="section-hd">
+    <div class="section-accent"></div>
+    <div class="section-title-area">
+      <div class="section-num">Section 13</div>
+      <div class="section-title">⚙️ Settings &amp; Configuration</div>
+      <div class="section-sub">Clinic profile, services, medicines, and regional settings</div>
+    </div>
+  </div>
+  <div class="section-body">
+
+    <div class="sh">General Settings</div>
+    <p style="font-size:9.5pt;margin-bottom:8px">Go to <strong>System → Settings → General</strong>. Use the tabs at the top to switch between General, Services, and Medicines.</p>
+    <table class="dt">
+      <thead><tr><th>Setting</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Clinic Name (EN / KH)</td><td>Displayed in the sidebar, page headers, and printed documents</td></tr>
+        <tr><td>Clinic Phone</td><td>Shown on printed invoices and prescriptions</td></tr>
+        <tr><td>Clinic Email</td><td>Contact email</td></tr>
+        <tr><td>Clinic Address</td><td>Full address for printed documents</td></tr>
+        <tr><td>Default Language</td><td><strong>ខ្មែរ</strong> (Khmer) or <strong>English</strong> — affects default UI language for all users of this clinic</td></tr>
+        <tr><td>Timezone</td><td>Asia/Phnom_Penh, Asia/Bangkok, or UTC</td></tr>
+        <tr><td>Currency</td><td>KHR (Khmer Riel), USD, or THB</td></tr>
+        <tr><td>Clinic Logo</td><td>Upload PNG/JPG (max 2 MB) — appears in the sidebar and on printed documents</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sh">Services Catalogue</div>
+    <p style="font-size:9.5pt;margin-bottom:8px">Go to <strong>Settings → Services</strong> to manage all billable services. These appear in the invoice create/edit form.</p>
+    <ol class="steps">
+      <li><p>Click <strong>"+ Add Service"</strong>. Enter: Name (EN) · Name (KH) · Category (e.g. Consultation, Procedure, Lab, Imaging) · Price.</p></li>
+      <li><p>A service code (e.g. <code>SRV-00045</code>) is auto-generated.</p></li>
+      <li><p>To edit: click the edit icon on any row. Toggle <strong>Active/Inactive</strong> to hide a service from the billing catalogue without deleting it.</p></li>
+    </ol>
+
+    <div class="sh">Medicine Master</div>
+    <p style="font-size:9.5pt;margin-bottom:8px">Go to <strong>Settings → Medicines</strong> for a simplified add interface. For full inventory management use the <strong>Inventory</strong> or <strong>Pharmacy</strong> modules.</p>
+    <table class="dt">
+      <thead><tr><th>Field</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Name (EN / KH)</td><td>Medicine display name; auto-complete searches both</td></tr>
+        <tr><td>Generic Name</td><td>INN / generic drug name</td></tr>
+        <tr><td>Form</td><td>Tablet / Capsule / Syrup / Injection / etc.</td></tr>
+        <tr><td>Strength</td><td>e.g. 500mg, 250mg/5ml</td></tr>
+        <tr><td>Unit</td><td>e.g. tablet, bottle, vial, ampule</td></tr>
+        <tr><td>Price</td><td>Default selling price per unit</td></tr>
+        <tr><td>Stock</td><td>Current on-hand quantity (managed via Inventory module)</td></tr>
+        <tr><td>Stock Alert</td><td>Threshold to trigger low-stock warning on the dashboard</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout callout-tip">
+      <span class="ci">💡</span>
+      <span>Set up your <strong>Services</strong> and <strong>Medicine</strong> catalogues fully before using the billing and pharmacy modules. The auto-complete search in the invoice and prescription forms only suggests items that exist in the catalogues and are set to Active.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ──────────────────────────────────────────────────────────
+     14. TROUBLESHOOTING
+─────────────────────────────────────────────────────────── -->
+<div class="section" id="s14">
+  <div class="section-hd">
+    <div class="section-accent" style="background:linear-gradient(180deg,#64748b,#475569)"></div>
+    <div class="section-title-area" style="background:#f8fafc;border-color:#e2e8f0">
+      <div class="section-num" style="color:#475569">Section 14</div>
+      <div class="section-title" style="color:#334155">🛠️ Troubleshooting</div>
+      <div class="section-sub">Common issues and how to resolve them</div>
+    </div>
+  </div>
+  <div class="section-body">
+    <table class="dt">
+      <thead><tr><th style="width:32%">Problem</th><th>Cause</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Menu item is missing from sidebar</td>
+          <td>Role lacks required permission</td>
+          <td>Ask an administrator to add the relevant permission to your role in <strong>System → Roles &amp; Permissions</strong>.</td>
+        </tr>
+        <tr>
+          <td>Medicine not found in prescription auto-complete</td>
+          <td>Medicine not created or set to inactive</td>
+          <td>Add or activate the medicine in <strong>Pharmacy → Medicines</strong> or <strong>Settings → Medicines</strong>.</td>
+        </tr>
+        <tr>
+          <td>Cannot dispense — stock insufficient</td>
+          <td>Stock is zero or less than required quantity</td>
+          <td>Receive stock first via <strong>Inventory → Stock Movements → Stock In</strong> before dispensing.</td>
+        </tr>
+        <tr>
+          <td>IPD medication order fails</td>
+          <td>Stock insufficient for the ordered quantity</td>
+          <td>Same as above — ensure stock is available before placing the IPD medication order. Stock is deducted at order creation.</td>
+        </tr>
+        <tr>
+          <td>Cannot edit invoice</td>
+          <td>Invoice is in Paid or Void status</td>
+          <td>Paid and void invoices are locked. Only Pending invoices can be edited.</td>
+        </tr>
+        <tr>
+          <td>Invoice balance appears wrong</td>
+          <td>Outdated page / calculation</td>
+          <td>Refresh the page. The balance is calculated as <code>Total − sum of all recorded payments</code>. Check if a payment was applied to the wrong invoice.</td>
+        </tr>
+        <tr>
+          <td>Bed still shows Occupied after discharge</td>
+          <td>Discharge not completed via IPD module</td>
+          <td>Beds are freed automatically when discharge is processed through <strong>IPD → Admissions → Discharge</strong>. Ensure the full discharge form was submitted.</td>
+        </tr>
+        <tr>
+          <td>Cannot delete a role</td>
+          <td>Role has users assigned to it, or it is a system role</td>
+          <td>Reassign users to a different role first. System roles can never be deleted.</td>
+        </tr>
+        <tr>
+          <td>Patient search returns no results</td>
+          <td>Searching with incorrect field</td>
+          <td>Search by surname, given name, patient code (e.g. PT-00142), or phone number. Partial matches work.</td>
+        </tr>
+        <tr>
+          <td>Language toggle not working</td>
+          <td>Browser cookie/session issue</td>
+          <td>Click the language flag button in the top navigation bar. If it persists, clear browser cookies and log in again.</td>
+        </tr>
+        <tr>
+          <td>Workflow step shows wrong progress</td>
+          <td>Steps saved out of order</td>
+          <td>Progress tracks completed + skipped steps out of 10. Revisit any step and click Save to mark it as completed.</td>
+        </tr>
+        <tr>
+          <td>Permissions were not seeded</td>
+          <td>New clinic setup or module added</td>
+          <td>Go to <strong>System → Roles &amp; Permissions</strong> and click <strong>"Seed Default Permissions"</strong>. Safe to run multiple times.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Quick Reference Summary -->
+<div class="qref">
+  <h3>⚡ Common Workflow Quick Reference</h3>
+  <div class="two-col">
+    <div>
+      <p style="font-size:9.5pt;font-weight:800;color:#4154f1;margin-bottom:8px">🔵 New OPD Visit (complete cycle)</p>
+      <ol style="padding-left:18px;font-size:9.5pt;line-height:1.8">
+        <li>Register patient (if new) → <strong>Patients → Register</strong></li>
+        <li>Start visit → <strong>OPD → Triage</strong></li>
+        <li>Complete steps 1–10 (Registration through Invoice)</li>
+        <li>Collect payment → <strong>Billing → Invoices</strong></li>
+        <li>Dispense medicines → <strong>Pharmacy → Dispensing</strong></li>
+      </ol>
+    </div>
+    <div>
+      <p style="font-size:9.5pt;font-weight:800;color:#4154f1;margin-bottom:8px">🏥 New IPD Admission (complete cycle)</p>
+      <ol style="padding-left:18px;font-size:9.5pt;line-height:1.8">
+        <li>Triage with Visit Type = IPD</li>
+        <li>Admit patient → assign Ward &amp; Bed</li>
+        <li>Add treatment &amp; medication orders daily</li>
+        <li>Nurses record administration per dose</li>
+        <li>Discharge → fill summary → bed auto-freed</li>
+        <li>Generate invoice and collect payment</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<div style="background:#1e293b;color:rgba(255,255,255,.6);padding:24px 64px;display:flex;justify-content:space-between;align-items:center;font-size:9pt">
+  <div>
+    <strong style="color:#fff">MediFlow EMR</strong> — Electronic Medical Records System<br>
+    For technical support, contact your system administrator.
+  </div>
+  <div style="text-align:right">
+    User Guide v2.0 &nbsp;·&nbsp; 2026<br>
+    © MediFlow. All rights reserved.
+  </div>
+</div>
+
+</div><!-- /book -->
+
+<!-- Print button (hidden in print) -->
+<div class="no-print" style="text-align:center;padding:24px 20px 40px">
+  <button onclick="window.print()" style="background:#4154f1;color:#fff;border:none;padding:12px 32px;border-radius:10px;font-size:11pt;cursor:pointer;font-weight:700;box-shadow:0 4px 16px rgba(65,84,241,.3)">
+    🖨️ Print / Save as PDF
+  </button>
+  <p style="margin-top:10px;font-size:9.5pt;color:#64748b">
+    Browser: <strong>File → Print → Save as PDF</strong> &nbsp;|&nbsp; Recommended size: <strong>A4</strong> &nbsp;|&nbsp; Margins: <strong>Default</strong>
+  </p>
+</div>
+
+</body>
+</html>

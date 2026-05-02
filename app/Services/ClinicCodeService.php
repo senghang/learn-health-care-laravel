@@ -92,11 +92,11 @@ final class ClinicCodeService
             INSERT INTO clinic_code_sequences
                 (clinic_id, prefix, seq_date, last_seq, updated_at)
             VALUES
-                (:clinic_id, :prefix, :seq_date, 1, NOW())
+                (:clinic_id, :prefix, :seq_date, 1, CURRENT_TIMESTAMP)
             ON CONFLICT (clinic_id, prefix, seq_date)
             DO UPDATE SET
                 last_seq   = clinic_code_sequences.last_seq + 1,
-                updated_at = NOW()
+                updated_at = CURRENT_TIMESTAMP
             RETURNING last_seq
         ", [
             'clinic_id' => $clinicId,

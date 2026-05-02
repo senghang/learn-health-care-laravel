@@ -76,7 +76,9 @@
                 <i class="bi bi-pencil" style="font-size:11px"></i>
             </a>
             <form method="POST" action="{{ route('beds.room.delete', [$ward->id, $room->id]) }}"
-                  class="d-inline" onsubmit="return confirm('Delete room and all beds inside?')">
+                  class="d-inline"
+                  data-confirm="Delete room and all its beds? This cannot be undone."
+                  data-confirm-type="danger" data-confirm-title="Delete Room">
                 @csrf @method('DELETE')
                 <button class="btn btn-sm btn-outline-danger" style="padding:4px 10px">
                     <i class="bi bi-trash3" style="font-size:11px"></i>
@@ -126,7 +128,9 @@
                         <i class="bi bi-pencil"></i>
                     </a>
                     <form method="POST" action="{{ route('beds.bed.delete', [$ward->id, $bed->id]) }}"
-                          class="d-inline" onsubmit="return confirm('Delete bed {{ $bed->name }}?')">
+                          class="d-inline"
+                          data-confirm="Delete bed &quot;{{ $bed->name }}&quot;? This cannot be undone."
+                          data-confirm-type="danger" data-confirm-title="Delete Bed">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm btn-outline-danger" style="font-size:10px;padding:3px 8px">
                             <i class="bi bi-trash3"></i>
@@ -156,32 +160,34 @@
 </div>
 @endforelse
 
-{{-- Status modal --}}
-<div id="bedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:16px;min-width:280px;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden">
-        <div style="padding:14px 18px;border-bottom:1px solid #f0f2ff;display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:14px;font-weight:700;color:#012970">
-                🛏 <span id="modalBedName">Bed</span>
-            </div>
-            <button onclick="closeBedModal()" style="background:none;border:none;font-size:20px;color:#94a3b8;cursor:pointer;padding:0;line-height:1">×</button>
+{{-- Bed status modal --}}
+<div id="bedModal" class="emr-modal-wrap" onclick="if(event.target===this)closeBedModal()">
+    <div class="emr-modal modal-sm">
+        <div class="emr-modal-hd">
+            <i class="bi bi-bed-fill" style="color:#4154f1;font-size:16px;flex-shrink:0"></i>
+            <div class="emr-modal-title">🛏 <span id="modalBedName">Bed</span></div>
+            <button type="button" class="emr-modal-close" onclick="closeBedModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
-        <div style="padding:12px 16px">
-            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:8px">Set Status</div>
-            @foreach(\App\Models\BedModel::STATUSES as $st)
+        <div class="emr-modal-body">
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:10px">
+                <i class="bi bi-circle-half" style="margin-right:4px"></i> Set Status
+            </div>
             @php
-                $stIcons  = ['available'=>'✓','occupied'=>'🛏','cleaning'=>'🧹','reserved'=>'📅','maintenance'=>'🔧'];
-                $stColors = ['available'=>'#2eca6a','occupied'=>'#ff771d','cleaning'=>'#9b59b6','reserved'=>'#378ADD','maintenance'=>'#888780'];
+                $stIcons  = ['available'=>'bi-check-circle-fill','occupied'=>'bi-person-fill','cleaning'=>'bi-stars','reserved'=>'bi-calendar-check-fill','maintenance'=>'bi-tools'];
+                $stColors = ['available'=>['#e8f8ef','#2eca6a'],'occupied'=>['#fff3e8','#ff771d'],'cleaning'=>['#f0e8ff','#9b59b6'],'reserved'=>['#e6f1fb','#378ADD'],'maintenance'=>['#f5f5f5','#888780']];
+                $stLabels = ['available'=>'Available','occupied'=>'Occupied','cleaning'=>'Cleaning','reserved'=>'Reserved','maintenance'=>'Maintenance'];
             @endphp
+            @foreach(\App\Models\BedModel::STATUSES as $st)
             <button onclick="setStatus('{{ $st }}')"
                     id="statusBtn_{{ $st }}"
-                    style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;
-                           padding:10px 14px;margin-bottom:5px;border-radius:8px;
-                           border:1px solid #e2e8f0;background:#f8fafc;
-                           font-size:13px;font-weight:600;color:#374151;cursor:pointer;
-                           border-left:3px solid {{ $stColors[$st] ?? '#e2e8f0' }};
-                           font-family:inherit;transition:background .12s">
-                <span style="font-size:16px">{{ $stIcons[$st] ?? '?' }}</span>
-                <span>{{ ucfirst($st) }}</span>
+                    class="bed-status-btn"
+                    style="border-left-color:{{ $stColors[$st][1] ?? '#e2e8f0' }}">
+                <span style="width:28px;height:28px;border-radius:8px;background:{{ $stColors[$st][0] ?? '#f5f5f5' }};color:{{ $stColors[$st][1] ?? '#aaa' }};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
+                    <i class="bi {{ $stIcons[$st] ?? 'bi-circle' }}"></i>
+                </span>
+                <span>{{ $stLabels[$st] ?? ucfirst($st) }}</span>
             </button>
             @endforeach
         </div>
@@ -198,16 +204,18 @@ function openBedMenu(id, status, name) {
     document.getElementById('modalBedName').textContent = name;
     document.querySelectorAll('[id^="statusBtn_"]').forEach(function(btn) {
         var s = btn.id.replace('statusBtn_', '');
-        btn.style.background    = s === status ? '#f0f4ff' : '#f8fafc';
-        btn.style.borderColor   = s === status ? '#4154f1' : '#e2e8f0';
-        btn.style.color         = s === status ? '#4154f1' : '#374151';
-        btn.querySelector('span:last-child').textContent = ucfirst(s) + (s === status ? ' ✓' : '');
+        var active = (s === status);
+        btn.style.background = active ? '#f0f4ff' : '#f8fafc';
+        btn.style.borderColor = active ? '#4154f1' : '#e6eaf5';
+        btn.style.color = active ? '#4154f1' : '#374151';
+        var lbl = btn.querySelector('span:last-child');
+        if (lbl) lbl.innerHTML = (active ? '<strong>' : '') + lbl.textContent.replace(' ✓','') + (active ? '</strong> <i class="bi bi-check2" style="color:#4154f1"></i>' : '');
     });
-    document.getElementById('bedModal').style.display = 'flex';
+    document.getElementById('bedModal').classList.add('open');
 }
 
 function closeBedModal() {
-    document.getElementById('bedModal').style.display = 'none';
+    document.getElementById('bedModal').classList.remove('open');
 }
 
 function ucfirst(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -224,12 +232,9 @@ function setStatus(status) {
         closeBedModal();
         window.location.reload(); // simplest — status change reflects correctly
     })
-    .catch(function() { alert('Failed to update status'); });
+    .catch(function() { toast('Failed to update bed status. Please try again.', 'err', 'Error'); });
 }
 
-document.getElementById('bedModal').addEventListener('click', function(e) {
-    if (e.target === this) closeBedModal();
-});
 </script>
 @endpush
 

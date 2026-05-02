@@ -33,6 +33,14 @@ class ImageryController extends Controller
         return view('clinics.imagery.show', compact('imagery'));
     }
 
+    public function create(Request $request): View
+    {
+        return view('clinics.imagery.create', [
+            'patient_code' => $request->input('patient_code'),
+            'visit_code'   => $request->input('visit_code'),
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([

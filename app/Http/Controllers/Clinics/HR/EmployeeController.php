@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Clinics\HR;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreEmployeeRequest;
+use App\Http\Requests\UpdateEmployeeRequest;
 use App\Models\DepartmentModel;
 use App\Services\EmployeeService;
 use Illuminate\Http\RedirectResponse;
@@ -61,7 +62,7 @@ class EmployeeController extends Controller
         return view('clinics.hr.employee-form', compact('employee', 'departments'));
     }
 
-    public function update(StoreEmployeeRequest $request, int $id): RedirectResponse
+    public function update(UpdateEmployeeRequest $request, int $id): RedirectResponse
     {
         $employee = $this->employeeService->update($id, $request->validated());
 

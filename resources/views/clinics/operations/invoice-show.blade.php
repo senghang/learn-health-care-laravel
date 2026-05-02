@@ -33,7 +33,8 @@
     @endif
     @if($status !== 'void')
         <form method="POST" action="{{ route('invoices.void', $invoice->code) }}" class="d-inline"
-              onsubmit="return confirm('Void this invoice?')">
+              data-confirm="Void invoice #{{ $invoice->code }}? It will be marked as voided and cannot be reversed."
+              data-confirm-type="warn" data-confirm-title="Void Invoice">
             @csrf
             <button type="submit" class="btn btn-outline-danger btn-sm">
                 <i class="bi bi-slash-circle"></i> Void

@@ -28,10 +28,11 @@
 
     @foreach($soapCards as $card)
     @php
-        $val     = old($card['key'], $soap?->{$card['key']} ?? '');
-        $filled  = !empty($val);
-        $border  = $card['color'] . '33';
-        $bg      = $card['color'] . '06';
+        $val    = old($card['key'], $soap?->{$card['key']} ?? '');
+        $filled = !empty($val);
+        $border = $card['color'] . '33';
+        $bg     = $card['color'] . '06';
+        $charCount = mb_strlen($val);
     @endphp
     <div style="border:1.5px solid {{ $border }};border-radius:12px;padding:16px 18px;margin-bottom:14px;background:{{ $bg }}">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
@@ -50,10 +51,17 @@
             <span style="font-size:9.5px;background:#e8f8ef;color:#2eca6a;padding:2px 8px;border-radius:10px;font-weight:700;flex-shrink:0">✓ Filled</span>
             @endif
         </div>
-        <textarea name="{{ $card['key'] }}" class="form-control" rows="3"
+        <textarea name="{{ $card['key'] }}"
+                  id="soap_{{ $card['key'] }}"
+                  class="form-control" rows="3"
                   placeholder="{{ $card['en'] }} notes…"
                   style="border-color:{{ $border }}"
+                  oninput="updateSoapCount('{{ $card['key'] }}')"
                   {{ $card['required'] ? 'required data-error-msg="Subjective (S)"' : '' }}>{{ $val }}</textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:3px">
+            <span id="soapCount_{{ $card['key'] }}"
+                  style="font-size:9.5px;color:#cbd5e1">{{ $charCount }} chars</span>
+        </div>
     </div>
     @endforeach
 

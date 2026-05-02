@@ -41,13 +41,15 @@ class InvoiceController extends Controller
             ->orderBy('form')->orderBy('name')
             ->get(['id', 'code', 'name', 'name_kh', 'generic_name', 'form', 'strength', 'unit', 'price', 'stock', 'stock_alert']);
 
-        // Pre-fill patient if passed via query string (e.g. from patient page)
-        $patient = null;
+        // Pre-fill patient / visit if passed via query string
+        $patient   = null;
+        $visitCode = $request->input('visit_code');
+
         if ($request->filled('patient_code')) {
             $patient = PatientModel::where('code', $request->patient_code)->first();
         }
 
-        return view('clinics.operations.invoice-create', compact('svcCatalog', 'medCatalog', 'patient'));
+        return view('clinics.operations.invoice-create', compact('svcCatalog', 'medCatalog', 'patient', 'visitCode'));
     }
 
     public function store(StoreInvoiceRequest $request): RedirectResponse

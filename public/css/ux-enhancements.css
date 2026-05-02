@@ -786,3 +786,134 @@ tr.med-row--low { background: #fffbeb !important; }
     .toast-item { max-width: none; }
     .vss        { display: none; }
 }
+
+/* ── 13. GLOBAL UI TUNING — readability + consistency ─────────────────── */
+
+:root {
+    --ux-text: #1f2937;
+    --ux-muted: #64748b;
+    --ux-border: #e2e8f0;
+    --ux-surface: #ffffff;
+    --ux-soft: #f8fafc;
+    --ux-title: #0f172a;
+    --ux-primary: #4154f1;
+}
+
+body {
+    color: var(--ux-text);
+    font-size: 14.5px;
+    line-height: 1.45;
+}
+
+.main-body {
+    max-width: 1640px;
+    margin: 0 auto;
+}
+
+.pg-title {
+    color: var(--ux-title);
+    letter-spacing: -0.2px;
+}
+
+.card-emr {
+    border: 1px solid var(--ux-border);
+    box-shadow: 0 2px 16px rgba(2, 6, 23, 0.05);
+}
+
+.card-hd {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+
+.card-hd-title {
+    font-size: 14.5px;
+}
+
+.card-bd {
+    padding: 20px;
+}
+
+/* Inputs and select controls are easier to read/click */
+.form-control,
+.form-select {
+    min-height: 40px;
+    font-size: 13.5px;
+    border-radius: 10px;
+}
+
+.form-control::placeholder {
+    color: #94a3b8;
+}
+
+.btn {
+    min-height: 38px;
+    border-radius: 10px;
+}
+
+.btn-sm {
+    min-height: 32px;
+}
+
+/* Sticky table headers in scroll containers */
+.table-responsive thead th,
+.tbl thead th {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+/* Better row affordance for click-through business lists */
+.tbl tbody tr[onclick] {
+    transition: background-color .12s ease, transform .08s ease;
+}
+
+.tbl tbody tr[onclick]:hover {
+    background: #f8fbff;
+}
+
+/* Compact but legible status chips */
+.badge-s,
+.stock-badge {
+    font-size: 10.5px;
+    letter-spacing: .1px;
+}
+
+/* Keyboard accessibility */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid rgba(65, 84, 241, .35);
+    outline-offset: 2px;
+}
+
+/* Business-flow helper panels */
+.flow-panel {
+    border: 1px solid #dbeafe;
+    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.flow-panel-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 8px;
+}
+
+.flow-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.flow-step {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #c7d2fe;
+    background: #eef2ff;
+    color: #3730a3;
+}

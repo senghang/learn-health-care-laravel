@@ -3,6 +3,10 @@
    Generated from mediflow_niceadmin.html
 ══════════════════════════════════════════════ */
 
+/* ── Tailwind v4 (utilities only — no preflight to avoid Bootstrap conflicts) */
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
 /* CSS VARIABLES */
 :root {
     --primary: #4154f1;

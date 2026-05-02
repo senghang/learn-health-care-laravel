@@ -3,7 +3,24 @@
     "allow": [
       "Bash(php:*)",
       "Bash(grep -r \"pharmacy\\\\|medicine\\\\|dispense\\\\|stock\" D:learnlearn-health-care-laravel/resources/views/clinics --include=*.php --include=*.blade.php -l)",
-      "Bash(grep -l \"medication\\\\|pharmacy\" D:learnlearn-health-care-laravel/resources/views/clinics/**/*.blade.php)"
+      "Bash(grep -l \"medication\\\\|pharmacy\" D:learnlearn-health-care-laravel/resources/views/clinics/**/*.blade.php)",
+      "Bash(find D:/learn/learn-health-care-laravel -type f -name *.blade.php)",
+      "Bash(ls -d D:/learn/learn-health-care-laravel/resources/views/clinics/*/)",
+      "Bash(xargs -I {} bash -c 'echo {}')",
+      "Bash(grep -r \"sb-brand\\\\|sb-item\\\\|sb-nav\\\\|sb-group\" D:/learn/learn-health-care-laravel/resources/ --include=*.css --include=*.php -l)",
+      "Bash(grep -v \"//.*route\\(\")",
+      "Bash(find D:learnlearn-health-care-laravelresourcesviewsclinicsipd -type f -name *)",
+      "Bash(ls \"D:\\\\learn\\\\learn-health-care-laravel\\\\database\\\\migrations\"\" | grep -E \"patient)",
+      "Bash(visit)",
+      "Bash(admission)",
+      "Bash(invoice)",
+      "Bash(medicine)",
+      "Bash(bed)",
+      "Bash(ward)",
+      "Bash(clinic)",
+      "Bash(user)",
+      "Bash(role \")",
+      "Bash(find D:/learn/learn-health-care-laravel/resources/css -type f -name *.css)"
     ]
   }
 }

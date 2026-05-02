@@ -4,27 +4,26 @@ namespace App\Http\Controllers\Clinics\Inventory;
 
 use App\Http\Controllers\Controller;
 use App\Models\MedicineModel;
+use App\Models\StockBalanceModel;
 use App\Models\StockMovementModel;
+use App\Models\InventoryTransactionModel;
+use App\Services\ClinicCodeService;
+use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Models\InventoryTransactionModel;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class InventoryController extends Controller
 {
-    private int $clinicId;
-
-    public function __construct()
-    {
-        $this->clinicId = currentClinic()->id;
-    }
+    public function __construct(private InventoryService $inventory) {}
 
     // ── Products (medicine master) ────────────────────────────────────────────
 
     public function products(Request $request): View
     {
-        $medicines = MedicineModel::where('clinic_id', $this->clinicId)
+        $clinicId = currentClinic()->id;
+
+        $medicines = MedicineModel::where('clinic_id', $clinicId)
             ->when($request->filled('search'), fn($q) =>
                 $q->where('name', 'like', "%{$request->search}%")
                   ->orWhere('name_kh', 'like', "%{$request->search}%")
@@ -32,21 +31,21 @@ class InventoryController extends Controller
                   ->orWhere('generic_name', 'like', "%{$request->search}%")
             )
             ->when($request->filled('category'), fn($q) => $q->where('category', $request->category))
-            ->when($request->status === 'low',  fn($q) => $q->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0))
-            ->when($request->status === 'out',  fn($q) => $q->where('stock', 0))
+            ->when($request->status === 'low',    fn($q) => $q->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0))
+            ->when($request->status === 'out',    fn($q) => $q->where('stock', '<=', 0))
             ->when($request->status === 'active', fn($q) => $q->where('is_active', true))
             ->orderBy('name')
             ->paginate(30)
             ->withQueryString();
 
-        $categories = MedicineModel::where('clinic_id', $this->clinicId)
+        $categories = MedicineModel::where('clinic_id', $clinicId)
             ->whereNotNull('category')->distinct()->pluck('category')->sort()->values();
 
         $stats = [
-            'total'    => MedicineModel::where('clinic_id', $this->clinicId)->count(),
-            'low'      => MedicineModel::where('clinic_id', $this->clinicId)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count(),
-            'out'      => MedicineModel::where('clinic_id', $this->clinicId)->where('stock', 0)->count(),
-            'value'    => MedicineModel::where('clinic_id', $this->clinicId)->selectRaw('SUM(stock * price) as total')->value('total') ?? 0,
+            'total' => MedicineModel::where('clinic_id', $clinicId)->count(),
+            'low'   => MedicineModel::where('clinic_id', $clinicId)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count(),
+            'out'   => MedicineModel::where('clinic_id', $clinicId)->where('stock', '<=', 0)->count(),
+            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(stock::numeric * price), 0) as total')->value('total') ?? 0,
         ];
 
         return view('clinics.inventory.products', compact('medicines', 'categories', 'stats'));
@@ -54,7 +53,7 @@ class InventoryController extends Controller
 
     public function productCreate(): View
     {
-        $categories = MedicineModel::where('clinic_id', $this->clinicId)
+        $categories = MedicineModel::where('clinic_id', currentClinic()->id)
             ->whereNotNull('category')->distinct()->pluck('category')->sort()->values();
         return view('clinics.inventory.product-form', ['medicine' => null, 'categories' => $categories]);
     }
@@ -62,7 +61,6 @@ class InventoryController extends Controller
     public function productStore(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            // code is auto-generated
             'name'         => 'required|string|max:120',
             'name_kh'      => 'nullable|string|max:120',
             'generic_name' => 'nullable|string|max:120',
@@ -75,15 +73,17 @@ class InventoryController extends Controller
             'stock_alert'  => 'required|integer|min:0',
         ]);
 
-        $med = MedicineModel::create(array_merge($data, [
-                'code'      => \App\Services\ClinicCodeService::next(currentClinic()->id, 'MED'),
-                'clinic_id' => $this->clinicId,
-            ]));
+        $clinicId = currentClinic()->id;
 
-        // Record initial stock as a stock-in movement
+        $med = MedicineModel::create(array_merge($data, [
+            'code'      => ClinicCodeService::next($clinicId, 'MED'),
+            'clinic_id' => $clinicId,
+        ]));
+
+        // Record initial stock + seed balance table
         if ($data['stock'] > 0) {
             StockMovementModel::create([
-                'clinic_id'     => $this->clinicId,
+                'clinic_id'     => $clinicId,
                 'medicine_id'   => $med->id,
                 'medicine_code' => $med->code,
                 'medicine_name' => $med->name,
@@ -96,21 +96,25 @@ class InventoryController extends Controller
             ]);
         }
 
+        // Always seed stock_balances for new products
+        StockBalanceModel::syncFromMedicine($med);
+
         return redirect()->route('inventory.products')
             ->with('flash', "Product {$med->code} created.");
     }
 
     public function productEdit(int $id): View
     {
-        $medicine   = MedicineModel::where('clinic_id', $this->clinicId)->findOrFail($id);
-        $categories = MedicineModel::where('clinic_id', $this->clinicId)
+        $clinicId   = currentClinic()->id;
+        $medicine   = MedicineModel::where('clinic_id', $clinicId)->findOrFail($id);
+        $categories = MedicineModel::where('clinic_id', $clinicId)
             ->whereNotNull('category')->distinct()->pluck('category')->sort()->values();
         return view('clinics.inventory.product-form', compact('medicine', 'categories'));
     }
 
     public function productUpdate(Request $request, int $id): RedirectResponse
     {
-        $med = MedicineModel::where('clinic_id', $this->clinicId)->findOrFail($id);
+        $med = MedicineModel::where('clinic_id', currentClinic()->id)->findOrFail($id);
 
         $med->update($request->validate([
             'name'         => 'required|string|max:120',
@@ -125,6 +129,9 @@ class InventoryController extends Controller
             'is_active'    => 'boolean',
         ]));
 
+        // Sync balance whenever price or alert level changes
+        StockBalanceModel::syncFromMedicine($med->fresh());
+
         return redirect()->route('inventory.products')
             ->with('flash', 'Product updated.');
     }
@@ -133,7 +140,9 @@ class InventoryController extends Controller
 
     public function stockIn(Request $request): View
     {
-        $movements = StockMovementModel::where('clinic_id', $this->clinicId)
+        $clinicId = currentClinic()->id;
+
+        $movements = StockMovementModel::where('clinic_id', $clinicId)
             ->whereIn('type', ['in', 'return'])
             ->when($request->filled('search'), fn($q) =>
                 $q->where('medicine_name', 'like', "%{$request->search}%")
@@ -145,8 +154,8 @@ class InventoryController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $medicines = MedicineModel::where('clinic_id', $this->clinicId)
-            ->where('is_active', true)->orderBy('name')->get(['id','code','name','unit','stock']);
+        $medicines = MedicineModel::where('clinic_id', $clinicId)
+            ->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name', 'unit', 'stock']);
 
         return view('clinics.inventory.stock-in', compact('movements', 'medicines'));
     }
@@ -165,29 +174,24 @@ class InventoryController extends Controller
             'note'         => 'nullable|string',
         ]);
 
-        $med = MedicineModel::where('clinic_id', $this->clinicId)->findOrFail($data['medicine_id']);
-        $before = $med->stock;
-        $after  = $before + $data['quantity'];
+        $med = MedicineModel::where('clinic_id', currentClinic()->id)->findOrFail($data['medicine_id']);
 
-        $med->increment('stock', $data['quantity']);
+        try {
+            $movement = $this->inventory->receiveStock($med, $data);
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
 
-        StockMovementModel::create(array_merge($data, [
-            'clinic_id'     => $this->clinicId,
-            'medicine_code' => $med->code,
-            'medicine_name' => $med->name,
-            'stock_before'  => $before,
-            'stock_after'   => $after,
-            'recorded_by'   => auth()->user()?->name,
-        ]));
-
-        return back()->with('flash', "Stock updated: {$med->name} +{$data['quantity']} (now {$after})");
+        return back()->with('flash', "Stock updated: {$med->name} +{$data['quantity']} (now {$movement->stock_after})");
     }
 
     // ── Stock Out ─────────────────────────────────────────────────────────────
 
     public function stockOut(Request $request): View
     {
-        $movements = StockMovementModel::where('clinic_id', $this->clinicId)
+        $clinicId = currentClinic()->id;
+
+        $movements = StockMovementModel::where('clinic_id', $clinicId)
             ->whereIn('type', ['out', 'expired', 'adjustment'])
             ->when($request->filled('search'), fn($q) =>
                 $q->where('medicine_name', 'like', "%{$request->search}%")
@@ -198,8 +202,8 @@ class InventoryController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $medicines = MedicineModel::where('clinic_id', $this->clinicId)
-            ->where('is_active', true)->orderBy('name')->get(['id','code','name','unit','stock']);
+        $medicines = MedicineModel::where('clinic_id', $clinicId)
+            ->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name', 'unit', 'stock']);
 
         return view('clinics.inventory.stock-out', compact('movements', 'medicines'));
     }
@@ -209,44 +213,106 @@ class InventoryController extends Controller
         $data = $request->validate([
             'medicine_id' => 'required|integer|exists:medicines,id',
             'quantity'    => 'required|integer|min:1',
-            'type'        => 'required|in:out,expired,adjustment',
+            'type'        => 'required|in:out,expired',
             'reference'   => 'nullable|string|max:80',
             'note'        => 'nullable|string',
         ]);
 
-        $med = MedicineModel::where('clinic_id', $this->clinicId)->findOrFail($data['medicine_id']);
+        $med = MedicineModel::where('clinic_id', currentClinic()->id)->findOrFail($data['medicine_id']);
 
-        if ($med->stock < $data['quantity'] && $data['type'] !== 'adjustment') {
-            return back()->withErrors(['quantity' => "Insufficient stock. Available: {$med->stock}"])->withInput();
+        try {
+            $movement = $this->inventory->removeStock($med, $data);
+        } catch (\Exception $e) {
+            return back()->withErrors(['quantity' => $e->getMessage()])->withInput();
         }
 
-        $before = $med->stock;
-        $after  = max(0, $before - $data['quantity']);
-        $med->update(['stock' => $after]);
-
-        StockMovementModel::create(array_merge($data, [
-            'clinic_id'     => $this->clinicId,
-            'medicine_code' => $med->code,
-            'medicine_name' => $med->name,
-            'stock_before'  => $before,
-            'stock_after'   => $after,
-            'recorded_by'   => auth()->user()?->name,
-        ]));
-
-        return back()->with('flash', "Stock updated: {$med->name} -{$data['quantity']} (now {$after})");
+        return back()->with('flash', "Stock updated: {$med->name} -{$data['quantity']} (now {$movement->stock_after})");
     }
 
-    // ── Inventory Report (moved from ReportController) ────────────────────────
+    // ── Physical Count Adjustment ─────────────────────────────────────────────
+
+    public function adjustment(Request $request): View
+    {
+        $clinicId = currentClinic()->id;
+
+        $movements = StockMovementModel::where('clinic_id', $clinicId)
+            ->where('type', 'adjustment')
+            ->when($request->filled('search'), fn($q) =>
+                $q->where('medicine_name', 'like', "%{$request->search}%")
+            )
+            ->when($request->filled('date'), fn($q) => $q->whereDate('created_at', $request->date))
+            ->latest()
+            ->paginate(25)
+            ->withQueryString();
+
+        $medicines = MedicineModel::where('clinic_id', $clinicId)
+            ->where('is_active', true)->orderBy('name')->get(['id', 'code', 'name', 'unit', 'stock']);
+
+        return view('clinics.inventory.adjustment', compact('movements', 'medicines'));
+    }
+
+    public function adjustmentStore(Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'medicine_id' => 'required|integer|exists:medicines,id',
+            'new_qty'     => 'required|integer|min:0',
+            'note'        => 'nullable|string|max:255',
+        ]);
+
+        $med = MedicineModel::where('clinic_id', currentClinic()->id)->findOrFail($data['medicine_id']);
+
+        try {
+            $movement = $this->inventory->adjustToCount(
+                $med,
+                (int)$data['new_qty'],
+                $data['note'] ?? '',
+                auth()->user()?->name ?? 'system'
+            );
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        $delta = $movement->stock_after - $movement->stock_before;
+        $deltaStr = $delta >= 0 ? "+{$delta}" : "{$delta}";
+        return back()->with('flash', "Adjusted {$med->name}: {$movement->stock_before} → {$movement->stock_after} ({$deltaStr})");
+    }
+
+    // ── Unified Movements Ledger ──────────────────────────────────────────────
+
+    public function movements(Request $request): View
+    {
+        $movements = $this->inventory->getMovements($request->only('search', 'type', 'date', 'month'));
+
+        $typeStats = StockMovementModel::selectRaw("type, COUNT(*) as cnt, SUM(quantity) as total_qty")
+            ->where('clinic_id', currentClinic()->id)
+            ->groupBy('type')
+            ->pluck('total_qty', 'type');
+
+        return view('clinics.inventory.movements', compact('movements', 'typeStats'));
+    }
+
+    // ── Per-Medicine Ledger ───────────────────────────────────────────────────
+
+    public function medicineLedger(int $id): View
+    {
+        $medicine = MedicineModel::where('clinic_id', currentClinic()->id)->findOrFail($id);
+        $ledger   = $this->inventory->getMedicineLedger($medicine);
+        $balance  = \App\Models\StockBalanceModel::where('medicine_id', $medicine->id)->first();
+
+        return view('clinics.inventory.medicine-ledger', compact('medicine', 'ledger', 'balance'));
+    }
+
+    // ── Inventory Report ──────────────────────────────────────────────────────
 
     public function report(): View
     {
-        $clinicId = $this->clinicId;
+        $clinicId = currentClinic()->id;
 
         $stats = [
             'total' => MedicineModel::where('clinic_id', $clinicId)->count(),
             'low'   => MedicineModel::where('clinic_id', $clinicId)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count(),
             'out'   => MedicineModel::where('clinic_id', $clinicId)->where('stock', '<=', 0)->count(),
-            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(stock::numeric * price),0) as total')->value('total') ?? 0,
+            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(stock::numeric * price), 0) as total')->value('total') ?? 0,
         ];
 
         $lowMeds = MedicineModel::where('clinic_id', $clinicId)

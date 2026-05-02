@@ -213,7 +213,8 @@
                 {{-- Delete --}}
                 <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f2ff">
                     <form method="POST" action="{{ route('prescriptions.destroy', $prescription->code) }}"
-                          onsubmit="return confirm('Delete this prescription? This cannot be undone.')">
+                          data-confirm="Delete prescription #{{ $prescription->code }}? All dispensed medicines will be returned to stock. This cannot be undone."
+                          data-confirm-type="danger" data-confirm-title="Delete Prescription">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-outline-danger btn-w100 btn-sm">
                             <i class="bi bi-trash3"></i> Delete Prescription

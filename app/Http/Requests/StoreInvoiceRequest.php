@@ -13,7 +13,7 @@ class StoreInvoiceRequest extends FormRequest
         return [
             'patient_code'   => 'required|string|exists:patients,code',
             'visit_code'     => 'nullable|string|max:30',
-            'payment_type'   => 'required|in:CASH,HEF,NSSF,CARD',
+            'payment_type'   => 'required|in:CASH,HEF,NSSF,CARD,BAKONG',
             'invoice_date'   => 'nullable|date',
             'due_date'       => 'nullable|date|after_or_equal:invoice_date',
             'cashier'        => 'nullable|string|max:120',

@@ -1,15 +1,16 @@
 /**
- * MediFlow EMR — clinic.js  (enhanced)
+ * MediFlow EMR — clinic.js
  * 1. Sidebar   — collapse/expand, mobile overlay, tooltip-on-collapsed
  * 2. Toast     — rich: icon / title / progress bar / dismiss
- * 3. Flash     — reads data-flash and session divs from DOM
- * 4. Workflow  — progress ring helper, step scroll, skip confirm
- * 5. Live      — badge refresh every 60 s
- * 6. Dashboard — stat counter animation
- * 7. Forms     — layout helpers
+ * 3. Flash     — reads data-flash session divs from DOM
+ * 4. Confirm   — emrConfirm() modal + data-confirm interceptors
+ * 5. Workflow  — progress ring helper, step scroll, skip confirm
+ * 6. Live      — badge refresh every 60 s
+ * 7. Dashboard — stat counter animation
+ * 8. Forms     — layout helpers
  */
 
-/* ─── 1. SIDEBAR ──────────────────────────────────────────────────── */
+/* ─── 1. SIDEBAR ────────────────────────────────────────────���─────── */
 
 const isMobile = () => window.innerWidth < 992;
 
@@ -55,7 +56,7 @@ window.addEventListener('resize', () => {
 /* ─── 2. TOAST ────────────────────────────────────────────────────── */
 
 const _TOAST_CFG = {
-    ok  : { cls: '',    bi: 'bi-check-lg'             },
+    ok  : { cls: '',    bi: 'bi-check-lg'              },
     wrn : { cls: 'wrn', bi: 'bi-exclamation-triangle'  },
     err : { cls: 'err', bi: 'bi-x-circle'              },
     inf : { cls: 'inf', bi: 'bi-info-circle'           },
@@ -103,7 +104,108 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* ─── 4. WORKFLOW ─────────────────────────────────────────────────── */
+/* ─── 4. CONFIRM MODAL ────────────────────────────────────────────── */
+
+(function () {
+    var _resolveConfirm = null;
+
+    /**
+     * emrConfirm(msg, opts) — show a professional confirm dialog.
+     * opts: { type: 'danger'|'warn'|'info', title: '...', okText: '...' }
+     * Returns Promise<boolean>
+     */
+    window.emrConfirm = function (msg, opts) {
+        opts = opts || {};
+        var type  = opts.type  || 'danger';
+        var titles = { danger: 'Confirm Delete', warn: 'Are you sure?', info: 'Confirm Action' };
+        var title  = opts.title || titles[type] || 'Confirm';
+
+        var modal   = document.getElementById('emrConfirmModal');
+        var msgEl   = document.getElementById('emrConfirmMsg');
+        var titleEl = document.getElementById('emrConfirmTitle');
+        var iconEl  = document.getElementById('emrConfirmIcon');
+        var okBtn   = document.getElementById('emrConfirmOk');
+
+        /* Graceful fallback if modal not in DOM yet */
+        if (!modal) return Promise.resolve(window.confirm(msg));
+
+        msgEl.innerHTML = _esc(msg).replace(/\n/g, '<br>');
+        titleEl.textContent = title;
+
+        var cfgMap = {
+            danger : { icon: 'bi-trash3-fill',              color: '#e74c3c', okCls: 'btn-danger',   label: 'Delete'  },
+            warn   : { icon: 'bi-exclamation-triangle-fill', color: '#ff771d', okCls: 'btn-warning',  label: 'Confirm' },
+            info   : { icon: 'bi-info-circle-fill',          color: '#4154f1', okCls: 'btn-primary',  label: 'Confirm' },
+        };
+        var cfg = cfgMap[type] || cfgMap.info;
+
+        iconEl.className = 'bi ' + cfg.icon;
+        iconEl.style.color = cfg.color;
+        okBtn.textContent = opts.okText || cfg.label;
+        okBtn.className = 'btn btn-sm ' + cfg.okCls;
+
+        modal.classList.add('open');
+        okBtn.focus();
+
+        return new Promise(function (resolve) { _resolveConfirm = resolve; });
+    };
+
+    function _resolveWith(val) {
+        var m = document.getElementById('emrConfirmModal');
+        if (m) m.classList.remove('open');
+        if (_resolveConfirm) { _resolveConfirm(val); _resolveConfirm = null; }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var modal = document.getElementById('emrConfirmModal');
+        if (!modal) return;
+
+        document.getElementById('emrConfirmOk')    ?.addEventListener('click', function () { _resolveWith(true);  });
+        document.getElementById('emrConfirmNo')    ?.addEventListener('click', function () { _resolveWith(false); });
+        document.getElementById('emrConfirmClose') ?.addEventListener('click', function () { _resolveWith(false); });
+        modal.addEventListener('click', function (e) { if (e.target === modal) _resolveWith(false); });
+
+        /* ── Intercept forms with data-confirm ────────────────── */
+        document.addEventListener('submit', function (e) {
+            var form = e.target;
+            var msg  = form.dataset.confirm;
+            if (!msg) return;
+            e.preventDefault();
+            emrConfirm(msg, { type: form.dataset.confirmType, title: form.dataset.confirmTitle })
+                .then(function (ok) {
+                    if (!ok) return;
+                    delete form.dataset.confirm;
+                    form.submit();
+                });
+        }, true);
+
+        /* ── Intercept buttons/links with data-confirm ────────── */
+        document.addEventListener('click', function (e) {
+            var el = e.target.closest('[data-confirm]');
+            if (!el || el.tagName === 'FORM') return;
+            var msg = el.dataset.confirm;
+            if (!msg) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            emrConfirm(msg, { type: el.dataset.confirmType, title: el.dataset.confirmTitle })
+                .then(function (ok) {
+                    if (!ok) return;
+                    if (el.tagName === 'A') { window.location.href = el.href; return; }
+                    var frm = el.closest('form');
+                    if (frm) { delete el.dataset.confirm; frm.submit(); }
+                });
+        }, true);
+    });
+
+    /* ESC to close */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && document.getElementById('emrConfirmModal')?.classList.contains('open')) {
+            _resolveWith(false);
+        }
+    });
+}());
+
+/* ─── 5. WORKFLOW ─────────────────────────────────────────────────── */
 
 function drawProgressRing(id, pct) {
     const svg = document.getElementById(id);
@@ -133,11 +235,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* Skip link confirmation */
+/* Skip link confirmation — uses emrConfirm */
 document.addEventListener('click', e => {
     const link = e.target.closest('[data-skip-confirm]');
     if (!link) return;
-    if (!confirm(`Skip "${link.dataset.skipConfirm || 'this step'}"? You can return later.`)) e.preventDefault();
+    e.preventDefault();
+    emrConfirm(
+        `Skip "${link.dataset.skipConfirm || 'this step'}"?\nYou can return to fill it later.\n\nដកចោលមុន? អ្នកអាចវិលត្រឡប់ក្រោយ។`,
+        { type: 'info', title: 'Skip Step', okText: 'Skip' }
+    ).then(ok => { if (ok) window.location.href = link.href; });
 });
 
 /* Mobile step accordion */
@@ -148,13 +254,12 @@ function toggleStepList() {
     if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
 }
 
-/* ─── 5. LIVE BADGES ──────────────────────────────────────────────── */
+/* ─── 6. LIVE BADGES ──────────────────────────────────────────────── */
 setInterval(() => {
-    /* Silently probe — badges update naturally on next navigation */
     fetch('/patients/search/json?q=_ping_', { credentials: 'same-origin' }).catch(() => {});
 }, 60_000);
 
-/* ─── 6. STAT COUNTER ANIMATION ──────────────────────────────────── */
+/* ─── 7. STAT COUNTER ANIMATION ──────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.stat-num[data-target]').forEach(el => {
         const target = parseFloat(el.dataset.target);
@@ -171,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/* ─── 7. LAYOUT / MISC ────────────────────────────────────────────── */
+/* ─── 8. LAYOUT / MISC ────────────────────────────────────────────── */
 function _updateVssLayout() {
     const col = document.getElementById('vssCol');
     if (col) col.style.display = window.innerWidth >= 992 ? '' : 'none';

@@ -107,7 +107,8 @@
                 <i class="bi bi-pencil"></i>
             </a>
             <form method="POST" action="{{ route('beds.ward.delete', $ward->id) }}" class="d-inline"
-                  onsubmit="return confirm('Delete ward and all rooms/beds?')">
+                  data-confirm="Delete ward &quot;{{ $ward->name }}&quot; and ALL rooms and beds inside? This cannot be undone."
+                  data-confirm-type="danger" data-confirm-title="Delete Ward">
                 @csrf @method('DELETE')
                 <button class="btn btn-sm btn-outline-danger" title="Delete ward">
                     <i class="bi bi-trash3"></i>
@@ -143,7 +144,8 @@
                         <i class="bi bi-pencil"></i>
                     </a>
                     <form method="POST" action="{{ route('beds.room.delete', [$ward->id, $room->id]) }}" class="d-inline"
-                          onsubmit="return confirm('Delete this room and all its beds?')">
+                          data-confirm="Delete room &quot;{{ $room->name }}&quot; and all its beds? This cannot be undone."
+                          data-confirm-type="danger" data-confirm-title="Delete Room">
                         @csrf @method('DELETE')
                         <button class="btn btn-sm btn-outline-danger" style="padding:2px 8px;font-size:11px">
                             <i class="bi bi-trash3"></i>
@@ -205,27 +207,32 @@
 @endforelse
 
 {{-- Bed status modal --}}
-<div id="bedModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9000;align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:16px;padding:0;min-width:280px;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden">
-        <div style="padding:16px 20px;border-bottom:1px solid #f0f2ff;display:flex;align-items:center;justify-content:space-between">
-            <div style="font-size:14px;font-weight:700;color:#012970">
-                <i class="bi bi-grid-3x3-gap-fill"></i>
-                <span id="modalBedName">Bed</span>
-            </div>
-            <button onclick="closeBedModal()" style="background:none;border:none;font-size:18px;color:#94a3b8;cursor:pointer;padding:0;line-height:1">×</button>
+<div id="bedModal" class="emr-modal-wrap" onclick="if(event.target===this)closeBedModal()">
+    <div class="emr-modal modal-sm">
+        <div class="emr-modal-hd">
+            <i class="bi bi-grid-3x3-gap-fill" style="color:#4154f1;font-size:16px;flex-shrink:0"></i>
+            <div class="emr-modal-title"><span id="modalBedName">Bed</span></div>
+            <button type="button" class="emr-modal-close" onclick="closeBedModal()">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
-        <div style="padding:12px 16px">
-            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:8px">Change Status</div>
-            @foreach(App\Models\BedModel::STATUSES as $st)
+        <div class="emr-modal-body">
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:10px">
+                <i class="bi bi-arrow-left-right" style="margin-right:4px"></i> Change Status
+            </div>
             @php
-                $stIcons = ['available'=>'✓','occupied'=>'🛏','cleaning'=>'🧹','reserved'=>'📅','maintenance'=>'🔧'];
-                $stColors = ['available'=>'#2eca6a','occupied'=>'#ff771d','cleaning'=>'#9b59b6','reserved'=>'#378ADD','maintenance'=>'#888780'];
+                $stIcons  = ['available'=>'bi-check-circle-fill','occupied'=>'bi-person-fill','cleaning'=>'bi-stars','reserved'=>'bi-calendar-check-fill','maintenance'=>'bi-tools'];
+                $stColors = ['available'=>['#e8f8ef','#2eca6a'],'occupied'=>['#fff3e8','#ff771d'],'cleaning'=>['#f0e8ff','#9b59b6'],'reserved'=>['#e6f1fb','#378ADD'],'maintenance'=>['#f5f5f5','#888780']];
+                $stLabels = ['available'=>'Available','occupied'=>'Occupied','cleaning'=>'Cleaning','reserved'=>'Reserved','maintenance'=>'Maintenance'];
             @endphp
+            @foreach(App\Models\BedModel::STATUSES as $st)
             <button onclick="setStatus('{{ $st }}')"
-                    class="status-modal-btn" id="statusBtn_{{ $st }}"
-                    style="border-left:3px solid {{ $stColors[$st] ?? '#e2e8f0' }}">
-                <span style="font-size:16px">{{ $stIcons[$st] ?? '?' }}</span>
-                <span>{{ ucfirst($st) }}</span>
+                    class="bed-status-btn status-modal-btn" id="statusBtn_{{ $st }}"
+                    style="border-left-color:{{ $stColors[$st][1] ?? '#e2e8f0' }}">
+                <span style="width:28px;height:28px;border-radius:8px;background:{{ $stColors[$st][0] ?? '#f5f5f5' }};color:{{ $stColors[$st][1] ?? '#aaa' }};display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">
+                    <i class="bi {{ $stIcons[$st] ?? 'bi-circle' }}"></i>
+                </span>
+                <span>{{ $stLabels[$st] ?? ucfirst($st) }}</span>
             </button>
             @endforeach
         </div>
@@ -233,67 +240,6 @@
     </div>
 </div>
 
-<style>
-.bed-ward-card {
-    background:#fff;border-radius:14px;
-    box-shadow:0 2px 16px rgba(1,41,112,.07);
-    border:1.5px solid #f0f2ff;
-    margin-bottom:16px;overflow:hidden;
-}
-.bed-ward-hd {
-    display:flex;align-items:flex-start;justify-content:space-between;
-    flex-wrap:wrap;gap:10px;padding:16px 20px;
-    background:#fafbff;border-bottom:1px solid #f0f2ff;
-}
-.bed-ward-hd-left { display:flex;align-items:flex-start;gap:12px;flex:1;min-width:0; }
-.bed-ward-type {
-    display:inline-block;font-size:10px;font-weight:800;padding:4px 10px;
-    border-radius:20px;flex-shrink:0;margin-top:2px;
-}
-.bed-ward-name { font-size:15px;font-weight:800;color:#012970; }
-.bed-ward-name small { font-weight:400;color:#94a3b8;font-size:12px; }
-.bed-ward-meta {
-    display:flex;flex-wrap:wrap;gap:8px;align-items:center;
-    font-size:11px;color:#64748b;margin-top:3px;
-}
-.bed-ward-meta code { font-size:10.5px;background:#eef0fd;color:#4154f1;padding:1px 6px;border-radius:4px; }
-.bed-ward-hd-actions { display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex-shrink:0; }
-.bed-ward-body { padding:16px 20px; }
-.bed-room-block {
-    background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
-    padding:12px 14px;margin-bottom:10px;
-}
-.bed-room-block:last-child { margin-bottom:0; }
-.bed-room-hd {
-    display:flex;align-items:center;justify-content:space-between;
-    flex-wrap:wrap;gap:6px;margin-bottom:10px;
-}
-.bed-room-name { font-size:13px;font-weight:700;color:#374151; }
-.bed-grid {
-    display:flex;flex-wrap:wrap;gap:7px;
-}
-.bed-chip {
-    width:72px;border-radius:8px;border:1.5px solid #e2e8f0;
-    padding:8px 4px;text-align:center;cursor:pointer;
-    transition:transform .12s,box-shadow .12s;
-    display:flex;flex-direction:column;align-items:center;gap:2px;
-}
-.bed-chip:hover { transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1); }
-.bed-chip-icon  { font-size:18px;line-height:1; }
-.bed-chip-name  { font-size:10.5px;font-weight:700;line-height:1.2;word-break:break-word; }
-.bed-chip-visit { font-size:9px;color:#94a3b8;font-family:monospace; }
-.bed-no-rooms { text-align:center;padding:24px;color:#94a3b8; }
-.status-modal-btn {
-    display:flex;align-items:center;gap:10px;
-    width:100%;text-align:left;padding:10px 14px;
-    margin-bottom:5px;border-radius:8px;
-    border:1px solid #e2e8f0;background:#f8fafc;
-    font-size:13px;cursor:pointer;font-weight:600;color:#374151;
-    font-family:inherit;transition:background .12s;
-}
-.status-modal-btn:hover   { background:#f0f4ff; }
-.status-modal-btn.current { background:#eef0fd;border-color:#4154f1;color:#4154f1; }
-</style>
 
 <script>
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
@@ -306,9 +252,9 @@ function openBedMenu(id, status, name) {
     document.querySelectorAll('.status-modal-btn').forEach(function(btn) {
         btn.classList.toggle('current', btn.id === 'statusBtn_' + status);
     });
-    document.getElementById('bedModal').style.display = 'flex';
+    document.getElementById('bedModal').classList.add('open');
 }
-function closeBedModal() { document.getElementById('bedModal').style.display = 'none'; }
+function closeBedModal() { document.getElementById('bedModal').classList.remove('open'); }
 
 function setStatus(status) {
     var id = document.getElementById('modalBedId').value;
@@ -338,11 +284,8 @@ function setStatus(status) {
         chip.setAttribute('onclick', 'openBedMenu('+id+', \''+data.status+'\', \''+chip.querySelector('.bed-chip-name').textContent.trim()+'\')');
         chip.setAttribute('title', chip.querySelector('.bed-chip-name').textContent.trim() + ' — ' + data.label);
     })
-    .catch(function(){ alert('Failed to update bed status'); });
+    .catch(function(){ toast('Failed to update bed status. Please try again.', 'err', 'Error'); });
 }
 
-document.getElementById('bedModal').addEventListener('click', function(e) {
-    if (e.target === this) closeBedModal();
-});
 </script>
 @endsection

@@ -3,6 +3,7 @@
 @section('content')
 
 <x-page-header title="ការកំណត់" subtitle="Settings"
+    icon="bi-gear-fill"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Settings']]"/>
 
 @include('clinics.settings._subnav')
@@ -220,7 +221,7 @@
                         </label>
                         <div style="font-size:10.5px;color:#94a3b8;margin-top:5px">
                             <i class="bi bi-info-circle"></i>
-                            PNG or JPG · max 2 MB · used on print templates & login page
+                            PNG or JPG · max 2 MB · used on login and header branding
                         </div>
                         <div id="logoFileName" style="font-size:11px;color:#4154f1;margin-top:3px;display:none">
                             <i class="bi bi-check-circle-fill" style="color:#2eca6a"></i>
@@ -282,7 +283,6 @@
         </div>
         <div class="settings-card-bd" style="padding:0">
             @foreach([
-                [route('settings.templates'), 'bi-printer-fill',  '#4154f1','#eef0fd', 'Print Templates',  'Manage receipt & prescription layouts'],
                 [route('settings.services'),  'bi-list-check',    '#2eca6a','#e8f8ef', 'Services Master',  'Add / edit billable services'],
                 [route('settings.medicines'), 'bi-capsule-fill',  '#9b59b6','#f0e8ff', 'Medicines & Stock','Formulary & inventory'],
                 [route('beds.index'),         'bi-building-fill', '#ff771d','#fff3e8', 'Wards & Beds',     'Room and bed management'],

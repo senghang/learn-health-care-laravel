@@ -32,6 +32,24 @@
 <script id="svcCatalog" type="application/json">{!! json_encode($svcCatalog) !!}</script>
 <script id="medCatalog" type="application/json">{!! json_encode($medCatalog) !!}</script>
 
+<div class="flow-panel mb-3">
+    <div class="flow-panel-title">
+        <i class="bi bi-diagram-3-fill me-1"></i> Billing Flow
+    </div>
+    <div class="flow-steps">
+        <span class="flow-step">1. Select patient</span>
+        <span class="flow-step">2. Add services</span>
+        <span class="flow-step">3. Add medicines</span>
+        <span class="flow-step">4. Review total</span>
+        <span class="flow-step">5. Create invoice</span>
+    </div>
+</div>
+
+<div class="note note-warn mb-3">
+    <i class="bi bi-exclamation-circle-fill"></i>
+    For faster checkout: select patient first, then use quick-add catalogs for services and medicines.
+</div>
+
 <div class="row g-3">
 
 {{-- ── Main column ─────────────────────────────────────────────────────── --}}
@@ -69,6 +87,10 @@
             <div class="card-hd-title"><i class="bi bi-receipt-cutoff" style="color:#00bcd4"></i> Invoice Details</div>
         </div>
         <div class="card-bd">
+            <div class="note note-info mb-3">
+                <i class="bi bi-info-circle-fill"></i>
+                Confirm patient and visit code before adding bill items.
+            </div>
             <div class="row g-2">
                 <div class="col-6 col-sm-3">
                     <label class="form-label" style="font-size:11px;font-weight:700;color:#666">Date</label>
@@ -78,7 +100,7 @@
                 <div class="col-6 col-sm-3">
                     <label class="form-label" style="font-size:11px;font-weight:700;color:#666">Payment Type</label>
                     <select name="payment_type" class="form-select form-select-sm">
-                        @foreach(['CASH'=>'CASH','HEF'=>'HEF','NSSF'=>'NSSF','CARD'=>'Card'] as $v=>$l)
+                        @foreach(['CASH'=>'CASH','HEF'=>'HEF','NSSF'=>'NSSF','CARD'=>'Card','BAKONG'=>'Bakong'] as $v=>$l)
                             <option value="{{ $v }}" {{ old('payment_type','CASH')===$v?'selected':'' }}>{{ $l }}</option>
                         @endforeach
                     </select>
@@ -91,7 +113,7 @@
                 <div class="col-6 col-sm-3">
                     <label class="form-label" style="font-size:11px;font-weight:700;color:#666">Visit Code (opt.)</label>
                     <input type="text" name="visit_code" class="form-control form-control-sm"
-                           value="{{ old('visit_code') }}" placeholder="VS-…"/>
+                           value="{{ old('visit_code', $visitCode ?? '') }}" placeholder="VS-…"/>
                 </div>
                 <div class="col-12">
                     <label class="form-label" style="font-size:11px;font-weight:700;color:#666">Notes</label>
@@ -233,6 +255,11 @@
             <a href="{{ route('invoices.index') }}" class="btn btn-outline-secondary btn-w100">
                 <i class="bi bi-x-circle"></i> Cancel
             </a>
+
+            <div class="note note-info mt-3" style="font-size:11px">
+                <i class="bi bi-check2-square"></i>
+                Review total and discount before saving.
+            </div>
 
         </div>
     </div>

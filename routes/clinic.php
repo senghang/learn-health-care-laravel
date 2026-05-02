@@ -25,7 +25,7 @@
  *   ✓ InventoryController    — products, stock-in/out, report
  *   ✓ ReportController       — visits, daily, inventory, revenue, doctorPerformance
  *   ✓ PrintController        — prescription, invoice
- *   ✓ SettingController      — general, templates, services, medicines
+ *   ✓ SettingController      — general, services, medicines
  *   ✓ RolesController        — index, store, update, destroy, syncPermissions
  */
 
@@ -174,18 +174,29 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         Route::patch('/beds/{bedId}/status', [BedController::class, 'updateStatus'])->name('bed.status');
     });
 
-    // ── Inventory (unchanged) ─────────────────────────────────────────────────
+    // ── Inventory ─────────────────────────────────────────────────────────────
     Route::prefix('inventory')->name('inventory.')->group(function () {
-        Route::get('/products', [InventoryController::class, 'products'])->name('products');
-        Route::get('/products/create', [InventoryController::class, 'productCreate'])->name('product.create');
-        Route::post('/products', [InventoryController::class, 'productStore'])->name('product.store');
+        // Products
+        Route::get('/products',           [InventoryController::class, 'products'])->name('products');
+        Route::get('/products/create',    [InventoryController::class, 'productCreate'])->name('product.create');
+        Route::post('/products',          [InventoryController::class, 'productStore'])->name('product.store');
         Route::get('/products/{id}/edit', [InventoryController::class, 'productEdit'])->name('product.edit');
-        Route::patch('/products/{id}', [InventoryController::class, 'productUpdate'])->name('product.update');
-        Route::get('/stock-in', [InventoryController::class, 'stockIn'])->name('stock-in');
-        Route::post('/stock-in', [InventoryController::class, 'stockInStore'])->name('stock-in.store');
-        Route::get('/stock-out', [InventoryController::class, 'stockOut'])->name('stock-out');
-        Route::post('/stock-out', [InventoryController::class, 'stockOutStore'])->name('stock-out.store');
-        Route::get('/report', [InventoryController::class, 'report'])->name('report');
+        Route::patch('/products/{id}',    [InventoryController::class, 'productUpdate'])->name('product.update');
+
+        // Per-medicine ledger (/products/{id} must come AFTER /products/create)
+        Route::get('/products/{id}/ledger', [InventoryController::class, 'medicineLedger'])->name('product.ledger');
+
+        // Manual movements
+        Route::get('/stock-in',        [InventoryController::class, 'stockIn'])->name('stock-in');
+        Route::post('/stock-in',       [InventoryController::class, 'stockInStore'])->name('stock-in.store');
+        Route::get('/stock-out',       [InventoryController::class, 'stockOut'])->name('stock-out');
+        Route::post('/stock-out',      [InventoryController::class, 'stockOutStore'])->name('stock-out.store');
+        Route::get('/adjustment',      [InventoryController::class, 'adjustment'])->name('adjustment');
+        Route::post('/adjustment',     [InventoryController::class, 'adjustmentStore'])->name('adjustment.store');
+
+        // Unified ledger + report
+        Route::get('/movements',       [InventoryController::class, 'movements'])->name('movements');
+        Route::get('/report',          [InventoryController::class, 'report'])->name('report');
     });
 
     // ── Reports (unchanged) ───────────────────────────────────────────────────
@@ -208,12 +219,6 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         Route::get('/general', [SettingController::class, 'general'])->name('general');
         Route::patch('/general', [SettingController::class, 'updateGeneral'])->name('general.update');
 
-        Route::get('/templates', [SettingController::class, 'templates'])->name('templates');
-        Route::get('/templates/create', [SettingController::class, 'templateCreate'])->name('template.create');
-        Route::post('/templates', [SettingController::class, 'templateStore'])->name('template.store');
-        Route::get('/templates/{id}/edit', [SettingController::class, 'templateEdit'])->name('template.edit');
-        Route::patch('/templates/{id}', [SettingController::class, 'templateUpdate'])->name('template.update');
-
         Route::get('/services', [SettingController::class, 'services'])->name('services');
         Route::post('/services', [SettingController::class, 'serviceStore'])->name('service.store');
         Route::patch('/services/{id}', [SettingController::class, 'serviceUpdate'])->name('service.update');
@@ -227,6 +232,7 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         Route::patch('/roles/{id}', [RolesController::class, 'update'])->name('roles.update');
         Route::delete('/roles/{id}', [RolesController::class, 'destroy'])->name('roles.destroy');
         Route::post('/roles/{id}/permissions', [RolesController::class, 'syncPermissions'])->name('roles.permissions');
+        Route::post('/roles/seed-permissions', [RolesController::class, 'seedPermissions'])->name('roles.seed-permissions');
 
         // ── NEW: Store Settings (guarded — only if controller exists) ─────────
         if (class_exists(StoreSettingController::class)) {
@@ -247,9 +253,11 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
     if (class_exists($lab = LaboratoryController::class)) {
         Route::prefix('laboratory')->name('laboratory.')->middleware($permMiddleware('laboratory.view'))->group(function () use ($lab, $permMiddleware) {
             Route::get('/', [$lab, 'index'])->name('index');
+            // /create must be declared before /{code} to avoid route conflict
+            Route::get('/create', [$lab, 'create'])->name('create')->middleware($permMiddleware('laboratory.manage'));
+            Route::post('/', [$lab, 'store'])->name('store')->middleware($permMiddleware('laboratory.manage'));
             Route::get('/{code}', [$lab, 'show'])->name('show');
             Route::patch('/{code}', [$lab, 'update'])->name('update')->middleware($permMiddleware('laboratory.manage'));
-            Route::get('/create', [$lab, 'create'])->name('create')->middleware($permMiddleware('laboratory.manage'));
         });
     }
 
@@ -257,9 +265,11 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
     if (class_exists($img = ImageryController::class)) {
         Route::prefix('imagery')->name('imagery.')->middleware($permMiddleware('imagery.view'))->group(function () use ($img, $permMiddleware) {
             Route::get('/', [$img, 'index'])->name('index');
+            // /create must be declared before /{code} to avoid route conflict
+            Route::get('/create', [$img, 'create'])->name('create')->middleware($permMiddleware('imagery.manage'));
+            Route::post('/', [$img, 'store'])->name('store')->middleware($permMiddleware('imagery.manage'));
             Route::get('/{code}', [$img, 'show'])->name('show');
             Route::patch('/{code}', [$img, 'update'])->name('update')->middleware($permMiddleware('imagery.manage'));
-            Route::get('/create', [$img, 'create'])->name('create')->middleware($permMiddleware('laboratory.manage'));
         });
     }
 
@@ -271,15 +281,6 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
             Route::post('/', [$ref, 'store'])->name('store')->middleware($permMiddleware('referral.manage'));
             Route::get('/{code}', [$ref, 'show'])->name('show');
             Route::patch('/{code}', [$ref, 'update'])->name('update')->middleware($permMiddleware('referral.manage'));
-        });
-    }
-
-    // ── Admissions ────────────────────────────────────────────────────────────
-    if (class_exists($adm = AdmissionController::class)) {
-        Route::prefix('admissions')->name('admissions.')->middleware($permMiddleware('visits.create'))->group(function () use ($adm) {
-            Route::get('/', [$adm, 'index'])->name('index');
-            Route::get('/{code}', [$adm, 'show'])->name('show');
-            Route::post('/{code}/admit', [$adm, 'admit'])->name('admit');
         });
     }
 
@@ -354,12 +355,4 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
         });
     }
 
-    if (class_exists(StoreSettingController::class)) {
-        Route::prefix('settings')->name('settings.')->group(function () {
-            Route::get('/store-settings', [StoreSettingController::class, 'index'])->name('store-settings');
-            Route::post('/store-settings', [StoreSettingController::class, 'store'])->name('store-settings.store');
-            Route::patch('/store-settings/{id}', [StoreSettingController::class, 'update'])->name('store-settings.update');
-            Route::delete('/store-settings/{id}', [StoreSettingController::class, 'destroy'])->name('store-settings.destroy');
-        });
-    }
 });

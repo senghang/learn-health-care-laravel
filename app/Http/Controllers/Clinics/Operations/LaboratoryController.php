@@ -34,6 +34,14 @@ class LaboratoryController extends Controller
         return view('clinics.laboratory.show', compact('lab'));
     }
 
+    public function create(Request $request): View
+    {
+        return view('clinics.laboratory.create', [
+            'patient_code' => $request->input('patient_code'),
+            'visit_code'   => $request->input('visit_code'),
+        ]);
+    }
+
     public function store(StoreLabOrderRequest $request): RedirectResponse
     {
         $lab = $this->labService->createOrder($request->validated());

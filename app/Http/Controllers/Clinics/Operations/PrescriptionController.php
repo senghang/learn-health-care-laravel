@@ -27,7 +27,10 @@ class PrescriptionController extends Controller
 
     public function index(Request $request): View
     {
+        $clinicId = currentClinic()->id;
+
         $prescriptions = PrescriptionModel::with(['patient', 'visit', 'medications'])
+            ->where('clinic_id', $clinicId)
             ->when($request->filled('search'), fn($q) =>
                 $q->whereHas('patient', fn($p) =>
                     $p->where('surname', 'like', "%{$request->search}%")
@@ -47,9 +50,9 @@ class PrescriptionController extends Controller
             ->withQueryString();
 
         $stats = [
-            'today'   => PrescriptionModel::whereDate('prescribed_at', today())->count(),
-            'total'   => PrescriptionModel::count(),
-            'doctors' => PrescriptionModel::whereNotNull('prescribed_by')->distinct()->count('prescribed_by'),
+            'today'   => PrescriptionModel::where('clinic_id', $clinicId)->whereDate('prescribed_at', today())->count(),
+            'total'   => PrescriptionModel::where('clinic_id', $clinicId)->count(),
+            'doctors' => PrescriptionModel::where('clinic_id', $clinicId)->whereNotNull('prescribed_by')->distinct()->count('prescribed_by'),
         ];
 
         return view('clinics.operations.prescriptions', compact('prescriptions', 'stats'));
@@ -57,7 +60,10 @@ class PrescriptionController extends Controller
 
     public function show(string $code): View
     {
+        $clinicId = currentClinic()->id;
+
         $prescription = PrescriptionModel::where('code', $code)
+            ->where('clinic_id', $clinicId)
             ->with(['patient', 'visit', 'medications'])
             ->firstOrFail();
 
@@ -66,12 +72,21 @@ class PrescriptionController extends Controller
 
     // ── CREATE ────────────────────────────────────────────────────────────────
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $catalog     = $this->medicineCatalog();
         $formOptions = $this->formOptions();
 
-        return view('clinics.operations.prescription-create', compact('catalog', 'formOptions'));
+        $patient   = null;
+        $visitCode = $request->input('visit_code');
+
+        if ($request->filled('patient_code')) {
+            $patient = \App\Models\PatientModel::where('clinic_id', $this->clinicId)
+                ->where('code', $request->patient_code)
+                ->first();
+        }
+
+        return view('clinics.operations.prescription-create', compact('catalog', 'formOptions', 'patient', 'visitCode'));
     }
 
     public function store(StorePrescriptionRequest $request): RedirectResponse
@@ -84,6 +99,7 @@ class PrescriptionController extends Controller
 
         $rxCode = DB::transaction(function () use ($data, $meds) {
             $rx = PrescriptionModel::create([
+                'clinic_id'         => $this->clinicId,
                 'code'             => ClinicCodeService::prescription($this->clinicId),
                 'patient_code'     => $data['patient_code'],
                 'visit_code'       => $data['visit_code'] ?? null,
@@ -107,6 +123,7 @@ class PrescriptionController extends Controller
     public function edit(string $code): View
     {
         $prescription = PrescriptionModel::where('code', $code)
+            ->where('clinic_id', $this->clinicId)
             ->with(['patient', 'medications'])
             ->firstOrFail();
 
@@ -119,7 +136,9 @@ class PrescriptionController extends Controller
 
     public function update(UpdatePrescriptionRequest $request, string $code): RedirectResponse
     {
-        $prescription = PrescriptionModel::where('code', $code)->firstOrFail();
+        $prescription = PrescriptionModel::where('clinic_id', $this->clinicId)
+            ->where('code', $code)
+            ->firstOrFail();
         $data = $request->validated();
 
         $meds = array_values(array_filter(
@@ -146,7 +165,9 @@ class PrescriptionController extends Controller
 
     public function destroy(string $code): RedirectResponse
     {
-        $prescription = PrescriptionModel::where('code', $code)->firstOrFail();
+        $prescription = PrescriptionModel::where('clinic_id', $this->clinicId)
+            ->where('code', $code)
+            ->firstOrFail();
 
         DB::transaction(function () use ($prescription) {
             $prescription->medications()->delete();
@@ -166,7 +187,8 @@ class PrescriptionController extends Controller
      */
     public function dispense(Request $request, string $code): RedirectResponse
     {
-        $prescription = PrescriptionModel::where('code', $code)
+        $prescription = PrescriptionModel::where('clinic_id', $this->clinicId)
+            ->where('code', $code)
             ->with('medications')
             ->firstOrFail();
 
@@ -198,7 +220,8 @@ class PrescriptionController extends Controller
 
     private function medicineCatalog()
     {
-        return MedicineModel::where('is_active', true)
+        return MedicineModel::where('clinic_id', $this->clinicId)
+            ->where('is_active', true)
             ->orderBy('form')
             ->orderBy('name')
             ->get(['id', 'code', 'name', 'name_kh', 'generic_name', 'form', 'strength', 'unit', 'price', 'stock', 'stock_alert']);

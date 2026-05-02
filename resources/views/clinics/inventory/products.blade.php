@@ -4,6 +4,12 @@
 
 <x-page-header title="ផលិតផល" subtitle="Products"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Inventory'],['label'=>'Products']]">
+    <a href="{{ route('inventory.movements') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-journal-text"></i> Movements
+    </a>
+    <a href="{{ route('inventory.adjustment') }}" class="btn btn-outline-warning btn-sm">
+        <i class="bi bi-sliders"></i> Adjust
+    </a>
     <a href="{{ route('inventory.product.create') }}" class="btn btn-primary btn-sm">
         <i class="bi bi-plus-lg"></i> បន្ថែម
     </a>
@@ -117,6 +123,9 @@
                     </td>
                     <td>
                         <div style="display:flex;gap:4px">
+                            <a href="{{ route('inventory.product.ledger', $med->id) }}" class="btn btn-sm btn-outline-secondary" title="Ledger">
+                                <i class="bi bi-journal-text"></i>
+                            </a>
                             <a href="{{ route('inventory.product.edit', $med->id) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </a>

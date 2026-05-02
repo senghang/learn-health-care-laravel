@@ -48,10 +48,12 @@ class RolesController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'name' => 'required|string|max:80',
+            'name'        => 'required|string|max:80',
+            'description' => 'nullable|string|max:255',
+            'level'       => 'nullable|integer|min:0|max:100',
         ]);
 
-        RoleModel::create(['clinic_id' => $this->clinicId, 'name' => $data['name']]);
+        RoleModel::create(array_merge($data, ['clinic_id' => $this->clinicId]));
 
         return redirect()->route('settings.roles')->with('flash', "Role '{$data['name']}' created.");
     }
@@ -60,7 +62,15 @@ class RolesController extends Controller
     {
         $role = RoleModel::where('clinic_id', $this->clinicId)->findOrFail($id);
 
-        $data = $request->validate(['name' => 'required|string|max:80']);
+        if ($role->is_system) {
+            return back()->with('flash_error', "System role '{$role->name}' cannot be modified.");
+        }
+
+        $data = $request->validate([
+            'name'        => 'required|string|max:80',
+            'description' => 'nullable|string|max:255',
+            'level'       => 'nullable|integer|min:0|max:100',
+        ]);
         $role->update($data);
 
         return redirect()->route('settings.roles')->with('flash', 'Role updated.');
@@ -68,10 +78,16 @@ class RolesController extends Controller
 
     public function destroy(int $id): RedirectResponse
     {
-        $role = RoleModel::where('clinic_id', $this->clinicId)->findOrFail($id);
+        $role = RoleModel::where('clinic_id', $this->clinicId)
+            ->withCount('users')
+            ->findOrFail($id);
+
+        if ($role->is_system) {
+            return back()->with('flash_error', "System role '{$role->name}' cannot be deleted.");
+        }
 
         if ($role->users_count > 0) {
-            return back()->with('flash_error', "Cannot delete role with {$role->users_count} user(s) assigned.");
+            return back()->with('flash_error', "Cannot delete role '{$role->name}' — {$role->users_count} user(s) assigned.");
         }
 
         $role->delete();
@@ -91,5 +107,26 @@ class RolesController extends Controller
 
         return redirect()->route('settings.roles')
             ->with('flash', "Permissions for '{$role->name}' updated.");
+    }
+
+    /** Sync all default permissions — adds missing ones, leaves existing untouched */
+    public function seedPermissions(): RedirectResponse
+    {
+        $seeded = 0;
+        foreach (PermissionModel::defaultSlugs() as $perm) {
+            $created = PermissionModel::firstOrCreate(
+                ['clinic_id' => $this->clinicId, 'slug' => $perm['slug']],
+                ['name' => $perm['name'], 'group' => $perm['group']]
+            );
+            if ($created->wasRecentlyCreated) {
+                $seeded++;
+            }
+        }
+
+        $msg = $seeded > 0
+            ? "{$seeded} new permission(s) added."
+            : 'All permissions are already up to date.';
+
+        return redirect()->route('settings.roles')->with('flash', $msg);
     }
 }
