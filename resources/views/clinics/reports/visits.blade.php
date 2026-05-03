@@ -12,28 +12,21 @@
     $doneCount     = $visits->getCollection()->whereNotNull('discharged_at')->count();
 @endphp
 
-{{-- Page header --}}
-<div class="pg-header">
-    <div>
-        <h1 class="pg-title">
-            <i class="bi bi-bar-chart-line-fill" style="color:#4154f1;font-size:18px"></i>
-            របាយការណ៍ <small>/ Visit Reports</small>
-        </h1>
-        <div class="breadcrumb-row">
-            <a href="{{ route('dashboard') }}">ដើម</a>
-            <span>›</span><span>Reports</span>
-        </div>
-    </div>
-    <div class="d-flex gap-2 align-items-center flex-wrap">
-        <a href="{{ route('reports.visits', array_merge(request()->query(), ['export' => 'csv'])) }}"
-           class="btn-export btn-export-csv">
-            <i class="bi bi-filetype-csv"></i> Export CSV
-        </a>
-        <button onclick="window.print()" class="btn-export btn-export-print">
-            <i class="bi bi-printer-fill"></i> Print
-        </button>
-    </div>
-</div>
+<x-ui.page-header
+    km="របាយការណ៍"
+    title="Visit Reports"
+    :breadcrumbs="[['label'=>'ដើម','url'=>route('dashboard')],['label'=>'Reports']]">
+    <x-slot:actions>
+        <x-ui.button href="{{ route('reports.visits', array_merge(request()->query(), ['export' => 'csv'])) }}" variant="secondary">
+            <x-slot:icon><i class="bi bi-filetype-csv"></i></x-slot:icon>
+            Export CSV
+        </x-ui.button>
+        <x-ui.button type="button" variant="ghost" onclick="window.print()">
+            <x-slot:icon><i class="bi bi-printer-fill"></i></x-slot:icon>
+            Print
+        </x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 {{-- ── Filter Bar ─────────────────────────────────────────────────── --}}
 <div class="report-filter-bar">
@@ -87,12 +80,14 @@
         </div>
 
         <div class="filter-actions">
-            <button type="submit" class="btn btn-primary">
-                <i class="bi bi-funnel-fill"></i> Filter
-            </button>
-            <a href="{{ route('reports.visits') }}" class="btn btn-outline-primary">
-                <i class="bi bi-x-circle"></i> Reset
-            </a>
+            <x-ui.button type="submit" variant="primary">
+                <x-slot:icon><i class="bi bi-funnel-fill"></i></x-slot:icon>
+                Filter
+            </x-ui.button>
+            <x-ui.button href="{{ route('reports.visits') }}" variant="secondary">
+                <x-slot:icon><i class="bi bi-x-circle"></i></x-slot:icon>
+                Reset
+            </x-ui.button>
         </div>
 
     </form>
@@ -125,23 +120,17 @@
 
 {{-- ── Chart bar (weekly breakdown) ─────────────────────────────────── --}}
 @if($dailyChart->isNotEmpty())
-<div class="card-emr mb-3">
-    <div class="card-hd">
-        <div class="card-hd-title">
-            <i class="bi bi-bar-chart-fill"></i>
-            Daily Breakdown
-            <small style="font-weight:400;color:#aaa">/ {{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', df_d(now())) }}</small>
-        </div>
-        <div style="display:flex;gap:10px">
-            <span style="font-size:10px;color:#4154f1;display:flex;align-items:center;gap:4px">
-                <span style="width:10px;height:10px;border-radius:2px;background:#4154f1;display:inline-block"></span>OPD
-            </span>
-            <span style="font-size:10px;color:#ff771d;display:flex;align-items:center;gap:4px">
-                <span style="width:10px;height:10px;border-radius:2px;background:#ff771d;display:inline-block"></span>IPD
-            </span>
-        </div>
-    </div>
-    <div class="card-bd" style="padding-top:12px">
+<x-ui.card class="mb-3">
+    <x-slot:header>
+        <x-ui.card-header label="Daily Breakdown" icon="bi-bar-chart-fill">
+            <x-slot:actions>
+                <span class="text-[10px] text-[#94a3b8]">{{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', df_d(now())) }}</span>
+                <span class="text-[10px] text-[#4154f1] flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#4154f1] inline-block"></span>OPD</span>
+                <span class="text-[10px] text-[#ff771d] flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#ff771d] inline-block"></span>IPD</span>
+            </x-slot:actions>
+        </x-ui.card-header>
+    </x-slot:header>
+    <div style="padding-top:12px">
         @php $maxBar = $dailyChart->max(fn($d) => $d['opd'] + $d['ipd']); $maxBar = max($maxBar, 1); @endphp
         <div style="height:100px;display:flex;align-items:flex-end;gap:4px;overflow-x:auto;padding-bottom:4px">
             @foreach($dailyChart as $d)
@@ -157,29 +146,24 @@
             @endforeach
         </div>
     </div>
-</div>
+</x-ui.card>
 @endif
 
 {{-- ── Results Table ───────────────────────────────────────────────── --}}
-<div class="card-emr">
-    <div class="card-hd">
-        <div class="card-hd-title">
-            <i class="bi bi-table"></i>
-            Visit Records
-            <small style="font-weight:400;color:#aaa">/ {{ number_format($visits->total()) }} results</small>
-        </div>
-        <div class="d-flex gap-2 align-items-center">
-            <select class="form-select" style="font-size:12px;padding:5px 8px;width:auto"
-                    onchange="window.location=updateParam('per_page', this.value)">
-                @foreach([20, 50, 100, 200] as $pp)
-                <option value="{{ $pp }}" {{ request('per_page', 20) == $pp ? 'selected' : '' }}>
-                    {{ $pp }} per page
-                </option>
-                @endforeach
-            </select>
-        </div>
-    </div>
-    <div class="card-bd" style="padding:0">
+<x-ui.card>
+    <x-slot:header>
+        <x-ui.card-header label="Visit Records" icon="bi-table" :count="$visits->total()">
+            <x-slot:actions>
+                <select class="text-xs rounded-lg border border-[#e2e8f0] bg-white px-2 py-1.5 text-[#374151] focus:outline-none focus:border-[#4154f1]"
+                        onchange="window.location=updateParam('per_page', this.value)">
+                    @foreach([20, 50, 100, 200] as $pp)
+                    <option value="{{ $pp }}" {{ request('per_page', 20) == $pp ? 'selected' : '' }}>{{ $pp }} per page</option>
+                    @endforeach
+                </select>
+            </x-slot:actions>
+        </x-ui.card-header>
+    </x-slot:header>
+    <div style="padding:0">
         <div class="table-responsive">
             <table class="report-tbl" id="reportTable">
                 <thead>
@@ -226,16 +210,16 @@
                         </td>
                         <td style="font-size:11px;color:#aaa">{{ $v->patient_code }}</td>
                         <td>
-                            <span class="badge-s {{ $v->visit_type === 'IPD' ? 'b-ipd' : 'b-opd' }}">
+                            <x-ui.badge :variant="$v->visit_type === 'IPD' ? 'warning' : 'primary'" size="sm">
                                 {{ $v->visit_type }}
-                            </span>
+                            </x-ui.badge>
                         </td>
                         <td style="font-size:11.5px;color:#777">{{ $v->admission_type ?? '—' }}</td>
                         <td>
                             @if($isActive)
-                                <span class="badge-s b-active"><i class="bi bi-circle-fill" style="font-size:6px"></i> Active</span>
+                                <x-ui.badge variant="success" size="sm" dot>Active</x-ui.badge>
                             @else
-                                <span class="badge-s b-done">✓ Done</span>
+                                <x-ui.badge variant="secondary" size="sm">✓ Done</x-ui.badge>
                             @endif
                             @if($v->discharged_at)
                             <div style="font-size:10px;color:#ccc;margin-top:2px">
@@ -265,10 +249,9 @@
                             @endif
                         </td>
                         <td>
-                            <a href="{{ url('/workflow/' . $v->code . '/registration') }}"
-                               class="btn btn-sm btn-primary" style="font-size:11px;padding:4px 10px">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
+                            <x-ui.button href="{{ url('/workflow/' . $v->code . '/registration') }}" variant="primary" size="sm">
+                                <x-slot:icon><i class="bi bi-pencil-fill"></i></x-slot:icon>
+                            </x-ui.button>
                         </td>
                     </tr>
                     @empty
@@ -284,17 +267,9 @@
             </table>
         </div>
 
-        {{-- Pagination --}}
-        @if($visits->hasPages())
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid #f0f2ff;flex-wrap:wrap;gap:8px">
-            <div style="font-size:11.5px;color:#aaa">
-                Showing {{ $visits->firstItem() }}–{{ $visits->lastItem() }} of {{ number_format($visits->total()) }}
-            </div>
-            <div>{{ $visits->appends(request()->query())->links() }}</div>
-        </div>
-        @endif
     </div>
-</div>
+    <x-ui.pagination :paginator="$visits->appends(request()->query())" class="mt-4 px-4 pb-4"/>
+</x-ui.card>
 
 @endsection
 

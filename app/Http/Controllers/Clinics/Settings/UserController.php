@@ -24,7 +24,7 @@ class UserController extends Controller
     public function index(Request $request): View
     {
         $query = User::where('clinic_id', $this->clinicId)
-            ->with(['role', 'employee'])
+            ->with(['roles', 'employee'])
             ->latest();
 
         if ($search = $request->input('search')) {
@@ -36,7 +36,7 @@ class UserController extends Controller
         }
 
         if ($roleId = $request->input('role_id')) {
-            $query->where('role_id', $roleId);
+            $query->whereHas('roles', fn($q) => $q->where('roles.id', $roleId));
         }
 
         if ($request->input('status') !== null && $request->input('status') !== '') {
@@ -91,9 +91,8 @@ class UserController extends Controller
             }
         }
 
-        User::create([
+        $user = User::create([
             'clinic_id'   => $this->clinicId,
-            'role_id'     => $role->id,
             'employee_id' => $employeeId,
             'name'        => $data['name'],
             'email'       => $data['email'],
@@ -102,13 +101,15 @@ class UserController extends Controller
             'is_active'   => $request->boolean('is_active', true),
         ]);
 
+        $user->roles()->attach($role->id, ['assigned_at' => now(), 'assigned_by' => auth()->id()]);
+
         return redirect()->route('users.index')
             ->with('flash', "User '{$data['email']}' created successfully.");
     }
 
     public function edit(int $id): View
     {
-        $user = User::where('clinic_id', $this->clinicId)->with('role', 'employee')->findOrFail($id);
+        $user = User::where('clinic_id', $this->clinicId)->with(['roles', 'employee'])->findOrFail($id);
         $roles = RoleModel::where('clinic_id', $this->clinicId)->orderBy('name')->get();
 
         // Employees available: unlinked ones + currently assigned one
@@ -158,7 +159,6 @@ class UserController extends Controller
         }
 
         $updateData = [
-            'role_id'     => $role->id,
             'employee_id' => $employeeId,
             'name'        => $data['name'],
             'email'       => $data['email'],
@@ -171,6 +171,9 @@ class UserController extends Controller
         }
 
         $user->update($updateData);
+
+        // Sync role (replace all existing roles with the selected one)
+        $user->roles()->sync([$role->id => ['assigned_at' => now(), 'assigned_by' => auth()->id()]]);
 
         return redirect()->route('users.index')
             ->with('flash', "User '{$user->email}' updated.");

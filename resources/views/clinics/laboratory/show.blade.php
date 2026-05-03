@@ -11,14 +11,14 @@
     $allVerified = $lab->results->every(fn($r) => $r->verified_at !== null);
 @endphp
 
-<x-page-header title="មន្ទីរពិសោធន៍" :subtitle="$lab->code"
-    :breadcrumbs="[
-        ['label'=>'ដើម','url'=>url('/')],
-        ['label'=>'Laboratory','url'=>route('laboratory.index')],
-        ['label'=>$lab->code],
-    ]">
-    <a href="{{ route('laboratory.index') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> ត្រឡប់</a>
-</x-page-header>
+<x-ui.page-header
+    km="មន្ទីរពិសោធន៍"
+    title="{{ $lab->code }}"
+    :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Laboratory','url'=>route('laboratory.index')],['label'=>$lab->code]]">
+    <x-slot:actions>
+        <x-ui.button href="{{ route('laboratory.index') }}" variant="secondary"><x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>ត្រឡប់</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 <div class="row g-3">
 

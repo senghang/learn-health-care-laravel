@@ -2,12 +2,14 @@
 @section('title', 'រូបភាព / Imaging')
 
 @section('content')
-<x-page-header title="រូបភាពវេជ្ជសាស្ត្រ" subtitle="Imaging / Radiology"
+<x-ui.page-header
+    km="រូបភាពវេជ្ជសាស្ត្រ"
+    title="Imaging / Radiology"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Imaging']]">
-    <a href="{{ route('imagery.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg"></i> New Imaging Order
-    </a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('imagery.create') }}" variant="primary"><x-slot:icon><i class="bi bi-plus-lg"></i></x-slot:icon>New Imaging Order</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 {{-- Stats --}}
 <div class="row g-2 mb-3">
@@ -100,7 +102,7 @@
 @endforelse
 
 @if($imageries->hasPages())
-<div class="mt-3">{{ $imageries->links() }}</div>
+<div class="mt-3"><x-ui.pagination :paginator="$imageries"/></div>
 @endif
 
 @endsection

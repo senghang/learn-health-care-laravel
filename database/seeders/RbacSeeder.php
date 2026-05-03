@@ -5,10 +5,13 @@ namespace Database\Seeders;
 use App\Models\ClinicModel;
 use App\Models\PermissionModel;
 use App\Models\RoleModel;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class RbacSeeder extends Seeder
 {
+    use WithoutModelEvents;
+
     public function run(): void
     {
         $clinics = ClinicModel::all();

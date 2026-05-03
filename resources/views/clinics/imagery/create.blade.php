@@ -3,18 +3,22 @@
 
 @section('content')
 
-<x-page-header title="សំណើរូបភាពថ្មី" subtitle="New Imaging Order"
+<x-ui.page-header
+    km="សំណើរូបភាពថ្មី"
+    title="New Imaging Order"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Imaging','url'=>route('imagery.index')],['label'=>'New']]">
-    <a href="{{ route('imagery.index') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> ត្រឡប់</a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('imagery.index') }}" variant="secondary"><x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>ត្រឡប់</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if($errors->any())
-<div class="note note-danger mb-3">
+<x-ui.alert type="error" class="mb-4">
     <i class="bi bi-exclamation-triangle-fill"></i>
     <ul style="margin:0;padding-left:16px;font-size:12px">
         @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
     </ul>
-</div>
+</x-ui.alert>
 @endif
 
 <form method="POST" action="{{ route('imagery.store') }}" novalidate>

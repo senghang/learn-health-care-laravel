@@ -2,12 +2,14 @@
 @section('title', 'មន្ទីរពិសោធន៍ / Laboratory')
 
 @section('content')
-<x-page-header title="មន្ទីរពិសោធន៍" subtitle="Laboratory Orders"
+<x-ui.page-header
+    km="មន្ទីរពិសោធន៍"
+    title="Laboratory Orders"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Laboratory']]">
-    <a href="{{ route('laboratory.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-lg"></i> New Lab Order
-    </a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('laboratory.create') }}" variant="primary"><x-slot:icon><i class="bi bi-plus-lg"></i></x-slot:icon>New Lab Order</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 {{-- Stats --}}
 <div class="row g-2 mb-3">
@@ -99,15 +101,16 @@
   <i class="bi bi-chevron-right" style="color:#ddd;flex-shrink:0"></i>
 </div>
 @empty
-<div style="text-align:center;padding:56px 24px;color:#bbb">
-  <div style="font-size:48px;margin-bottom:12px;opacity:.3">🔬</div>
-  <div style="font-size:14px;font-weight:600;margin-bottom:8px">No lab orders found</div>
-  <a href="{{ route('laboratory.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Create Order</a>
+<div class="emr-empty">
+    <i class="bi bi-flask emr-empty-icon"></i>
+    <div class="emr-empty-title">No lab orders found</div>
+    <div class="emr-empty-sub">Lab orders are created during patient visits</div>
+    <a href="{{ route('laboratory.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> Create Order</a>
 </div>
 @endforelse
 
 @if($labs->hasPages())
-<div class="mt-3">{{ $labs->links() }}</div>
+<div class="mt-3"><x-ui.pagination :paginator="$labs"/></div>
 @endif
 
 @endsection

@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  *   Path B — StockService::dispense() [invoice path]
  *     ✓ medicines.stock  ✓ InventoryTransaction  ✗ Dispense  ✗ StockBalance
  *
- *   Path C — StockServiceV2::dispense()
+ *   Path C — StockService::dispenseByPrescription()
  *     ✓ medicines.stock  ✓ InventoryTransaction  ✓ Dispense  ✓ StockBalance
  *
  * This class unifies all paths into a single implementation that:

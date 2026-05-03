@@ -6,7 +6,6 @@ use App\Models\Base\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class RoleModel extends Model
 {
@@ -28,9 +27,10 @@ class RoleModel extends Model
         return $this->belongsToMany(PermissionModel::class, 'role_permission', 'role_id', 'permission_id');
     }
 
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class, 'role_id');
+        return $this->belongsToMany(User::class, 'user_roles', 'role_id', 'user_id')
+                    ->withPivot('assigned_at', 'assigned_by');
     }
 
     public function hasPermission(string $slug): bool

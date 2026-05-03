@@ -107,7 +107,7 @@
                 <div class="tb-av">{{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}</div>
                 <div class="tb-user-info d-none d-lg-block">
                     <div class="tb-user-name">{{ auth()->user()->name ?? 'User' }}</div>
-                    <div class="tb-user-role">{{ auth()->user()->role->name ?? 'Staff' }}</div>
+                    <div class="tb-user-role">{{ auth()->user()->roles->first()?->name ?? 'Staff' }}</div>
                 </div>
                 <i class="bi bi-chevron-down tb-user-chevron" id="userChevron"></i>
             </button>

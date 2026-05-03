@@ -254,5 +254,6 @@
             document.getElementById('sidebarOverlay')?.classList.remove('show');
         }
     });
+
 }());
 </script>

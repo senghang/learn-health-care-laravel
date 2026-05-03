@@ -2,26 +2,24 @@
 @section('title', 'Settings')
 @section('content')
 
-<x-page-header title="ការកំណត់" subtitle="Settings"
-    icon="bi-gear-fill"
-    :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Settings']]"/>
+<x-ui.page-header
+    km="ការកំណត់"
+    title="Settings"
+    :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Settings']]">
+</x-ui.page-header>
 
 @include('clinics.settings._subnav')
 
 @if(session('flash'))
-<div class="note note-success mb-3">
-    <i class="bi bi-check-circle-fill"></i>
-    <strong>{{ session('flash') }}</strong>
-</div>
+    <x-ui.alert type="success" class="mb-4">{{ session('flash') }}</x-ui.alert>
 @endif
 
 @if($errors->any())
-<div class="note note-danger mb-3">
-    <i class="bi bi-exclamation-triangle-fill"></i>
-    <ul style="margin:0;padding-left:16px">
-        @foreach($errors->all() as $e)<li style="font-size:12px">{{ $e }}</li>@endforeach
-    </ul>
-</div>
+    <x-ui.alert type="error" class="mb-4">
+        <ul class="list-disc list-inside text-xs space-y-0.5">
+            @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+        </ul>
+    </x-ui.alert>
 @endif
 
 <form method="POST" action="{{ route('settings.general.update') }}" enctype="multipart/form-data" id="settingsForm">
@@ -118,7 +116,6 @@
         </div>
         <div class="settings-card-bd">
             <div class="row g-3">
-
                 {{-- Language toggle --}}
                 <div class="col-12">
                     <div class="fld">

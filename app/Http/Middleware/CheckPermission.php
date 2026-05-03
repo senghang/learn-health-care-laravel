@@ -37,7 +37,7 @@ use Symfony\Component\HttpFoundation\Response;
  * PERMISSION FLOW:
  *
  *   Request → CheckPermission middleware
- *           → Auth::user()->role (RoleModel)
+ *           → Auth::user()->roles (BelongsToMany via user_roles)
  *           → role->permissions (pivot: role_permission)
  *           → PermissionModel->slug matches?
  *           → YES: proceed | NO: 403
@@ -58,18 +58,20 @@ class CheckPermission
             return redirect()->route('login');
         }
 
+        // Eager-load roles + permissions if not already loaded
+        if (!$user->relationLoaded('roles')) {
+            $user->load('roles.permissions');
+        } elseif ($user->roles->isNotEmpty() && !$user->roles->first()->relationLoaded('permissions')) {
+            $user->load('roles.permissions');
+        }
+
         // No role assigned — deny
-        if (!$user->role) {
+        if ($user->roles->isEmpty()) {
             abort(403, 'No role assigned. Contact your administrator.');
         }
 
-        // Eager-load permissions if not already loaded
-        if (!$user->role->relationLoaded('permissions')) {
-            $user->role->load('permissions');
-        }
-
-        // Check if user has ANY of the required permissions
-        $userSlugs = $user->role->permissions->pluck('slug');
+        // Collect all permission slugs across all user roles
+        $userSlugs = $user->roles->flatMap(fn($role) => $role->permissions->pluck('slug'));
 
         foreach ($permissions as $required) {
             if ($userSlugs->contains($required)) {

@@ -20,7 +20,19 @@
       "Bash(clinic)",
       "Bash(user)",
       "Bash(role \")",
-      "Bash(find D:/learn/learn-health-care-laravel/resources/css -type f -name *.css)"
+      "Bash(find D:/learn/learn-health-care-laravel/resources/css -type f -name *.css)",
+      "Bash(find /d/learn/learn-health-care-laravel/app/Http/Controllers -type f -name \"*.php\" -exec basename {})",
+      "Bash(xargs -I {} basename {})",
+      "Bash(python -c \"import json,sys; data=json.load\\(sys.stdin\\); print\\(data[0][''''text'''']\\)\")",
+      "Bash(grep -v \"\\\\.php:[0-9]*:.*''''[a-z_]*_by''''\\\\]$\\\\|fillable\\\\|comment\\\\|description\")",
+      "Bash(grep -v \"^$\")",
+      "Bash(cut -d'\\(' -f1)",
+      "Bash(grep:*)",
+      "Bash(npm run:*)",
+      "Bash(find /d/learn/learn-health-care-laravel/resources/lang/en -type f -name *.php)",
+      "Bash(find /d/learn/learn-health-care-laravel/resources/lang/km -type f -name *.php)",
+      "Bash(find D:/learn/learn-health-care-laravel/tests -name *.php)",
+      "Bash(cd:*)"
     ]
   }
 }

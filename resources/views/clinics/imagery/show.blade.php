@@ -9,10 +9,14 @@
     $cc = $catColors[$imagery->category] ?? '#aaa';
 @endphp
 
-<x-page-header title="រូបភាពវេជ្ជសាស្ត្រ" :subtitle="$imagery->code"
+<x-ui.page-header
+    km="រូបភាពវេជ្ជសាស្ត្រ"
+    title="{{ $imagery->code }}"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Imaging','url'=>route('imagery.index')],['label'=>$imagery->code]]">
-    <a href="{{ route('imagery.index') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> ត្រឡប់</a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('imagery.index') }}" variant="secondary"><x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>ត្រឡប់</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 <div class="row g-3">
 

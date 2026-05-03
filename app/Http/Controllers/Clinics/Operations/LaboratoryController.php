@@ -27,19 +27,19 @@ class LaboratoryController extends Controller
         return view('clinics.laboratory.index', compact('labs', 'stats'));
     }
 
-    public function show(string $code): View
-    {
-        $lab = $this->labService->findByCode($code);
-
-        return view('clinics.laboratory.show', compact('lab'));
-    }
-
     public function create(Request $request): View
     {
         return view('clinics.laboratory.create', [
             'patient_code' => $request->input('patient_code'),
             'visit_code'   => $request->input('visit_code'),
         ]);
+    }
+
+    public function show(string $code): View
+    {
+        $lab = $this->labService->findByCode($code);
+
+        return view('clinics.laboratory.show', compact('lab'));
     }
 
     public function store(StoreLabOrderRequest $request): RedirectResponse

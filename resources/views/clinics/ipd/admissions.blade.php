@@ -2,9 +2,11 @@
 @section('title', 'IPD — Admissions')
 @section('content')
 
-<x-page-header title="អ្នកជំងឺសម្រាក" subtitle="Inpatient Admissions"
+<x-ui.page-header
+    km="អ្នកជំងឺសម្រាក"
+    title="Inpatient Admissions"
     :breadcrumbs="[['label'=>'ដើម','url'=>route('dashboard')],['label'=>'IPD'],['label'=>'Admissions']]">
-</x-page-header>
+</x-ui.page-header>
 
 {{-- Flow Banner --}}
 <div class="flow-panel mb-3">
@@ -21,192 +23,183 @@
 </div>
 
 @if(session('flash'))
-<div class="note note-success mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('flash') }}</div>
+    <x-ui.alert type="success" class="mb-4">{{ session('flash') }}</x-ui.alert>
 @endif
 @if(session('flash_error'))
-<div class="note note-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('flash_error') }}</div>
+    <x-ui.alert type="error" class="mb-4">{{ session('flash_error') }}</x-ui.alert>
 @endif
 
 {{-- KPI Cards --}}
-<div class="row g-3 mb-3">
-    @foreach([
-        [$stats['active_admissions'],        'bi-hospital-fill',      '#4154f1','#eef0fd', 'សម្រាកនៅ',       'Active Admissions'],
-        [$stats['today_admissions'],         'bi-box-arrow-in-right', '#2eca6a','#e8f8ef', 'ថ្ងៃនេះចូល',     'Admitted Today'],
-        [$stats['today_discharges'],         'bi-box-arrow-right',    '#ff771d','#fff3e8', 'ថ្ងៃនេះចេញ',     'Discharged Today'],
-        [$stats['avg_length_of_stay'].'d',   'bi-calendar2-week',     '#9b59b6','#f5eeff', 'ថ្ងៃ​ជា​មធ្យម',   'Avg Stay (days)'],
-    ] as [$val,$icon,$col,$bg,$km,$en])
-    <div class="col-6 col-xl-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:{{ $bg }};color:{{ $col }}"><i class="bi {{ $icon }}"></i></div>
-            <div>
-                <div class="stat-num" style="color:{{ $col }};font-size:20px;font-weight:800">{{ $val }}</div>
-                <div class="stat-lbl">{{ $km }}<br><small style="color:#aaa">{{ $en }}</small></div>
-            </div>
-        </div>
-    </div>
-    @endforeach
+<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
+    <x-ui.stats-card km="សម្រាកនៅ" label="Active Admissions" :value="$stats['active_admissions']" icon="bi-hospital-fill" color="#4154f1" bg="#eef0fd"/>
+    <x-ui.stats-card km="ថ្ងៃនេះចូល" label="Admitted Today" :value="$stats['today_admissions']" icon="bi-box-arrow-in-right" color="#2eca6a" bg="#e8f8ef"/>
+    <x-ui.stats-card km="ថ្ងៃនេះចេញ" label="Discharged Today" :value="$stats['today_discharges']" icon="bi-box-arrow-right" color="#ff771d" bg="#fff3e8"/>
+    <x-ui.stats-card km="ថ្ងៃ​ជា​មធ្យម" :label="'Avg Stay: '.$stats['avg_length_of_stay'].'d'" :value="$stats['avg_length_of_stay'].'d'" icon="bi-calendar2-week" color="#9b59b6" bg="#f5eeff"/>
 </div>
 
 {{-- Filter --}}
-<div class="card-emr mb-3">
-    <div class="card-hd">
-        <div class="card-hd-title"><i class="bi bi-funnel-fill"></i> Filter</div>
+<x-ui.card class="mb-4" :noPadding="false">
+    <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-[#012970] flex items-center gap-1.5">
+            <i class="bi bi-funnel-fill text-[#4154f1]"></i> Filter
+        </span>
         @if(request()->hasAny(['search','status','ward_id','date']))
-        <a href="{{ route('admissions.index') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-x-circle"></i> Clear
-        </a>
+            <x-ui.button href="{{ route('admissions.index') }}" variant="secondary" size="sm">
+                <x-slot:icon><i class="bi bi-x-circle"></i></x-slot:icon>
+                Clear
+            </x-ui.button>
         @endif
     </div>
-    <div class="card-bd">
-        <form method="GET" action="{{ route('admissions.index') }}">
-            <div class="row g-2 align-items-end">
-                <div class="col-12 col-sm-4">
-                    <input type="text" name="search" class="form-control"
-                           placeholder="Search code, patient name…" value="{{ request('search') }}" autofocus/>
-                </div>
-                <div class="col-6 col-sm-2">
-                    <select name="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="admitted"    {{ request('status')==='admitted'   ?'selected':'' }}>🟢 Admitted</option>
-                        <option value="discharged"  {{ request('status')==='discharged' ?'selected':'' }}>🔵 Discharged</option>
-                        <option value="transferred" {{ request('status')==='transferred'?'selected':'' }}>🟠 Transferred</option>
-                        <option value="deceased"    {{ request('status')==='deceased'   ?'selected':'' }}>⚫ Deceased</option>
-                        <option value="cancelled"   {{ request('status')==='cancelled'  ?'selected':'' }}>🔴 Cancelled</option>
-                    </select>
-                </div>
-                <div class="col-6 col-sm-2">
-                    <select name="ward_id" class="form-select">
-                        <option value="">All Wards</option>
-                        @foreach($wards as $ward)
-                        <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected':'' }}>{{ $ward->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-6 col-sm-2">
-                    <input type="date" name="date" class="form-control" value="{{ request('date') }}"
-                           title="Filter by admission date"/>
-                </div>
-                <div class="col-auto">
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
-                </div>
+    <form method="GET" action="{{ route('admissions.index') }}">
+        <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
+            <div class="flex-1 min-w-0">
+                <input type="text" name="search"
+                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#94a3b8] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                       placeholder="Search code, patient name…" value="{{ request('search') }}" autofocus/>
             </div>
-        </form>
-    </div>
-</div>
+            <div class="sm:w-40">
+                <select name="status" class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 appearance-none">
+                    <option value="">All Status</option>
+                    <option value="admitted"    {{ request('status')==='admitted'   ?'selected':'' }}>🟢 Admitted</option>
+                    <option value="discharged"  {{ request('status')==='discharged' ?'selected':'' }}>🔵 Discharged</option>
+                    <option value="transferred" {{ request('status')==='transferred'?'selected':'' }}>🟠 Transferred</option>
+                    <option value="deceased"    {{ request('status')==='deceased'   ?'selected':'' }}>⚫ Deceased</option>
+                    <option value="cancelled"   {{ request('status')==='cancelled'  ?'selected':'' }}>🔴 Cancelled</option>
+                </select>
+            </div>
+            <div class="sm:w-44">
+                <select name="ward_id" class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 appearance-none">
+                    <option value="">All Wards</option>
+                    @foreach($wards as $ward)
+                    <option value="{{ $ward->id }}" {{ request('ward_id') == $ward->id ? 'selected':'' }}>{{ $ward->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="sm:w-40">
+                <input type="date" name="date"
+                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                       value="{{ request('date') }}" title="Filter by admission date"/>
+            </div>
+            <x-ui.button type="submit" variant="primary">
+                <x-slot:icon><i class="bi bi-search"></i></x-slot:icon>
+                Search
+            </x-ui.button>
+        </div>
+    </form>
+</x-ui.card>
 
 {{-- Table --}}
-<div class="card-emr">
-    <div class="card-hd">
-        <div class="card-hd-title">
-            <i class="bi bi-hospital"></i> Admission List
-            <span style="font-size:11px;background:#eef0fd;color:#4154f1;padding:1px 8px;border-radius:8px;font-weight:700;margin-left:6px">
-                {{ $admissions->total() }}
-            </span>
-        </div>
-        <span style="font-size:11px;color:#aaa">Click a row to open details</span>
-    </div>
-    <div class="card-bd" style="padding:0">
-        <div class="table-responsive">
-            <table class="tbl">
-                <thead>
-                    <tr>
-                        <th>Code</th>
-                        <th>Patient</th>
-                        <th>Ward / Bed</th>
-                        <th>Type</th>
-                        <th>Attending</th>
-                        <th>Admitted</th>
-                        <th>LOS</th>
-                        <th>Status</th>
-                        <th style="text-align:right;padding-right:16px">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @forelse($admissions as $adm)
-                @php
-                    $isAdmitted = $adm->status === 'admitted';
-                    $statusMeta = [
-                        'admitted'    => ['#e8f8ef','#2eca6a', 'bi-check-circle-fill',   'Admitted'],
-                        'discharged'  => ['#f0f2ff','#4154f1', 'bi-box-arrow-right',      'Discharged'],
-                        'transferred' => ['#fff3e8','#ff771d', 'bi-arrow-left-right',     'Transferred'],
-                        'deceased'    => ['#f5f5f5','#666',    'bi-x-circle-fill',        'Deceased'],
-                        'cancelled'   => ['#fde8e8','#e74c3c', 'bi-slash-circle-fill',   'Cancelled'],
-                    ];
-                    [$sbg, $scol, $sicon, $slabel] = $statusMeta[$adm->status] ?? ['#f5f5f5','#888','bi-circle','Unknown'];
-                    $los = $adm->length_of_stay ?? 0;
-                    $overdueStyle = $isAdmitted && $adm->expected_discharge_at?->isPast() ? 'color:#e74c3c;font-weight:700' : '';
-                @endphp
-                <tr style="cursor:pointer" onclick="location.href='{{ route('admissions.show', $adm->code) }}'">
-                    <td>
-                        <code style="color:#4154f1;font-size:11px">{{ $adm->code }}</code>
-                        @if($isAdmitted && $adm->expected_discharge_at?->isPast())
-                        <span title="Expected discharge date passed" style="font-size:10px;color:#e74c3c;margin-left:4px">
-                            <i class="bi bi-alarm-fill"></i>
-                        </span>
-                        @endif
-                    </td>
-                    <td>
-                        <div style="font-weight:700;color:#012970;font-size:13px">
-                            {{ $adm->patient?->surname }} {{ $adm->patient?->name }}
-                        </div>
-                        <div style="font-size:10.5px;color:#aaa">{{ $adm->patient_code }}</div>
-                    </td>
-                    <td>
-                        <div style="font-size:12px;color:#444;font-weight:600">{{ $adm->ward?->name ?? '—' }}</div>
-                        @if($adm->bed)
-                        <div style="font-size:10.5px;color:#aaa">
-                            <i class="bi bi-hospital" style="font-size:9px"></i> {{ $adm->bed->name }}
-                        </div>
-                        @endif
-                    </td>
-                    <td>
-                        @if($adm->admission_type)
-                        <span style="font-size:10.5px;background:#f0f2ff;color:#4154f1;padding:2px 9px;border-radius:8px">{{ $adm->admission_type }}</span>
-                        @else<span style="color:#bbb">—</span>@endif
-                    </td>
-                    <td style="font-size:12px;color:#555">{{ $adm->attending_doctor ?? '—' }}</td>
-                    <td>
-                        <div style="font-size:12px;font-weight:600">{{ $adm->admitted_at?->format('d M Y') }}</div>
-                        <div style="font-size:10px;color:#aaa">{{ $adm->admitted_at?->format('H:i') }}</div>
-                    </td>
-                    <td>
-                        <span style="font-weight:800;font-size:14px;{{ $overdueStyle ?: 'color:'.($isAdmitted ? '#2eca6a':'#888') }}">
-                            {{ $los }}d
-                        </span>
-                    </td>
-                    <td>
-                        <span style="font-size:10.5px;background:{{ $sbg }};color:{{ $scol }};padding:3px 10px;border-radius:8px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:5px">
-                            <i class="bi {{ $sicon }}" style="font-size:9px"></i> {{ $slabel }}
-                        </span>
-                    </td>
-                    <td onclick="event.stopPropagation()" style="text-align:right;padding-right:12px">
-                        <a href="{{ route('admissions.show', $adm->code) }}"
-                           class="btn btn-sm btn-outline-primary" title="View details">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="9" style="text-align:center;padding:50px;color:#bbb">
-                        <div style="font-size:40px;margin-bottom:10px;opacity:.25">🏥</div>
-                        <div style="font-size:14px;color:#ccc">No admissions found</div>
-                        @if(request()->hasAny(['search','status','ward_id','date']))
-                        <a href="{{ route('admissions.index') }}" class="btn btn-sm btn-outline-secondary mt-3">
-                            <i class="bi bi-x-circle"></i> Clear filters
-                        </a>
-                        @endif
-                    </td>
-                </tr>
-                @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+<x-ui.card>
+    <x-slot:header>
+        <x-ui.card-header km="បញ្ជីចូលសម្រាក" label="Admission List" icon="bi-hospital" :count="$admissions->total()">
+            <x-slot:actions>
+                <span class="text-[11px] text-[#94a3b8]">Click a row to open details</span>
+            </x-slot:actions>
+        </x-ui.card-header>
+    </x-slot:header>
 
-@if($admissions->hasPages())
-<div class="mt-3 d-flex justify-content-center">{{ $admissions->links() }}</div>
-@endif
+    <x-ui.table>
+        <x-slot:head>
+            <tr>
+                <x-ui.table-th>Code</x-ui.table-th>
+                <x-ui.table-th>Patient</x-ui.table-th>
+                <x-ui.table-th>Ward / Bed</x-ui.table-th>
+                <x-ui.table-th>Type</x-ui.table-th>
+                <x-ui.table-th>Attending</x-ui.table-th>
+                <x-ui.table-th>Admitted</x-ui.table-th>
+                <x-ui.table-th>LOS</x-ui.table-th>
+                <x-ui.table-th>Status</x-ui.table-th>
+                <x-ui.table-th align="right">Action</x-ui.table-th>
+            </tr>
+        </x-slot:head>
+        <x-slot:body>
+        @forelse($admissions as $adm)
+        @php
+            $isAdmitted = $adm->status === 'admitted';
+            $statusMeta = [
+                'admitted'    => ['success',    'Admitted'],
+                'discharged'  => ['primary',    'Discharged'],
+                'transferred' => ['warning',    'Transferred'],
+                'deceased'    => ['secondary',  'Deceased'],
+                'cancelled'   => ['danger',     'Cancelled'],
+            ];
+            [$sVariant, $sLabel] = $statusMeta[$adm->status] ?? ['secondary', 'Unknown'];
+            $los = $adm->length_of_stay ?? 0;
+            $overdueStyle = $isAdmitted && $adm->expected_discharge_at?->isPast() ? 'color:#e74c3c;font-weight:700' : '';
+        @endphp
+        <tr class="cursor-pointer hover:bg-[#fafbff] transition-colors" onclick="location.href='{{ route('admissions.show', $adm->code) }}'">
+            <x-ui.table-td>
+                <code class="text-[#4154f1] text-[11px]">{{ $adm->code }}</code>
+                @if($isAdmitted && $adm->expected_discharge_at?->isPast())
+                    <span title="Expected discharge date passed" class="text-[#e74c3c] ml-1 text-[10px]">
+                        <i class="bi bi-alarm-fill"></i>
+                    </span>
+                @endif
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <div class="font-bold text-[#012970] text-sm">
+                    {{ $adm->patient?->surname }} {{ $adm->patient?->name }}
+                </div>
+                <div class="text-[10.5px] text-[#94a3b8]">{{ $adm->patient_code }}</div>
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <div class="text-xs text-[#444] font-semibold">{{ $adm->ward?->name ?? '—' }}</div>
+                @if($adm->bed)
+                    <div class="text-[10.5px] text-[#94a3b8]">
+                        <i class="bi bi-hospital text-[9px]"></i> {{ $adm->bed->name }}
+                    </div>
+                @endif
+            </x-ui.table-td>
+            <x-ui.table-td>
+                @if($adm->admission_type)
+                    <x-ui.badge variant="primary" size="sm">{{ $adm->admission_type }}</x-ui.badge>
+                @else
+                    <span class="text-[#bbb]">—</span>
+                @endif
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <span class="text-xs text-[#555]">{{ $adm->attending_doctor ?? '—' }}</span>
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <div class="text-xs font-semibold">{{ $adm->admitted_at?->format('d M Y') }}</div>
+                <div class="text-[10px] text-[#94a3b8]">{{ $adm->admitted_at?->format('H:i') }}</div>
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <span class="font-black text-sm" style="{{ $overdueStyle ?: 'color:'.($isAdmitted ? '#2eca6a':'#888') }}">
+                    {{ $los }}d
+                </span>
+            </x-ui.table-td>
+            <x-ui.table-td>
+                <x-ui.badge :variant="$sVariant" size="sm">{{ $sLabel }}</x-ui.badge>
+            </x-ui.table-td>
+            <x-ui.table-td align="right">
+                <div onclick="event.stopPropagation()">
+                    <x-ui.button href="{{ route('admissions.show', $adm->code) }}" variant="ghost" size="sm">
+                        <x-slot:icon><i class="bi bi-eye"></i></x-slot:icon>
+                    </x-ui.button>
+                </div>
+            </x-ui.table-td>
+        </tr>
+        @empty
+        <tr>
+            <td colspan="9">
+                <x-ui.empty-state icon="bi-hospital" title="No admissions found"
+                    :description="request()->hasAny(['search','status','ward_id','date']) ? 'Try adjusting your filters.' : 'No admissions have been recorded yet.'"
+                    compact>
+                    @if(request()->hasAny(['search','status','ward_id','date']))
+                        <x-ui.button href="{{ route('admissions.index') }}" variant="secondary" size="sm">
+                            <x-slot:icon><i class="bi bi-x-circle"></i></x-slot:icon>
+                            Clear filters
+                        </x-ui.button>
+                    @endif
+                </x-ui.empty-state>
+            </td>
+        </tr>
+        @endforelse
+        </x-slot:body>
+    </x-ui.table>
+</x-ui.card>
+
+<x-ui.pagination :paginator="$admissions" class="mt-4"/>
 
 @endsection

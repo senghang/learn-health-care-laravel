@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Clinics\Operations;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreImagingOrderRequest;
 use App\Services\ImageryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,13 +27,6 @@ class ImageryController extends Controller
         return view('clinics.imagery.index', compact('imageries', 'stats'));
     }
 
-    public function show(string $code): View
-    {
-        $imagery = $this->imageryService->findByCode($code);
-
-        return view('clinics.imagery.show', compact('imagery'));
-    }
-
     public function create(Request $request): View
     {
         return view('clinics.imagery.create', [
@@ -41,18 +35,16 @@ class ImageryController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function show(string $code): View
     {
-        $data = $request->validate([
-            'patient_code' => 'required|string|exists:patients,code',
-            'visit_code'   => 'required|string|exists:visits,code',
-            'category'     => 'required|string|max:80',
-            'title'        => 'nullable|string|max:200',
-            'urgency'      => 'nullable|in:normal,urgent,stat',
-            'requested_by' => 'nullable|string|max:120',
-        ]);
+        $imagery = $this->imageryService->findByCode($code);
 
-        $imagery = $this->imageryService->createOrder($data);
+        return view('clinics.imagery.show', compact('imagery'));
+    }
+
+    public function store(StoreImagingOrderRequest $request): RedirectResponse
+    {
+        $imagery = $this->imageryService->createOrder($request->validated());
 
         return redirect()->route('imagery.show', $imagery->code)
             ->with('flash', "Imaging order {$imagery->code} created.");

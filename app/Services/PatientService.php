@@ -70,8 +70,11 @@ class PatientService
             ->with([
                 'address',
                 'identifications',
-                'contacts' => fn($q) => $q->orderByDesc('is_emergency'),
-                'visits'   => fn($q) => $q->latest('admitted_at')->limit(10),
+                'contacts'      => fn($q) => $q->orderByDesc('is_emergency'),
+                'visits'        => fn($q) => $q->latest('admitted_at')->limit(20),
+                'prescriptions' => fn($q) => $q->latest()->limit(20),
+                'laboratories'  => fn($q) => $q->latest()->limit(20),
+                'invoices'      => fn($q) => $q->latest()->limit(20),
             ])
             ->withCount('visits')
             ->firstOrFail();

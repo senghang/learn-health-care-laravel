@@ -400,7 +400,7 @@ class AdmissionService
             'today_discharges'    => AdmissionModel::where('clinic_id', $clinicId)->whereDate('discharged_at', today())->count(),
             'avg_length_of_stay'  => (int) round(
                 AdmissionModel::where('clinic_id', $clinicId)->discharged()
-                    ->selectRaw('AVG(TIMESTAMPDIFF(DAY, admitted_at, discharged_at)) as avg_days')
+                    ->selectRaw('AVG(EXTRACT(EPOCH FROM (discharged_at - admitted_at)) / 86400) as avg_days')
                     ->value('avg_days') ?? 0
             ),
         ];

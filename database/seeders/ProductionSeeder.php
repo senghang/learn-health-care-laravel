@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\ClinicSettingModel;
 use App\Models\PrintTemplateModel;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,21 +15,25 @@ use Illuminate\Support\Facades\DB;
  *   1. Default clinic settings (locale, timezone, currency)
  *   2. Default print templates for prescription and invoice (KH + EN)
  *
- * Run after ClinicSeeder:
- *   php artisan db:seed --class=ProductionSeeder
- *
- * Or chain in DatabaseSeeder:
- *   $this->call(ProductionSeeder::class);
+ * Run after ClinicSeeder + UserTableSeeder so created_by can reference user id=1.
  */
 class ProductionSeeder extends Seeder
 {
+    use WithoutModelEvents;
+
     public function run(): void
     {
         $clinics = DB::table('clinics')->get();
 
         foreach ($clinics as $clinic) {
+            // Resolve the admin user for this clinic (created_by audit field)
+            $adminUserId = DB::table('users')
+                ->where('clinic_id', $clinic->id)
+                ->orderBy('id')
+                ->value('id');
+
             $this->seedSettings($clinic->id);
-            $this->seedPrintTemplates($clinic->id, $clinic->name);
+            $this->seedPrintTemplates($clinic->id, $clinic->name, $adminUserId);
         }
 
         $this->command->info('ProductionSeeder: seeded ' . $clinics->count() . ' clinic(s).');
@@ -41,7 +46,7 @@ class ProductionSeeder extends Seeder
         $defaults = [
             ['key' => 'default_locale',    'value' => 'km'],
             ['key' => 'timezone',          'value' => 'Asia/Phnom_Penh'],
-            ['key' => 'currency',          'value' => 'KHR'],
+            ['key' => 'currency',          'value' => 'USD'],
             ['key' => 'date_format',       'value' => 'd/m/Y'],
             ['key' => 'invoice.footer',    'value' => 'សូមអរគុណ! / Thank you!'],
             ['key' => 'prescription.note', 'value' => 'ប្រើតាមវេជ្ជបញ្ជា / Take as prescribed'],
@@ -57,7 +62,7 @@ class ProductionSeeder extends Seeder
 
     // ── Print templates ───────────────────────────────────────────────────────
 
-    private function seedPrintTemplates(int $clinicId, string $clinicName): void
+    private function seedPrintTemplates(int $clinicId, string $clinicName, ?int $createdBy = null): void
     {
         $templates = [
             // ── Prescription KH ──────────────────────────────────────────────
@@ -113,7 +118,12 @@ class ProductionSeeder extends Seeder
         foreach ($templates as $t) {
             PrintTemplateModel::firstOrCreate(
                 ['code' => $t['code']],
-                array_merge($t, ['clinic_id' => $clinicId, 'is_active' => true])
+                array_merge($t, [
+                    'clinic_id'  => $clinicId,
+                    'is_active'  => true,
+                    'created_by' => $createdBy,
+                    'updated_by' => $createdBy,
+                ])
             );
         }
     }

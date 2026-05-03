@@ -3,197 +3,195 @@
 @section('content')
 
 @php
-    $statusMap = [
-        'active'     => ['#2eca6a','#e8f8ef','Active'],
-        'inactive'   => ['#aaa','#f5f5f5','Inactive'],
-        'on_leave'   => ['#ff771d','#fff3e8','On Leave'],
-        'terminated' => ['#e74c3c','#fde8e8','Terminated'],
-    ];
-    [$sc,$sb,$sl] = $statusMap[$employee->status ?? 'inactive'] ?? ['#aaa','#f5f5f5',ucfirst($employee->status)];
-
-    $typeColors = [
-        'doctor'     => '#e91e8c',
-        'nurse'      => '#2eca6a',
-        'pharmacist' => '#9b59b6',
-        'lab_tech'   => '#00bcd4',
-        'admin'      => '#4154f1',
-    ];
+    $typeColors = ['doctor'=>'#e91e8c','nurse'=>'#2eca6a','pharmacist'=>'#9b59b6','lab_tech'=>'#00bcd4','admin'=>'#4154f1'];
     $typeColor = $typeColors[$employee->employee_type] ?? '#aaa';
+    $statusVariant = match($employee->status ?? 'inactive') {
+        'active'     => 'success',
+        'on_leave'   => 'warning',
+        'terminated' => 'danger',
+        default      => 'secondary',
+    };
+    $statusLabel = match($employee->status ?? 'inactive') {
+        'active'     => 'Active',
+        'on_leave'   => 'On Leave',
+        'terminated' => 'Terminated',
+        default      => 'Inactive',
+    };
 @endphp
 
-<x-page-header
-    :title="$employee->surname . ', ' . $employee->name"
-    subtitle="Employee Profile"
+<x-ui.page-header
+    :km="$employee->surname.', '.$employee->name"
+    title="Employee Profile"
     :breadcrumbs="[
         ['label'=>__('app.home'),'url'=>route('dashboard')],
         ['label'=>'Employees','url'=>route('employees.index')],
         ['label'=>$employee->code],
     ]">
-    <span style="background:{{ $sb }};color:{{ $sc }};padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;border:1px solid {{ $sc }}44">{{ $sl }}</span>
-    <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-outline-warning btn-sm">
-        <i class="bi bi-pencil-fill"></i> Edit
-    </a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('employees.edit', $employee->id) }}" variant="warning">
+            <x-slot:icon><i class="bi bi-pencil-fill"></i></x-slot:icon>
+            Edit
+        </x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if(session('flash'))
-    <div class="note note-success mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('flash') }}</div>
+    <x-ui.alert type="success" class="mb-4">{{ session('flash') }}</x-ui.alert>
 @endif
 
 <div class="row g-3">
 
 {{-- Profile Card --}}
 <div class="col-12 col-lg-4">
-    <div class="card-emr mb-3">
-        <div class="card-hd" style="background:#f6f9ff">
-            <div class="card-hd-title"><i class="bi bi-person-circle" style="color:#4154f1"></i> Profile</div>
-            <code style="font-size:11px;color:#4154f1;background:#eef0fd;padding:2px 8px;border-radius:6px">{{ $employee->code }}</code>
-        </div>
-        <div class="card-bd" style="text-align:center;padding-top:20px">
-            {{-- Avatar placeholder --}}
-            <div style="width:80px;height:80px;border-radius:50%;background:#eef0fd;color:#4154f1;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header label="Profile" icon="bi-person-circle">
+                <x-slot:actions>
+                    <code class="text-[11px] text-[#4154f1] bg-[#eef0fd] px-2 py-0.5 rounded">{{ $employee->code }}</code>
+                </x-slot:actions>
+            </x-ui.card-header>
+        </x-slot:header>
+        <div class="text-center pt-2">
+            <div class="w-20 h-20 rounded-full bg-[#eef0fd] text-[#4154f1] text-3xl font-bold flex items-center justify-center mx-auto mb-3">
                 {{ strtoupper(substr($employee->surname,0,1).substr($employee->name,0,1)) }}
             </div>
-            <div style="font-size:18px;font-weight:800;color:#012970">{{ $employee->surname }}, {{ $employee->name }}</div>
+            <div class="text-lg font-black text-[#012970]">{{ $employee->surname }}, {{ $employee->name }}</div>
             @if($employee->name_kh)
-                <div style="font-size:13px;color:#aaa">{{ $employee->name_kh }}</div>
+                <div class="text-sm text-[#94a3b8] mt-0.5">{{ $employee->name_kh }}</div>
             @endif
-            <div style="margin-top:8px">
-                <span style="font-size:11px;padding:3px 12px;border-radius:12px;font-weight:700;background:{{ $typeColor }}22;color:{{ $typeColor }}">
+            <div class="mt-2">
+                <span class="text-[11px] px-3 py-1 rounded-xl font-bold" style="background:{{ $typeColor }}22;color:{{ $typeColor }}">
                     {{ ucfirst(str_replace('_',' ',$employee->employee_type)) }}
                 </span>
             </div>
             @if($employee->specialization)
-                <div style="font-size:12px;color:#888;margin-top:6px;font-style:italic">{{ $employee->specialization }}</div>
+                <div class="text-xs text-[#888] mt-1.5 italic">{{ $employee->specialization }}</div>
             @endif
         </div>
-    </div>
+    </x-ui.card>
 
     {{-- Contact --}}
-    <div class="card-emr mb-3">
-        <div class="card-hd"><div class="card-hd-title"><i class="bi bi-telephone-fill" style="color:#2eca6a"></i> Contact</div></div>
-        <div class="card-bd">
-            @foreach([
-                ['bi-telephone-fill','#2eca6a', $employee->phone ?? '—'],
-                ['bi-envelope-fill', '#4154f1', $employee->email ?? '—'],
-            ] as [$ico,$col,$val])
-            <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f5f6ff">
-                <i class="bi {{ $ico }}" style="color:{{ $col }};font-size:14px;width:18px;text-align:center"></i>
-                <span style="font-size:13px;color:#012970">{{ $val }}</span>
-            </div>
-            @endforeach
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header label="Contact" icon="bi-telephone-fill"/>
+        </x-slot:header>
+        @foreach([['bi-telephone-fill','#2eca6a',$employee->phone ?? '—'],['bi-envelope-fill','#4154f1',$employee->email ?? '—']] as [$ico,$col,$val])
+        <div class="flex items-center gap-2.5 py-2 border-b border-[#f5f6ff]">
+            <i class="bi {{ $ico }} w-5 text-center" style="color:{{ $col }};font-size:14px"></i>
+            <span class="text-sm text-[#012970]">{{ $val }}</span>
         </div>
-    </div>
+        @endforeach
+    </x-ui.card>
 
     {{-- User Account --}}
-    <div class="card-emr">
-        <div class="card-hd"><div class="card-hd-title"><i class="bi bi-person-lock-fill" style="color:#9b59b6"></i> System Account</div></div>
-        <div class="card-bd">
-            @if($employee->user)
-            <div style="padding:10px;background:#f5eeff;border-radius:8px">
-                <div style="font-weight:700;color:#9b59b6;font-size:13px">{{ $employee->user->name }}</div>
-                <div style="font-size:11px;color:#aaa">{{ $employee->user->email }}</div>
-                <div style="font-size:10.5px;margin-top:6px">
-                    <span style="background:{{ $employee->user->is_active?'#e8f8ef':'#fde8e8' }};color:{{ $employee->user->is_active?'#2eca6a':'#e74c3c' }};padding:2px 8px;border-radius:8px;font-weight:700">
-                        {{ $employee->user->is_active ? 'Active' : 'Inactive' }}
-                    </span>
-                    @if($employee->user->role)
-                        <span style="background:#eef0fd;color:#4154f1;padding:2px 8px;border-radius:8px;font-weight:700;margin-left:4px">{{ $employee->user->role->name }}</span>
-                    @endif
-                </div>
+    <x-ui.card>
+        <x-slot:header>
+            <x-ui.card-header label="System Account" icon="bi-person-lock-fill"/>
+        </x-slot:header>
+        @if($employee->user)
+        <div class="p-2.5 bg-[#f5eeff] rounded-lg">
+            <div class="font-bold text-[#9b59b6] text-sm">{{ $employee->user->name }}</div>
+            <div class="text-[11px] text-[#94a3b8]">{{ $employee->user->email }}</div>
+            <div class="flex gap-1.5 mt-1.5">
+                <x-ui.badge :variant="$employee->user->is_active ? 'success' : 'danger'" size="sm">
+                    {{ $employee->user->is_active ? 'Active' : 'Inactive' }}
+                </x-ui.badge>
+                @if($employee->user->roles->first())
+                    <x-ui.badge variant="primary" size="sm">{{ $employee->user->roles->first()->name }}</x-ui.badge>
+                @endif
             </div>
-            @else
-            <div style="text-align:center;padding:12px;color:#aaa;font-size:12px">
-                <i class="bi bi-person-x" style="font-size:24px;display:block;margin-bottom:6px;opacity:.4"></i>
-                No system account linked.
-                <div style="margin-top:8px">
-                    <a href="{{ route('users.create') }}?employee_id={{ $employee->id }}" class="btn btn-outline-primary btn-sm" style="font-size:11px">
-                        <i class="bi bi-person-plus-fill"></i> Create Account
-                    </a>
-                </div>
-            </div>
-            @endif
         </div>
-    </div>
+        @else
+        <div class="text-center py-3 text-[#94a3b8]">
+            <i class="bi bi-person-x text-2xl block mb-1.5 opacity-40"></i>
+            <div class="text-xs mb-2">No system account linked.</div>
+            <x-ui.button href="{{ route('users.create') }}?employee_id={{ $employee->id }}" variant="ghost" size="sm">
+                <x-slot:icon><i class="bi bi-person-plus-fill"></i></x-slot:icon>
+                Create Account
+            </x-ui.button>
+        </div>
+        @endif
+    </x-ui.card>
 </div>
 
 {{-- Details --}}
 <div class="col-12 col-lg-8">
 
     {{-- Employment Info --}}
-    <div class="card-emr mb-3">
-        <div class="card-hd" style="background:#f0fcff">
-            <div class="card-hd-title"><i class="bi bi-briefcase-fill" style="color:#00bcd4"></i> Employment</div>
-        </div>
-        <div class="card-bd">
-            <div class="row g-3">
-                @foreach([
-                    ['Employee Code',  $employee->code],
-                    ['Type',           ucfirst(str_replace('_',' ',$employee->employee_type ?? '—'))],
-                    ['Department',     $employee->department?->name ?? '—'],
-                    ['Specialization', $employee->specialization ?? '—'],
-                    ['License No.',    $employee->license_number ?? '—'],
-                    ['Hire Date',      $employee->hire_date?->format('d/m/Y') ?? '—'],
-                    ['End Date',       $employee->end_date?->format('d/m/Y') ?? '—'],
-                    ['Status',         $sl],
-                ] as [$label, $val])
-                <div class="col-6 col-md-3">
-                    <div style="font-size:10.5px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">{{ $label }}</div>
-                    <div style="font-weight:600;color:#012970;font-size:13px">{{ $val }}</div>
-                </div>
-                @endforeach
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header label="Employment" icon="bi-briefcase-fill"/>
+        </x-slot:header>
+        <div class="row g-3">
+            @foreach([
+                ['Employee Code',  $employee->code],
+                ['Type',           ucfirst(str_replace('_',' ',$employee->employee_type ?? '—'))],
+                ['Department',     $employee->department?->name ?? '—'],
+                ['Specialization', $employee->specialization ?? '—'],
+                ['License No.',    $employee->license_number ?? '—'],
+                ['Hire Date',      $employee->hire_date?->format('d/m/Y') ?? '—'],
+                ['End Date',       $employee->end_date?->format('d/m/Y') ?? '—'],
+                ['Status',         $statusLabel],
+            ] as [$label, $val])
+            <div class="col-6 col-md-3">
+                <div class="text-[10.5px] text-[#94a3b8] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
+                <div class="font-semibold text-[#012970] text-sm">{{ $val }}</div>
             </div>
+            @endforeach
         </div>
-    </div>
+    </x-ui.card>
 
     {{-- Personal Info --}}
-    <div class="card-emr mb-3">
-        <div class="card-hd">
-            <div class="card-hd-title"><i class="bi bi-person-vcard-fill" style="color:#4154f1"></i> Personal</div>
-        </div>
-        <div class="card-bd">
-            <div class="row g-3">
-                @foreach([
-                    ['Gender',    $employee->gender === 'M' ? 'Male' : ($employee->gender === 'F' ? 'Female' : '—')],
-                    ['Birthdate', $employee->birthdate?->format('d/m/Y') ?? '—'],
-                    ['Phone',     $employee->phone ?? '—'],
-                    ['Email',     $employee->email ?? '—'],
-                ] as [$label, $val])
-                <div class="col-6 col-sm-3">
-                    <div style="font-size:10.5px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">{{ $label }}</div>
-                    <div style="font-weight:600;color:#012970;font-size:13px">{{ $val }}</div>
-                </div>
-                @endforeach
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header label="Personal" icon="bi-person-vcard-fill"/>
+        </x-slot:header>
+        <div class="row g-3">
+            @foreach([
+                ['Gender',    $employee->gender === 'M' ? 'Male' : ($employee->gender === 'F' ? 'Female' : '—')],
+                ['Birthdate', $employee->birthdate?->format('d/m/Y') ?? '—'],
+                ['Phone',     $employee->phone ?? '—'],
+                ['Email',     $employee->email ?? '—'],
+            ] as [$label, $val])
+            <div class="col-6 col-sm-3">
+                <div class="text-[10.5px] text-[#94a3b8] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
+                <div class="font-semibold text-[#012970] text-sm">{{ $val }}</div>
             </div>
+            @endforeach
         </div>
-    </div>
+    </x-ui.card>
 
     {{-- Actions --}}
-    <div class="card-emr">
-        <div class="card-hd"><div class="card-hd-title"><i class="bi bi-gear-fill" style="color:#555"></i> Actions</div></div>
-        <div class="card-bd">
-            <div class="d-flex gap-2 flex-wrap">
-                <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-warning btn-sm">
-                    <i class="bi bi-pencil-fill"></i> Edit
-                </a>
-                <a href="{{ route('employees.index') }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left"></i> Back to List
-                </a>
-                @if(!$employee->user)
-                <a href="{{ route('users.create') }}?employee_id={{ $employee->id }}" class="btn btn-outline-primary btn-sm">
-                    <i class="bi bi-person-plus-fill"></i> Create User Account
-                </a>
-                @endif
-                <form method="POST" action="{{ route('employees.destroy', $employee->id) }}"
-                      data-confirm="Permanently delete {{ $employee->surname }}, {{ $employee->name }}? This cannot be undone."
-                      data-confirm-type="danger" data-confirm-title="Delete Employee">
-                    @csrf @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                        <i class="bi bi-trash3-fill"></i> Delete
-                    </button>
-                </form>
-            </div>
+    <x-ui.card>
+        <x-slot:header>
+            <x-ui.card-header label="Actions" icon="bi-gear-fill"/>
+        </x-slot:header>
+        <div class="flex gap-2 flex-wrap">
+            <x-ui.button href="{{ route('employees.edit', $employee->id) }}" variant="warning">
+                <x-slot:icon><i class="bi bi-pencil-fill"></i></x-slot:icon>
+                Edit
+            </x-ui.button>
+            <x-ui.button href="{{ route('employees.index') }}" variant="secondary">
+                <x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>
+                Back to List
+            </x-ui.button>
+            @if(!$employee->user)
+            <x-ui.button href="{{ route('users.create') }}?employee_id={{ $employee->id }}" variant="ghost">
+                <x-slot:icon><i class="bi bi-person-plus-fill"></i></x-slot:icon>
+                Create User Account
+            </x-ui.button>
+            @endif
+            <form method="POST" action="{{ route('employees.destroy', $employee->id) }}"
+                  data-confirm="Permanently delete {{ $employee->surname }}, {{ $employee->name }}? This cannot be undone."
+                  data-confirm-type="danger" data-confirm-title="Delete Employee">
+                @csrf @method('DELETE')
+                <x-ui.button type="submit" variant="danger">
+                    <x-slot:icon><i class="bi bi-trash3-fill"></i></x-slot:icon>
+                    Delete
+                </x-ui.button>
+            </form>
         </div>
-    </div>
+    </x-ui.card>
 </div>
 
 </div>

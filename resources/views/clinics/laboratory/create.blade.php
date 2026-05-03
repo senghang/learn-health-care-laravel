@@ -3,18 +3,22 @@
 
 @section('content')
 
-<x-page-header title="សំណើពិសោធន៍ថ្មី" subtitle="New Lab Order"
+<x-ui.page-header
+    km="សំណើពិសោធន៍ថ្មី"
+    title="New Lab Order"
     :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Laboratory','url'=>route('laboratory.index')],['label'=>'New']]">
-    <a href="{{ route('laboratory.index') }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-arrow-left"></i> ត្រឡប់</a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('laboratory.index') }}" variant="secondary"><x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>ត្រឡប់</x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if($errors->any())
-<div class="note note-danger mb-3">
+<x-ui.alert type="error" class="mb-4">
     <i class="bi bi-exclamation-triangle-fill"></i>
     <ul style="margin:0;padding-left:16px;font-size:12px">
         @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
     </ul>
-</div>
+</x-ui.alert>
 @endif
 
 <form method="POST" action="{{ route('laboratory.store') }}" novalidate>

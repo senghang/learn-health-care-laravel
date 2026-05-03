@@ -15,6 +15,7 @@ class ClinicFactory extends Factory
         $name = $this->faker->company();
 
         return [
+            'code'      => 'CLN' . $this->faker->unique()->numerify('######'),
             'name'      => $name,
             'subdomain' => Str::slug($name) . '-' . $this->faker->unique()->numerify('###'),
             'is_active' => true,

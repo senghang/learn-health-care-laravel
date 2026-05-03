@@ -4,7 +4,7 @@
     <div class="sb-user-meta" id="sbUserTxt">
         <div class="sb-user-name-text">{{ auth()->user()->name ?? 'User' }}</div>
         <div class="sb-user-clinic">
-            {{ auth()->user()->role?->name ?? 'Staff' }} · {{ currentClinic()?->name ?? 'Clinic' }}
+            {{ auth()->user()->roles->first()?->name ?? 'Staff' }} · {{ currentClinic()?->name ?? 'Clinic' }}
         </div>
     </div>
     <form method="POST" action="{{ route('logout') }}" class="sb-logout">

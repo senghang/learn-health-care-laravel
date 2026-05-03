@@ -2,39 +2,37 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Central\Models\ClinicModel;
-use Illuminate\Support\Facades\Hash;
-use DB;
+use Illuminate\Support\Facades\DB;
 
 class ClinicSeeder extends Seeder
 {
-    public function run()
-    {
-        
-        DB::table('clinics')->insert([
+    use WithoutModelEvents;
 
-            // 'clinic_code' => 'DTE001',
-            'name' => 'Derm Entro',
-            // 'clinic_short_name' => 'DTE',
-            // 'clinic_phone' => '012690364',
-            // 'clinic_email' => 'clinic@gmail.com',
-            // 'clinic_address' => 'Phnom Penh',
-            'subdomain' => 'dte',
-            // 'number_of_digit' => '3',
-            // 'prefix_code' => 'DTE',
-            // 'owner_name' => 'Hour Daney',
-            // 'owner_contact' => '012 123 123',
-            
-            'created_at' => now(),
+    public function run(): void
+    {
+        DB::table('clinics')->insert([
+            'code'           => 'DTE001',
+            'name'           => 'Derm Entro Clinic',
+            'name_kh'        => 'គ្លីនិក ដឹម អ៉ីន្ត្រូ',
+            'name_en'        => 'Derm Entro Clinic',
+            'subdomain'      => 'dte',
+            'phone'          => '012 690 364',
+            'email'          => 'clinic@dermentro.com',
+            'address'        => 'Phnom Penh, Cambodia',
+            'owner_name'     => 'Hour Daney',
+            'owner_number'   => '012 123 123',
+            'start_date'     => '2024-01-01',
+            'plan'           => 'standard',
+            'max_users'      => 20,
+            'default_locale' => 'km',
+            'currency'       => 'USD',
+            'is_active'      => true,
+            'created_at'     => now(),
+            'updated_at'     => now(),
         ]);
 
-        // DB::table('clinic_logos')->insert([
-        //     'clinic_id' => '1',
-        //     'logo_path' => '',
-        //     'type' => 'dashboard',
-        //     'created_at' => now(),
-        // ]);
+        $this->command->info('ClinicSeeder: clinic DTE001 created.');
     }
 }

@@ -29,6 +29,11 @@ class DashboardController extends Controller
                 ->whereNull('discharged_at')
                 ->count(),
 
+            'active_opd' => VisitModel::whereHas('patient', fn($q) => $q->where('clinic_id', $clinicId))
+                ->where('visit_type', 'OPD')
+                ->whereNull('discharged_at')
+                ->count(),
+
             'pending_invoices' => \App\Models\InvoiceModel::whereHas('patient', fn($q) => $q->where('clinic_id', $clinicId))
                 ->whereIn('status', ['pending', 'partial'])->count(),
 

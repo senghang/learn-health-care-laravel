@@ -2,29 +2,30 @@
 @section('title', __('app.roles_permissions'))
 @section('content')
 
-<x-page-header
-    :title="__('app.roles_permissions')"
-    subtitle="Roles &amp; Permissions"
-    icon="bi-shield-lock-fill"
+<x-ui.page-header
+    :km="__('app.roles_permissions')"
+    title="Roles & Permissions"
     :breadcrumbs="[
         ['label'=>__('app.home'),'url'=>route('dashboard')],
         ['label'=>__('app.settings'),'url'=>route('settings.general')],
         ['label'=>__('app.roles_permissions')],
     ]">
-    {{-- Sync missing permissions button --}}
-    <form method="POST" action="{{ route('settings.roles.seed-permissions') }}" style="display:inline">
-        @csrf
-        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Add any new default permissions that are missing for this clinic">
-            <i class="bi bi-arrow-repeat"></i> Sync Permissions
-        </button>
-    </form>
-</x-page-header>
+    <x-slot:actions>
+        <form method="POST" action="{{ route('settings.roles.seed-permissions') }}">
+            @csrf
+            <x-ui.button type="submit" variant="secondary">
+                <x-slot:icon><i class="bi bi-arrow-repeat"></i></x-slot:icon>
+                Sync Permissions
+            </x-ui.button>
+        </form>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if(session('flash'))
-<div class="note note-success mb-3"><i class="bi bi-check-circle-fill"></i> {{ session('flash') }}</div>
+    <x-ui.alert type="success" class="mb-4">{{ session('flash') }}</x-ui.alert>
 @endif
 @if(session('flash_error'))
-<div class="note note-danger mb-3"><i class="bi bi-exclamation-triangle-fill"></i> {{ session('flash_error') }}</div>
+    <x-ui.alert type="error" class="mb-4">{{ session('flash_error') }}</x-ui.alert>
 @endif
 
 <div class="row g-3">
@@ -33,75 +34,74 @@
 <div class="col-12 col-lg-4">
 
     {{-- Create role form --}}
-    <div class="card-emr mb-3">
-        <div class="card-hd" style="background:#f6f9ff">
-            <div class="card-hd-title"><i class="bi bi-shield-plus" style="color:#4154f1"></i> {{ __('app.new_role') }}</div>
-        </div>
-        <div class="card-bd">
-            <form method="POST" action="{{ route('settings.roles.store') }}" novalidate>
-                @csrf
-                <x-form.field name="name" :km="__('app.role_name')" en="Role Name"
-                              placeholder="Doctor, Nurse, Receptionist…" required/>
-                <div class="mb-3">
-                    <label class="form-label" style="font-size:12px;font-weight:700;color:#444">Description <small style="color:#aaa;font-weight:400">optional</small></label>
-                    <input type="text" name="description" class="form-control" placeholder="Short description of this role's access…" maxlength="255"/>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" style="font-size:12px;font-weight:700;color:#444">Level <small style="color:#aaa;font-weight:400">0–100, higher = more authority</small></label>
-                    <input type="number" name="level" class="form-control" placeholder="e.g. 10" min="0" max="100" style="width:120px"/>
-                </div>
-                <button type="submit" class="btn btn-primary btn-w100">
-                    <i class="bi bi-plus-circle-fill"></i> {{ __('app.create_role') }}
-                </button>
-            </form>
-        </div>
-    </div>
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header :label="__('app.new_role')" icon="bi-shield-plus"/>
+        </x-slot:header>
+        <form method="POST" action="{{ route('settings.roles.store') }}" novalidate>
+            @csrf
+            <x-form.field name="name" :km="__('app.role_name')" en="Role Name"
+                          placeholder="Doctor, Nurse, Receptionist…" required/>
+            <div class="mb-3">
+                <label class="form-label" style="font-size:12px;font-weight:700;color:#444">Description <small style="color:#aaa;font-weight:400">optional</small></label>
+                <input type="text" name="description" class="form-control" placeholder="Short description of this role's access…" maxlength="255"/>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" style="font-size:12px;font-weight:700;color:#444">Level <small style="color:#aaa;font-weight:400">0–100, higher = more authority</small></label>
+                <input type="number" name="level" class="form-control" placeholder="e.g. 10" min="0" max="100" style="width:120px"/>
+            </div>
+            <x-ui.button type="submit" variant="primary" :fullWidth="true">
+                <x-slot:icon><i class="bi bi-plus-circle-fill"></i></x-slot:icon>
+                {{ __('app.create_role') }}
+            </x-ui.button>
+        </form>
+    </x-ui.card>
 
     {{-- Roles list --}}
-    <div class="card-emr">
-        <div class="card-hd">
-            <div class="card-hd-title"><i class="bi bi-shield-fill" style="color:#4154f1"></i> {{ __('app.roles') }}</div>
-            <span style="font-size:11px;color:#aaa">{{ $roles->count() }} {{ __('app.roles') }}</span>
-        </div>
-        <div class="card-bd" style="padding:0">
+    <x-ui.card>
+        <x-slot:header>
+            <x-ui.card-header :label="__('app.roles')" icon="bi-shield-fill" :count="$roles->count()"/>
+        </x-slot:header>
+        <div style="padding:0">
             @forelse($roles as $role)
             @php
                 $colors = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6','#00bcd4'];
                 $col    = $colors[$loop->index % count($colors)];
             @endphp
-            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid #f5f6ff">
-                <div style="width:34px;height:34px;border-radius:9px;background:{{ $col }}22;color:{{ $col }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0">
+            <div class="flex items-center gap-2.5 px-4 py-3 border-b border-[#f5f6ff]">
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black flex-shrink-0"
+                     style="background:{{ $col }}22;color:{{ $col }}">
                     @if($role->is_system)
                         <i class="bi bi-shield-lock-fill" style="font-size:14px"></i>
                     @else
                         {{ strtoupper(substr($role->name, 0, 1)) }}
                     @endif
                 </div>
-                <div style="flex:1;min-width:0">
-                    <div style="display:flex;align-items:center;gap:5px">
-                        <span style="font-weight:700;color:#012970;font-size:13px">{{ $role->name }}</span>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-[#012970] text-sm">{{ $role->name }}</span>
                         @if($role->is_system)
-                        <span style="font-size:9px;background:#f0f2ff;color:#4154f1;padding:1px 6px;border-radius:6px;font-weight:700;border:1px solid #d0d5ff">SYSTEM</span>
+                            <x-ui.badge variant="primary" size="sm">SYSTEM</x-ui.badge>
                         @endif
                         @if($role->level)
-                        <span style="font-size:9px;color:#aaa">L{{ $role->level }}</span>
+                            <span class="text-[9px] text-[#94a3b8]">L{{ $role->level }}</span>
                         @endif
                     </div>
-                    <div style="font-size:10.5px;color:#aaa">
+                    <div class="text-[10.5px] text-[#94a3b8]">
                         {{ $role->permissions->count() }} {{ __('app.permissions') }}
                         · {{ $role->users_count }} {{ __('app.users') }}
                     </div>
                     @if($role->description)
-                    <div style="font-size:10.5px;color:#888;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $role->description }}</div>
+                    <div class="text-[10.5px] text-[#888] mt-0.5 truncate">{{ $role->description }}</div>
                     @endif
                 </div>
-                <div style="display:flex;gap:4px;flex-shrink:0">
+                <div class="flex gap-1 flex-shrink-0">
                     @if($role->is_system)
-                        <span class="btn btn-sm btn-outline-secondary" style="opacity:.35;pointer-events:none;cursor:not-allowed" title="System roles cannot be modified">
+                        <span class="w-7 h-7 flex items-center justify-center rounded-md text-[#94a3b8] opacity-35 cursor-not-allowed text-xs" title="System roles cannot be modified">
                             <i class="bi bi-lock-fill"></i>
                         </span>
                     @else
-                        <button class="btn btn-sm btn-outline-primary"
+                        <button class="w-7 h-7 flex items-center justify-center rounded-md text-[#4154f1] hover:bg-[#eef0fd] transition-colors text-xs"
                                 onclick="editRole({{ $role->id }},'{{ addslashes($role->name) }}','{{ addslashes($role->description ?? '') }}',{{ $role->level ?? 'null' }})"
                                 title="{{ __('app.edit') }}">
                             <i class="bi bi-pencil"></i>
@@ -111,12 +111,12 @@
                               data-confirm="Delete role &quot;{{ $role->name }}&quot;? This cannot be undone."
                               data-confirm-type="danger" data-confirm-title="Delete Role">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ __('app.delete') }}">
+                            <button type="submit" class="w-7 h-7 flex items-center justify-center rounded-md text-[#e74c3c] hover:bg-[#fde8e8] transition-colors text-xs" title="{{ __('app.delete') }}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </form>
                         @else
-                        <span class="btn btn-sm btn-outline-danger" style="opacity:.3;pointer-events:none" title="{{ $role->users_count }} user(s) assigned">
+                        <span class="w-7 h-7 flex items-center justify-center rounded-md text-[#e74c3c] opacity-30 cursor-not-allowed text-xs" title="{{ $role->users_count }} user(s) assigned">
                             <i class="bi bi-trash"></i>
                         </span>
                         @endif
@@ -124,13 +124,10 @@
                 </div>
             </div>
             @empty
-            <div style="text-align:center;padding:28px;color:#bbb">
-                <div style="font-size:28px;margin-bottom:6px;opacity:.3">🛡</div>
-                {{ __('app.no_roles_yet') }}
-            </div>
+            <x-ui.empty-state icon="bi-shield" :title="__('app.no_roles_yet')" compact/>
             @endforelse
         </div>
-    </div>
+    </x-ui.card>
 
 </div>
 
@@ -138,81 +135,73 @@
 <div class="col-12 col-lg-8">
     @if($roles->count() && $permissions->count())
     @foreach($roles as $role)
-    <div class="card-emr mb-3">
-        <div class="card-hd" style="background:#f6f9ff">
-            <div class="card-hd-title">
-                @if($role->is_system)
-                    <i class="bi bi-shield-lock-fill" style="color:#4154f1"></i>
-                @else
-                    <i class="bi bi-shield-fill" style="color:#4154f1"></i>
-                @endif
-                {{ $role->name }}
-                @if($role->is_system)
-                    <span style="font-size:9.5px;background:#f0f2ff;color:#4154f1;padding:1px 6px;border-radius:5px;font-weight:700;border:1px solid #d0d5ff;margin-left:4px">SYSTEM</span>
-                @endif
-                <span style="font-size:10.5px;color:#aaa;font-weight:400">— {{ $role->permissions->count() }}/{{ $permissions->flatten()->count() }} permissions</span>
-            </div>
-        </div>
-        <div class="card-bd">
-            <form method="POST" action="{{ route('settings.roles.permissions', $role->id) }}" novalidate>
-                @csrf
-                @foreach($permissions as $group => $perms)
-                <div style="margin-bottom:14px">
-                    <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#4154f1;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid #f0f2ff">
-                        {{ ucfirst($group) }}
-                    </div>
-                    <div class="row g-2">
-                        @foreach($perms as $perm)
-                        <div class="col-12 col-sm-6">
-                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:6px 10px;border-radius:8px;border:1px solid #e6eaf5;background:#fafbff;transition:background .12s{{ $role->is_system ? ';opacity:.6;cursor:not-allowed' : '' }}"
-                                   @if(!$role->is_system)
-                                   onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='#fafbff'"
-                                   @endif>
-                                <input type="checkbox" name="permissions[]"
-                                       value="{{ $perm->slug }}"
-                                       style="width:15px;height:15px;accent-color:#4154f1;flex-shrink:0"
-                                       {{ $role->permissions->contains('id', $perm->id) ? 'checked' : '' }}
-                                       {{ $role->is_system ? 'disabled' : '' }}>
-                                <div>
-                                    <div style="font-size:12px;font-weight:600;color:#012970">{{ $perm->name }}</div>
-                                    <div style="font-size:10px;color:#aaa;font-family:monospace">{{ $perm->slug }}</div>
-                                </div>
-                            </label>
-                        </div>
-                        @endforeach
-                    </div>
-                </div>
-                @endforeach
-                <div style="display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f2ff">
+    <x-ui.card class="mb-3">
+        <x-slot:header>
+            <x-ui.card-header :label="$role->name" :icon="$role->is_system ? 'bi-shield-lock-fill' : 'bi-shield-fill'">
+                <x-slot:actions>
                     @if($role->is_system)
-                        <span style="font-size:11px;color:#aaa;display:flex;align-items:center;gap:5px">
-                            <i class="bi bi-lock-fill" style="color:#4154f1"></i>
-                            System role permissions are managed by the application and cannot be changed here.
-                        </span>
-                    @else
-                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="checkAll(this.closest('form'), true)">
-                            <i class="bi bi-check-all"></i> {{ __('app.select_all') }}
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="checkAll(this.closest('form'), false)">
-                            <i class="bi bi-square"></i> {{ __('app.clear_all') }}
-                        </button>
-                        <button type="submit" class="btn btn-primary btn-sm ms-auto">
-                            <i class="bi bi-save-fill"></i> {{ __('app.save_permissions') }}
-                        </button>
+                        <x-ui.badge variant="primary" size="sm">SYSTEM</x-ui.badge>
                     @endif
+                    <span class="text-[10.5px] text-[#94a3b8]">{{ $role->permissions->count() }}/{{ $permissions->flatten()->count() }} permissions</span>
+                </x-slot:actions>
+            </x-ui.card-header>
+        </x-slot:header>
+        <form method="POST" action="{{ route('settings.roles.permissions', $role->id) }}" novalidate>
+            @csrf
+            @foreach($permissions as $group => $perms)
+            <div class="mb-3.5">
+                <div class="text-[10.5px] font-black uppercase tracking-wide text-[#4154f1] mb-2 pb-1 border-b border-[#f0f2ff]">
+                    {{ ucfirst($group) }}
                 </div>
-            </form>
-        </div>
-    </div>
+                <div class="row g-2">
+                    @foreach($perms as $perm)
+                    <div class="col-12 col-sm-6">
+                        <label class="flex items-center gap-2 cursor-pointer px-2.5 py-1.5 rounded-lg border border-[#e6eaf5] bg-[#fafbff] transition-colors{{ $role->is_system ? ' opacity-60 cursor-not-allowed' : ' hover:bg-[#f0f4ff]' }}">
+                            <input type="checkbox" name="permissions[]"
+                                   value="{{ $perm->slug }}"
+                                   class="w-3.5 h-3.5 flex-shrink-0 accent-[#4154f1]"
+                                   {{ $role->permissions->contains('id', $perm->id) ? 'checked' : '' }}
+                                   {{ $role->is_system ? 'disabled' : '' }}>
+                            <div>
+                                <div class="text-xs font-semibold text-[#012970]">{{ $perm->name }}</div>
+                                <div class="text-[10px] text-[#94a3b8] font-mono">{{ $perm->slug }}</div>
+                            </div>
+                        </label>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endforeach
+            <div class="flex gap-2 mt-3 pt-3 border-t border-[#f0f2ff]">
+                @if($role->is_system)
+                    <span class="text-[11px] text-[#94a3b8] flex items-center gap-1.5">
+                        <i class="bi bi-lock-fill text-[#4154f1]"></i>
+                        System role permissions are managed by the application and cannot be changed here.
+                    </span>
+                @else
+                    <x-ui.button type="button" variant="ghost" size="sm" onclick="checkAll(this.closest('form'), true)">
+                        <x-slot:icon><i class="bi bi-check-all"></i></x-slot:icon>
+                        {{ __('app.select_all') }}
+                    </x-ui.button>
+                    <x-ui.button type="button" variant="ghost" size="sm" onclick="checkAll(this.closest('form'), false)">
+                        <x-slot:icon><i class="bi bi-square"></i></x-slot:icon>
+                        {{ __('app.clear_all') }}
+                    </x-ui.button>
+                    <div class="ms-auto">
+                        <x-ui.button type="submit" variant="primary" size="sm">
+                            <x-slot:icon><i class="bi bi-save-fill"></i></x-slot:icon>
+                            {{ __('app.save_permissions') }}
+                        </x-ui.button>
+                    </div>
+                @endif
+            </div>
+        </form>
+    </x-ui.card>
     @endforeach
     @else
-    <div class="card-emr">
-        <div class="card-bd" style="text-align:center;padding:40px;color:#bbb">
-            <div style="font-size:40px;margin-bottom:10px;opacity:.3">🛡</div>
-            <div style="font-size:13px;font-weight:600;margin-bottom:6px">{{ __('app.create_role_first') }}</div>
-            <div style="font-size:11px">{{ __('app.create_role_hint') }}</div>
-        </div>
-    </div>
+    <x-ui.card>
+        <x-ui.empty-state icon="bi-shield" :title="__('app.create_role_first')" :description="__('app.create_role_hint')"/>
+    </x-ui.card>
     @endif
 </div>
 
