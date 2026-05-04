@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Base\Auditable;
 use App\Models\Concerns\HasTranslations;
 use App\Models\Concerns\LogsActivity;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +13,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BedModel extends Model
 {
-    use SoftDeletes, Auditable, LogsActivity;
+    use SoftDeletes, Auditable, LogsActivity, HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\BedFactory::new();
+    }
 
     protected $table = 'beds';
 

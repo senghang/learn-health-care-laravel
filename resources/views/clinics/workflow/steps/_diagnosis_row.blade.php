@@ -26,11 +26,11 @@
             {{ $type }}
         </span>
         @if($idx === 0)
-        <span style="font-size:9.5px;background:#012970;color:#fff;padding:1px 7px;border-radius:5px;font-weight:700">
+        <span style="font-size:9.5px;background:#1a1f36;color:#fff;padding:1px 7px;border-radius:5px;font-weight:700">
             #1
         </span>
         @else
-        <span style="font-size:10px;color:#94a3b8;margin-left:2px">#{{ $idx + 1 }}</span>
+        <span style="font-size:10px;color:#6b7280;margin-left:2px">#{{ $idx + 1 }}</span>
         @endif
         @if(!empty($diag['name']))
         <span style="font-size:11px;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">

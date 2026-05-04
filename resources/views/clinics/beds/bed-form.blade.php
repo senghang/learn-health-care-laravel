@@ -22,7 +22,7 @@
         <div class="card-hd-title">
             <i class="bi bi-grid-fill" style="color:#4154f1"></i>
             {{ $bed ? 'Edit Bed' : 'Add Bed' }}
-            <span style="font-size:11px;color:#94a3b8;font-weight:400">— {{ $ward->name_kh ?? $ward->name }}</span>
+            <span style="font-size:11px;color:#6b7280;font-weight:400">— {{ $ward->name_kh ?? $ward->name }}</span>
         </div>
     </div>
     <div class="card-bd">
@@ -117,7 +117,7 @@
             </div>
             @endif
 
-            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #f0f2ff">
+            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #e6e9f0">
                 <button type="submit" class="btn btn-primary"
                         {{ $rooms->isEmpty() ? 'disabled' : '' }}>
                     <i class="bi bi-check2-circle"></i>
@@ -144,9 +144,9 @@
             <div id="bedPreview" style="display:inline-block;width:96px;border-radius:12px;border:2px solid #2eca6a;background:#e8f8ef;padding:14px 8px;text-align:center">
                 <div id="previewIcon" style="font-size:28px;margin-bottom:6px">🛏</div>
                 <div id="previewName" style="font-size:14px;font-weight:800;color:#2eca6a">New Bed</div>
-                <div style="font-size:10px;color:#94a3b8;margin-top:3px">available</div>
+                <div style="font-size:10px;color:#6b7280;margin-top:3px">available</div>
             </div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:16px">
+            <div style="font-size:11px;color:#6b7280;margin-top:16px">
                 Status colours update when you change status during edit.
             </div>
         </div>

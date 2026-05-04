@@ -21,208 +21,195 @@
 
 @section('content')
 
-<x-page-header
-    title="Edit {{ $prescription->code }}"
-    subtitle="កែប្រែបញ្ជាថ្នាំ"
+<x-ui.page-header
+    km="កែប្រែបញ្ជាថ្នាំ"
+    :title="'Edit ' . $prescription->code"
     :breadcrumbs="[
         ['label' => __('app.home'), 'url' => route('dashboard')],
         ['label' => __('app.prescriptions'), 'url' => route('prescriptions.index')],
         ['label' => $prescription->code, 'url' => route('prescriptions.show', $prescription->code)],
         ['label' => 'Edit'],
     ]">
-    <a href="{{ route('prescriptions.show', $prescription->code) }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Back
-    </a>
-</x-page-header>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('prescriptions.show', $prescription->code) }}" variant="secondary">
+            <x-slot:icon><i class="bi bi-arrow-left" aria-hidden="true"></i></x-slot:icon>
+            Back
+        </x-ui.button>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if($errors->any())
-    <div class="alert alert-danger mb-3">
-        <ul class="mb-0">
-            @foreach($errors->all() as $err)
-                <li>{{ $err }}</li>
-            @endforeach
+    <x-ui.alert type="error" class="mb-4">
+        <ul class="list-disc pl-4 text-xs space-y-0.5">
+            @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
         </ul>
-    </div>
+    </x-ui.alert>
 @endif
 
 <form method="POST" action="{{ route('prescriptions.update', $prescription->code) }}" id="rxForm">
 @csrf
 @method('PATCH')
 
-<div class="row g-3">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-    {{-- ── LEFT COLUMN: Patient info (read-only) + Doctor + Medications ─────── --}}
-    <div class="col-12 col-lg-8">
+    {{-- ── Main column ─────────────────────────────────────────────────── --}}
+    <div class="lg:col-span-2 space-y-4">
 
         {{-- Patient (read-only on edit) --}}
         @if($prescription->patient)
-        @php $pt = $prescription->patient; @endphp
-        <div class="card-emr mb-3">
-            <div class="card-hd" style="background:#f6f9ff">
-                <div class="card-hd-title">
-                    <i class="bi bi-person-vcard-fill" style="color:#4154f1"></i>
-                    Patient / អ្នកជំងឺ
-                </div>
-                <a href="{{ route('patients.show', $pt->code) }}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-person-fill"></i> View
-                </a>
-            </div>
-            <div class="card-bd">
-                @php
-                    $colors = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6'];
-                    $col    = $colors[abs(crc32($pt->code)) % count($colors)];
-                @endphp
-                <div style="display:flex;align-items:center;gap:12px">
-                    <div style="width:42px;height:42px;border-radius:12px;background:{{ $col }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0">
+            @php
+                $pt = $prescription->patient;
+                $colors = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6'];
+                $col    = $colors[abs(crc32($pt->code)) % count($colors)];
+            @endphp
+            <x-ui.card>
+                <x-slot:header>
+                    <x-ui.card-header label="Patient / អ្នកជំងឺ" icon="bi-person-vcard-fill">
+                        <x-slot:actions>
+                            <x-ui.button href="{{ route('patients.show', $pt->code) }}" variant="secondary" size="sm">
+                                <x-slot:icon><i class="bi bi-person-fill" aria-hidden="true"></i></x-slot:icon>
+                                View
+                            </x-ui.button>
+                        </x-slot:actions>
+                    </x-ui.card-header>
+                </x-slot:header>
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-sm font-extrabold"
+                         style="background:{{ $col }}">
                         {{ strtoupper(substr($pt->surname,0,1) . substr($pt->name,0,1)) }}
                     </div>
                     <div>
-                        <div style="font-weight:800;color:#012970;font-size:15px">{{ $pt->surname }}, {{ $pt->name }}</div>
-                        <code style="font-size:11px;color:#4154f1">{{ $pt->code }}</code>
-                        @if($pt->phone) <span style="font-size:11px;color:#aaa"> · {{ $pt->phone }}</span> @endif
+                        <div class="text-sm font-extrabold" style="color:#1a1f36">{{ $pt->surname }}, {{ $pt->name }}</div>
+                        <code class="text-xs" style="color:#4154f1">{{ $pt->code }}</code>
+                        @if($pt->phone) <span class="text-xs" style="color:#9ca3af"> · {{ $pt->phone }}</span> @endif
                     </div>
                 </div>
-            </div>
-        </div>
+            </x-ui.card>
         @endif
 
-        {{-- Prescription Header --}}
-        <div class="card-emr mb-3">
-            <div class="card-hd" style="background:#fdf0f8">
-                <div class="card-hd-title">
-                    <i class="bi bi-capsule-fill" style="color:#e91e8c"></i>
-                    Prescription Details
-                    <code style="font-size:12px;color:#e91e8c;background:#fce4f4;padding:2px 8px;border-radius:6px;margin-left:6px">
-                        {{ $prescription->code }}
-                    </code>
+        {{-- Prescription Details --}}
+        <x-ui.card>
+            <x-slot:header>
+                <x-ui.card-header label="Prescription Details" icon="bi-capsule-fill">
+                    <x-slot:actions>
+                        <code class="text-xs px-2 py-0.5 rounded-md font-bold" style="background:#fce4f4;color:#e91e8c">
+                            {{ $prescription->code }}
+                        </code>
+                    </x-slot:actions>
+                </x-ui.card-header>
+            </x-slot:header>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">Rx Code</label>
+                    <div class="w-full text-sm rounded-lg border px-3 py-2 font-bold font-mono"
+                         style="background:#f9fafb;border-color:#e6eaf5;color:#e91e8c">{{ $prescription->code }}</div>
                 </div>
-            </div>
-            <div class="card-bd">
-                <div class="row g-3">
-                    <div class="col-6 col-sm-4">
-                        <div class="fld">
-                            <label class="flbl"><span class="km">Rx Code</span></label>
-                            <div class="form-control ro" style="font-family:monospace;color:#e91e8c;font-weight:700">
-                                {{ $prescription->code }}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-sm-4">
-                        <div class="fld">
-                            <label class="flbl"><span class="km">ថ្ងៃ</span><span class="en">/ Prescribed At</span></label>
-                            <input type="datetime-local" name="prescribed_at" class="form-control"
-                                   value="{{ old('prescribed_at', $prescription->prescribed_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i')) }}"/>
-                        </div>
-                    </div>
-                    <div class="col-12 col-sm-4">
-                        <div class="fld">
-                            <label class="flbl">
-                                <span class="km">គ្រូពេទ្យ</span><span class="en">/ Prescribed By</span>
-                                <span class="req">*</span>
-                            </label>
-                            <input type="text" name="prescribed_by" class="form-control" required
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">Prescribed At</label>
+                    <x-forms.input type="datetime-local" name="prescribed_at"
+                                   :value="old('prescribed_at', $prescription->prescribed_at?->format('Y-m-d\TH:i') ?? now()->format('Y-m-d\TH:i'))" />
+                </div>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">
+                        Prescribed By <span style="color:#ef4444">*</span>
+                    </label>
+                    <x-forms.input type="text" name="prescribed_by" required
                                    placeholder="Dr. Name"
-                                   value="{{ old('prescribed_by', $prescription->prescribed_by ?? '') }}"/>
-                        </div>
-                    </div>
+                                   :value="old('prescribed_by', $prescription->prescribed_by ?? '')" />
                 </div>
             </div>
-        </div>
+        </x-ui.card>
 
         {{-- Medications --}}
-        <div class="card-emr mb-3">
-            <div class="card-hd" style="background:#fdf0f8">
-                <div class="card-hd-title">
-                    <i class="bi bi-capsule-fill" style="color:#e91e8c"></i>
-                    ថ្នាំ / Medications
-                    <span id="rxCount"
-                          style="background:#e91e8c22;color:#e91e8c;border:1px solid #e91e8c66;font-size:10px;padding:1px 8px;border-radius:10px;margin-left:6px">
-                        {{ $rxCount }}
-                    </span>
-                </div>
-                <button type="button" onclick="addMedCard()" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-plus-circle-fill"></i> Add
-                </button>
-            </div>
-            <div class="card-bd">
+        <x-ui.card>
+            <x-slot:header>
+                <x-ui.card-header label="Medications / ថ្នាំ" icon="bi-capsule-fill">
+                    <x-slot:actions>
+                        <span id="rxCount" class="text-xs font-bold px-2 py-0.5 rounded-full"
+                              style="background:#fce4f4;color:#e91e8c;border:1px solid #f9a8d4">{{ $rxCount }}</span>
+                        <x-ui.button type="button" variant="secondary" size="sm" onclick="addMedCard()">
+                            <x-slot:icon><i class="bi bi-plus-circle-fill" aria-hidden="true"></i></x-slot:icon>
+                            Add
+                        </x-ui.button>
+                    </x-slot:actions>
+                </x-ui.card-header>
+            </x-slot:header>
 
-                @if(session('success') || $rxCount > 0)
-                <div class="note note-success mb-3" style="font-size:12px">
+            @if(session('success') || $rxCount > 0)
+                <x-ui.alert type="info" class="mb-4 text-xs">
                     <i class="bi bi-info-circle-fill"></i>
                     Saving replaces all existing medications. Remove unwanted items before submitting.
-                </div>
-                @endif
+                </x-ui.alert>
+            @endif
 
-                <div id="medList">
-                    @forelse($medications as $i => $med)
-                        @include('clinics.operations._rx-card', [
-                            'i'           => $i,
-                            'med'         => $med,
-                            'formOptions' => $formOptions,
-                            'catalog'     => $catalog,
-                        ])
-                    @empty
-                        @include('clinics.operations._rx-card', ['i' => 0, 'med' => null, 'formOptions' => $formOptions, 'catalog' => $catalog])
-                    @endforelse
-                </div>
-
-                <button type="button" onclick="addMedCard()"
-                        class="btn btn-outline-primary btn-w100 mt-2" style="padding:11px">
-                    <i class="bi bi-plus-circle-fill"></i> បន្ថែមថ្នាំ / Add Medication
-                </button>
+            <div id="medList">
+                @forelse($medications as $i => $med)
+                    @include('clinics.operations._rx-card', [
+                        'i'           => $i,
+                        'med'         => $med,
+                        'formOptions' => $formOptions,
+                        'catalog'     => $catalog,
+                    ])
+                @empty
+                    @include('clinics.operations._rx-card', ['i' => 0, 'med' => null, 'formOptions' => $formOptions, 'catalog' => $catalog])
+                @endforelse
             </div>
-        </div>
+
+            <x-ui.button type="button" variant="secondary" :fullWidth="true" onclick="addMedCard()" class="mt-2">
+                <x-slot:icon><i class="bi bi-plus-circle-fill" aria-hidden="true"></i></x-slot:icon>
+                បន្ថែមថ្នាំ / Add Medication
+            </x-ui.button>
+        </x-ui.card>
 
     </div>
 
-    {{-- ── RIGHT COLUMN: Dispensing + Actions ──────────────────────────────── --}}
-    <div class="col-12 col-lg-4">
-        <div class="card-emr mb-3" style="position:sticky;top:76px">
+    {{-- ── Sidebar ──────────────────────────────────────────────────────── --}}
+    <div>
+        <x-ui.card class="sticky top-20">
+            <x-slot:header>
+                <x-ui.card-header label="Pharmacy / ឱសថស្ថាន" icon="bi-bag-heart-fill" />
+            </x-slot:header>
 
-            {{-- Dispensing --}}
-            <div class="card-hd" style="background:#f5f3ff">
-                <div class="card-hd-title">
-                    <i class="bi bi-bag-heart-fill" style="color:#7c3aed"></i>
-                    Pharmacy / ឱសថស្ថាន
-                </div>
-            </div>
-            <div class="card-bd">
-                <div class="fld mb-3">
-                    <label class="flbl" style="color:#7c3aed;font-weight:800">Dispensing Status</label>
-                    <select name="dispensed_status" class="form-select" style="border-color:#c4b5fd">
+            <div class="space-y-3">
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">Dispensing Status</label>
+                    <x-forms.select name="dispensed_status">
                         <option value="">— Not dispensed yet</option>
-                        <option value="partial"   {{ old('dispensed_status', $prescription->dispensed_status) === 'partial'   ? 'selected' : '' }}>⏳ Partially dispensed</option>
-                        <option value="dispensed" {{ old('dispensed_status', $prescription->dispensed_status) === 'dispensed' ? 'selected' : '' }}>✅ Fully dispensed</option>
-                    </select>
+                        <option value="partial"   {{ old('dispensed_status', $prescription->dispensed_status) === 'partial'   ? 'selected' : '' }}>Partially dispensed</option>
+                        <option value="dispensed" {{ old('dispensed_status', $prescription->dispensed_status) === 'dispensed' ? 'selected' : '' }}>Fully dispensed</option>
+                    </x-forms.select>
                 </div>
-                <div class="fld mb-3">
-                    <label class="flbl" style="color:#7c3aed;font-weight:800">Dispensed By</label>
-                    <input type="text" name="dispensed_by" class="form-control" style="border-color:#c4b5fd"
-                           placeholder="Pharmacist name"
-                           value="{{ old('dispensed_by', $prescription->dispensed_by ?? '') }}"/>
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">Dispensed By</label>
+                    <x-forms.input type="text" name="dispensed_by"
+                                   placeholder="Pharmacist name"
+                                   :value="old('dispensed_by', $prescription->dispensed_by ?? '')" />
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-w100" style="padding:12px 0;font-size:15px;font-weight:700">
-                    <i class="bi bi-floppy-fill"></i> Update Prescription
-                </button>
-                <a href="{{ route('prescriptions.show', $prescription->code) }}"
-                   class="btn btn-outline-secondary btn-w100 mt-2">
-                    Cancel
-                </a>
+                <div class="pt-3 space-y-2" style="border-top:1px solid #e6eaf5">
+                    <x-ui.button type="submit" variant="primary" :fullWidth="true">
+                        <x-slot:icon><i class="bi bi-floppy-fill" aria-hidden="true"></i></x-slot:icon>
+                        Update Prescription
+                    </x-ui.button>
+                    <x-ui.button href="{{ route('prescriptions.show', $prescription->code) }}" variant="secondary" :fullWidth="true">
+                        <x-slot:icon><i class="bi bi-x-circle" aria-hidden="true"></i></x-slot:icon>
+                        Cancel
+                    </x-ui.button>
+                </div>
 
-                {{-- Delete --}}
-                <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f0f2ff">
+                <div class="pt-3" style="border-top:1px solid #e6eaf5">
                     <form method="POST" action="{{ route('prescriptions.destroy', $prescription->code) }}"
                           data-confirm="Delete prescription #{{ $prescription->code }}? All dispensed medicines will be returned to stock. This cannot be undone."
                           data-confirm-type="danger" data-confirm-title="Delete Prescription">
                         @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-outline-danger btn-w100 btn-sm">
-                            <i class="bi bi-trash3"></i> Delete Prescription
-                        </button>
+                        <x-ui.button type="submit" variant="danger" :fullWidth="true" size="sm">
+                            <x-slot:icon><i class="bi bi-trash3" aria-hidden="true"></i></x-slot:icon>
+                            Delete Prescription
+                        </x-ui.button>
                     </form>
                 </div>
             </div>
-        </div>
+        </x-ui.card>
     </div>
 
 </div>
@@ -269,20 +256,15 @@ function fillFromCatalog(selectEl, idx) {
     var code = selectEl.value;
     var item = rxCatalog.find(function(c) { return c.code === code; });
     if (!item) return;
-
     var set = function(id, val) { var el = document.getElementById(id); if (el) el.value = val; };
     set('med_name_'     + idx, item.name);
     set('med_strength_' + idx, item.strength);
     set('med_unit_'     + idx, item.unit);
-
     var formSel = document.querySelector('[name="meds[' + idx + '][form]"]');
     if (formSel && item.form) formSel.value = item.form;
-
     var codeInput = document.getElementById('med_code_' + idx);
     if (codeInput) codeInput.value = item.code;
-
     updateStockBadge(idx, item);
-
     var titleEl = document.getElementById('rx-card-title-' + idx);
     if (titleEl) titleEl.textContent = item.name;
 }
@@ -325,7 +307,6 @@ function calcTotal(idx) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Init dosing calculators for all pre-rendered cards
     document.querySelectorAll('.rx-med-card').forEach(function(card) {
         var idx = parseInt(card.id.replace('rx-card-', ''));
         if (!isNaN(idx)) initCardDosing(idx);

@@ -1,0 +1,209 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   EMR Design System — CSS Custom Properties
+   Single source of truth. Load before any other stylesheet.
+
+   Usage in Tailwind:  class="bg-[var(--bg-surface)]"
+   Usage in CSS:       background: var(--bg-surface);
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+
+  /* ── Surfaces ────────────────────────────────────────────────────── */
+  --bg-app:            #F8FAFC;    /* page background */
+  --bg-surface:        #FFFFFF;    /* card / panel background */
+  --bg-sidebar:        #0F172A;    /* deep navy sidebar */
+  --bg-overlay:        rgba(15, 23, 42, 0.45);
+
+  /* ── Brand ───────────────────────────────────────────────────────── */
+  --brand:             #4154F1;    /* indigo — primary actions */
+  --brand-hover:       #3344D0;
+  --brand-light:       #EEF0FD;    /* tinted bg for badges, hover rows */
+  --brand-border:      #C7CDFB;
+
+  /* ── Semantic Status ─────────────────────────────────────────────── */
+  --success:           #10B981;
+  --success-hover:     #059669;
+  --success-bg:        #D1FAE5;
+  --success-border:    #6EE7B7;
+  --success-text:      #065F46;
+
+  --warning:           #F59E0B;
+  --warning-hover:     #D97706;
+  --warning-bg:        #FEF3C7;
+  --warning-border:    #FCD34D;
+  --warning-text:      #92400E;
+
+  --danger:            #EF4444;
+  --danger-hover:      #DC2626;
+  --danger-bg:         #FEE2E2;
+  --danger-border:     #FCA5A5;
+  --danger-text:       #991B1B;
+
+  --info:              #3B82F6;
+  --info-hover:        #2563EB;
+  --info-bg:           #DBEAFE;
+  --info-border:       #93C5FD;
+  --info-text:         #1E40AF;
+
+  /* ── Text Hierarchy ─────────────────────────────────────────────── */
+  --text-primary:      #0F172A;    /* headings, strong labels */
+  --text-secondary:    #475569;    /* body, descriptions */
+  --text-muted:        #94A3B8;    /* placeholders, helper text */
+  --text-disabled:     #CBD5E1;    /* disabled state */
+  --text-inverse:      #FFFFFF;    /* on dark backgrounds */
+
+  /* ── Borders ────────────────────────────────────────────────────── */
+  --border-subtle:     #E2E8F0;    /* dividers, card borders */
+  --border-default:    #CBD5E1;    /* inputs, dropdowns */
+  --border-focus:      var(--brand);
+  --border-error:      var(--danger);
+
+  /* ── Typography ─────────────────────────────────────────────────── */
+  --font-khmer:        'Noto Sans Khmer', 'Hanuman', sans-serif;
+  --font-latin:        'Inter', 'Nunito', system-ui, sans-serif;
+  --font-mono:         'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  --text-xs:           12px;
+  --text-sm:           13px;
+  --text-base:         14px;
+  --text-md:           16px;
+  --text-lg:           18px;
+  --text-xl:           20px;
+  --text-2xl:          24px;
+
+  --leading-tight:     1.2;
+  --leading-heading:   1.3;
+  --leading-body:      1.5;
+  --leading-relaxed:   1.65;
+
+  /* ── Spacing (4px base grid) ─────────────────────────────────────── */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-12: 48px;
+
+  /* ── Radius ──────────────────────────────────────────────────────── */
+  --radius-sm:  6px;    /* inputs, buttons, small chips */
+  --radius-md:  8px;    /* cards, dropdowns */
+  --radius-lg:  12px;   /* modals, large panels */
+  --radius-xl:  16px;   /* feature panels */
+  --radius-full: 9999px;
+
+  /* ── Shadow ──────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05), 0 1px 3px rgba(15,23,42,.06);
+  --shadow-md: 0 4px 6px rgba(15,23,42,.07), 0 10px 15px rgba(15,23,42,.04);
+  --shadow-lg: 0 10px 15px rgba(15,23,42,.08), 0 20px 25px rgba(15,23,42,.04);
+
+  /* ── Form Controls ───────────────────────────────────────────────── */
+  --input-height-sm:   32px;
+  --input-height-md:   40px;
+  --input-height-lg:   48px;
+  --input-padding-x:   12px;
+  --input-font-size:   var(--text-base);
+
+  /* ── Layout ──────────────────────────────────────────────────────── */
+  --sidebar-width:     240px;
+  --sidebar-collapsed: 64px;
+  --topbar-height:     56px;
+  --content-max-width: 1440px;
+
+  /* ── Animation ───────────────────────────────────────────────────── */
+  --ease-fast:   100ms ease;
+  --ease-base:   150ms ease;
+  --ease-slow:   250ms ease-out;
+  --ease-spring: 300ms cubic-bezier(.34,1.56,.64,1);
+}
+
+/* ── Dark sidebar refinement ──────────────────────────────────────── */
+.sidebar-dark {
+  --sidebar-text:       rgba(255,255,255,0.65);
+  --sidebar-text-hover: rgba(255,255,255,0.90);
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-item-hover-bg:   rgba(255,255,255,0.06);
+  --sidebar-item-active-bg:  rgba(255,255,255,0.10);
+  --sidebar-accent-border:   var(--brand);
+  --sidebar-section-label:   rgba(255,255,255,0.35);
+}
+
+/* ── Font family utilities (no Tailwind equivalent for custom stacks) ─ */
+.font-khmer { font-family: var(--font-khmer); }
+.font-latin { font-family: var(--font-latin); }
+.font-mono  { font-family: var(--font-mono);  }
+
+/* ── Focus ring base (use with Tailwind focus: variants) ─────────── */
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-light), 0 0 0 1px var(--brand);
+}
+
+/* ── Skeleton loader shimmer ──────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -500px 0; }
+  100% { background-position:  500px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+  background-size: 1000px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Toast slide-in ───────────────────────────────────────────────── */
+@keyframes toastIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes toastOut {
+  from { transform: translateX(0);    opacity: 1; max-height: 200px; margin-bottom: 8px; }
+  to   { transform: translateX(120%); opacity: 0; max-height: 0;    margin-bottom: 0;   }
+}
+
+.toast-item { animation: toastIn var(--ease-slow) forwards; }
+.toast-item.leaving { animation: toastOut var(--ease-slow) forwards; }
+
+/* ── Live pulse (for active indicators) ───────────────────────────── */
+@keyframes livePulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ── Required field check animation ──────────────────────────────── */
+@keyframes checkIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.req-done { animation: checkIn 200ms var(--ease-spring); }
+
+/* ── Field pair — subtle visual grouping for logically-related fields ─ */
+/* Usage: <div class="field-pair col-span-2 grid grid-cols-2 gap-3">    */
+.field-pair {
+  background: rgba(65, 84, 241, 0.025);
+  border: 1px solid rgba(65, 84, 241, 0.10);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
+
+/* ── Required field tracker — checkbox shape ─────────────────────────── */
+.req-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);   /* square checkbox, not circle */
+  border: 1.5px solid var(--border-default, #CBD5E1);
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.req-check.is-done {
+  background: var(--success, #10B981);
+  border-color: var(--success, #10B981);
+  animation: checkIn 200ms var(--ease-spring);
+}

@@ -44,7 +44,7 @@
         <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <div class="flex-1 min-w-0">
                 <input type="text" name="search"
-                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#94a3b8] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#6b7280] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
                        value="{{ request('search') }}" placeholder="Name, email, phone…" autofocus/>
             </div>
             <div class="sm:w-44">
@@ -102,7 +102,7 @@
             $primaryRole = $user->roles->first();
             $col = $colors[($primaryRole?->id ?? 0) % count($colors)];
         @endphp
-        <tr class="hover:bg-[#fafbff] transition-colors">
+        <tr class="hover:bg-[#f9fafb] transition-colors">
             <x-ui.table-td>
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0"
@@ -110,10 +110,10 @@
                         {{ strtoupper(substr($user->name, 0, 1)) }}
                     </div>
                     <div>
-                        <div class="font-bold text-[#012970] text-sm">{{ $user->name }}</div>
-                        <div class="text-[11px] text-[#94a3b8]">{{ $user->email }}</div>
+                        <div class="font-bold text-[#1a1f36] text-sm">{{ $user->name }}</div>
+                        <div class="text-[11px] text-[#6b7280]">{{ $user->email }}</div>
                         @if($user->phone)
-                            <div class="text-[10.5px] text-[#94a3b8]">{{ $user->phone }}</div>
+                            <div class="text-[10.5px] text-[#6b7280]">{{ $user->phone }}</div>
                         @endif
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                         {{ $primaryRole->name }}
                     </span>
                     @if($primaryRole->is_system)
-                        <div class="text-[9px] text-[#94a3b8] mt-0.5">system</div>
+                        <div class="text-[9px] text-[#6b7280] mt-0.5">system</div>
                     @endif
                 @else
                     <span class="text-[11px] text-[#cbd5e1]">— no role</span>
@@ -133,7 +133,7 @@
             <x-ui.table-td>
                 @if($user->employee)
                     <div class="text-xs text-[#555]">{{ $user->employee->surname }}, {{ $user->employee->name }}</div>
-                    <div class="text-[10.5px] text-[#94a3b8]">{{ ucfirst(str_replace('_',' ', $user->employee->employee_type)) }}</div>
+                    <div class="text-[10.5px] text-[#6b7280]">{{ ucfirst(str_replace('_',' ', $user->employee->employee_type)) }}</div>
                 @else
                     <span class="text-[#ddd] text-[11px]">—</span>
                 @endif
@@ -141,7 +141,7 @@
             <x-ui.table-td>
                 @if($user->last_login_at)
                     <div class="text-xs text-[#555]">{{ $user->last_login_at->format('d/m/Y') }}</div>
-                    <div class="text-[10.5px] text-[#94a3b8]">{{ $user->last_login_at->format('H:i') }}</div>
+                    <div class="text-[10.5px] text-[#6b7280]">{{ $user->last_login_at->format('H:i') }}</div>
                 @else
                     <span class="text-[11px] text-[#ddd]">Never</span>
                 @endif

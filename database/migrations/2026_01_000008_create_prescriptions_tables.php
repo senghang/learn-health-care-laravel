@@ -57,6 +57,8 @@ return new class extends Migration {
             $table->unsignedSmallInteger('days')->default(0);
             $table->string('interval', 60)->nullable();
             $table->text('note')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 

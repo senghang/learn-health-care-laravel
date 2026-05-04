@@ -87,7 +87,7 @@
 </div>
 
 {{-- Progress bar --}}
-<div style="height:3px;background:#f0f2ff">
+<div style="height:3px;background:#e6e9f0">
     <div style="height:100%;width:{{ round($stepIdx/count($steps)*100) }}%;background:linear-gradient(90deg,#4154f1,#717ff5)"></div>
 </div>
 
@@ -119,9 +119,9 @@
                     <div>
                         <div style="font-size:13px;font-weight:800;color:{{ $currentLevel === $key ? $cfg['color'] : '#374151' }}">
                             {{ $cfg['label'] }}
-                            <span style="font-size:10.5px;font-weight:400;color:#94a3b8">/ {{ $cfg['km'] }}</span>
+                            <span style="font-size:10.5px;font-weight:400;color:#6b7280">/ {{ $cfg['km'] }}</span>
                         </div>
-                        <div style="font-size:10px;color:#94a3b8;margin-top:1px">{{ $cfg['desc'] }}</div>
+                        <div style="font-size:10px;color:#6b7280;margin-top:1px">{{ $cfg['desc'] }}</div>
                     </div>
                 </button>
                 @endforeach
@@ -184,9 +184,9 @@
 
             {{-- Measurements --}}
             <div class="col-12">
-                <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;
+                <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;
                             letter-spacing:.5px;margin-bottom:8px;padding-top:4px;
-                            border-top:1px solid #f0f2ff;display:flex;align-items:center;gap:6px">
+                            border-top:1px solid #e6e9f0;display:flex;align-items:center;gap:6px">
                     <i class="bi bi-rulers"></i> Measurements
                     <span style="font-size:9.5px;font-weight:400;color:#cbd5e1;text-transform:none">(optional)</span>
                 </div>

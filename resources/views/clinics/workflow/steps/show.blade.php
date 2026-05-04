@@ -47,7 +47,7 @@
           <i class="bi bi-{{ $visit->visit_type === 'IPD' ? 'bed-fill' : 'clipboard2-pulse-fill' }}"></i>
         </div>
         <div>
-          <div style="font-size:16px;font-weight:800;color:#012970">{{ $visit->code }}</div>
+          <div style="font-size:16px;font-weight:800;color:#1a1f36">{{ $visit->code }}</div>
           <div style="font-size:11px;color:#aaa">{{ $visit->admitted_at?->format('d/m/Y H:i') }}</div>
         </div>
       </div>
@@ -64,7 +64,7 @@
         <span class="badge-s" style="background:{{ $pc }}15;color:{{ $pc }}">{{ $visit->priority }}</span>
         @endif
         @if($visit->admission_type)
-        <span class="badge-s" style="background:#f0f2ff;color:#666">{{ $visit->admission_type }}</span>
+        <span class="badge-s" style="background:#e6e9f0;color:#666">{{ $visit->admission_type }}</span>
         @endif
       </div>
 
@@ -93,7 +93,7 @@
           <span>Progress</span>
           <span>{{ count($s['visit']['steps_done']) }}/10 steps</span>
         </div>
-        <div style="height:6px;background:#f0f2ff;border-radius:4px;overflow:hidden">
+        <div style="height:6px;background:#e6e9f0;border-radius:4px;overflow:hidden">
           <div style="height:100%;width:{{ $s['visit']['progress'] }}%;background:linear-gradient(90deg,#4154f1,#2eca6a);border-radius:4px"></div>
         </div>
       </div>
@@ -131,7 +131,7 @@
     </div>
     <div class="card-bd">
       @if($triage['chief_complaint'])
-      <div style="background:#f6f9ff;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:13px;border-left:3px solid #4154f1">
+      <div style="background:#f6f8fa;border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:13px;border-left:3px solid #4154f1">
         <div style="font-size:10px;color:#aaa;margin-bottom:2px">Chief Complaint</div>
         {{ $triage['chief_complaint'] }}
       </div>
@@ -170,7 +170,7 @@
       <div style="display:flex;flex-wrap:wrap;gap:8px">
         @foreach($vitalLabels as $key => [$label, $unit, $clr])
           @if(isset($vitals[$key]) && $vitals[$key] !== null)
-          <div style="background:#f6f9ff;border-radius:10px;padding:10px 14px;min-width:90px;text-align:center;border:1px solid #f0f2ff">
+          <div style="background:#f6f8fa;border-radius:10px;padding:10px 14px;min-width:90px;text-align:center;border:1px solid #e6e9f0">
             <div style="font-size:20px;font-weight:800;color:{{ $clr }}">{{ $vitals[$key] }}</div>
             <div style="font-size:10px;color:#aaa">{{ $label }} <span style="font-size:9px">({{ $unit }})</span></div>
           </div>
@@ -222,11 +222,11 @@
     <div class="card-bd" style="padding:0">
       @foreach($s['diagnoses'] as $diag)
       <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #f8f9ff">
-        <span class="badge-s {{ $diag['type'] === 'Primary' ? 'b-opd' : '' }}" style="flex-shrink:0;margin-top:2px;{{ $diag['type'] !== 'Primary' ? 'background:#f0f2ff;color:#666' : '' }}">
+        <span class="badge-s {{ $diag['type'] === 'Primary' ? 'b-opd' : '' }}" style="flex-shrink:0;margin-top:2px;{{ $diag['type'] !== 'Primary' ? 'background:#e6e9f0;color:#666' : '' }}">
           {{ $diag['type'] }}
         </span>
         <div style="flex:1">
-          <div style="font-size:12.5px;font-weight:700;color:#012970">
+          <div style="font-size:12.5px;font-weight:700;color:#1a1f36">
             {{ $diag['name'] }}
             @if($diag['code']) <code style="font-size:10px;color:#9b59b6;margin-left:4px">{{ $diag['code'] }}</code> @endif
           </div>
@@ -248,7 +248,7 @@
     </div>
     <div class="card-bd" style="padding:0">
       @foreach($s['prescriptions'] as $rx)
-      <div style="padding:12px 16px;border-bottom:1px solid #f0f2ff">
+      <div style="padding:12px 16px;border-bottom:1px solid #e6e9f0">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px">
           <code style="font-size:11px;color:#4154f1">{{ $rx['code'] }}</code>
           <span style="font-size:10px;color:#aaa">{{ $rx['prescribed_by'] }} · {{ $rx['prescribed_at']?->format('d/m H:i') ?? '' }}</span>
@@ -257,7 +257,7 @@
         <div class="table-responsive">
           <table style="width:100%;font-size:11.5px;border-collapse:collapse">
             <thead>
-              <tr style="background:#f6f9ff;color:#888;font-size:10px;text-transform:uppercase">
+              <tr style="background:#f6f8fa;color:#888;font-size:10px;text-transform:uppercase">
                 <th style="padding:6px 8px;text-align:left">Medicine</th>
                 <th style="padding:6px 4px;text-align:center">Morning</th>
                 <th style="padding:6px 4px;text-align:center">Noon</th>
@@ -269,7 +269,7 @@
             <tbody>
               @foreach($rx['medications'] as $med)
               <tr style="border-bottom:1px solid #f8f9ff">
-                <td style="padding:6px 8px;font-weight:600;color:#012970">
+                <td style="padding:6px 8px;font-weight:600;color:#1a1f36">
                   {{ $med['name'] }}
                   @if($med['strength']) <span style="color:#aaa;font-weight:400">{{ $med['strength'] }}</span> @endif
                 </td>
@@ -298,15 +298,15 @@
     </div>
     <div class="card-bd" style="padding:0">
       @foreach($s['labs'] as $lab)
-      <div style="padding:10px 16px;border-bottom:1px solid #f0f2ff">
+      <div style="padding:10px 16px;border-bottom:1px solid #e6e9f0">
         <div style="font-size:11px;margin-bottom:6px">
           <code style="color:#4154f1">{{ $lab['code'] }}</code>
           <span style="color:#aaa;margin-left:6px">{{ $lab['category'] }}</span>
         </div>
         @foreach($lab['results'] as $r)
-        <div style="display:flex;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px dotted #f0f2ff">
+        <div style="display:flex;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px dotted #e6e9f0">
           <span style="color:#666;min-width:120px">{{ $r['name'] }}</span>
-          <span style="font-weight:700;color:{{ ($r['flag'] ?? '') === 'H' || ($r['flag'] ?? '') === 'L' ? '#e74c3c' : '#012970' }}">{{ $r['result'] }}</span>
+          <span style="font-weight:700;color:{{ ($r['flag'] ?? '') === 'H' || ($r['flag'] ?? '') === 'L' ? '#e74c3c' : '#1a1f36' }}">{{ $r['result'] }}</span>
           <span style="color:#aaa">{{ $r['unit'] }}</span>
           @if($r['range']) <span style="color:#bbb;font-size:10px">({{ $r['range'] }})</span> @endif
           @if($r['flag']) <span style="font-size:9px;font-weight:800;color:#e74c3c;background:#fce4ec;padding:0 4px;border-radius:4px">{{ $r['flag'] }}</span> @endif
@@ -329,11 +329,11 @@
       <div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #f8f9ff">
         <code style="font-size:11px;color:#4154f1">{{ $inv['code'] }}</code>
         <div style="flex:1">
-          <span class="badge-s" style="background:#f0f2ff;color:#666">{{ $inv['payment_type'] }}</span>
+          <span class="badge-s" style="background:#e6e9f0;color:#666">{{ $inv['payment_type'] }}</span>
           <span class="badge-s {{ $inv['status'] === 'paid' ? 'b-done' : 'b-active' }}">{{ ucfirst($inv['status']) }}</span>
         </div>
         <div style="text-align:right">
-          <div style="font-size:14px;font-weight:800;color:#012970">{{ number_format($inv['total']) }} ៛</div>
+          <div style="font-size:14px;font-weight:800;color:#1a1f36">{{ number_format($inv['total']) }} ៛</div>
           @if($inv['balance'] > 0)
           <div style="font-size:10px;color:#e74c3c">Balance: {{ number_format($inv['balance']) }} ៛</div>
           @endif

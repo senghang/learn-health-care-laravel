@@ -12,13 +12,13 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:11.5pt;color:#1
 /* Header */
 .inv-hd{display:flex;align-items:center;gap:14px;padding-bottom:10px;border-bottom:2.5px solid #00bcd4;margin-bottom:10px}
 .clinic-logo{width:52px;height:52px;border-radius:50%;background:#e0f7fa;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
-.clinic-name{font-size:15pt;font-weight:900;color:#012970}
+.clinic-name{font-size:15pt;font-weight:900;color:#1a1f36}
 .inv-title-badge{background:#00bcd4;color:#fff;padding:3px 18px;border-radius:20px;font-size:12pt;font-weight:700;margin-left:auto}
 
 /* Meta row */
 .inv-meta{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;background:#f0f9ff;border:1.5px solid #00bcd433;border-radius:8px;padding:10px 14px;margin-bottom:12px}
 .meta-field .lbl{font-size:8pt;color:#888;text-transform:uppercase;letter-spacing:.4px}
-.meta-field .val{font-weight:700;color:#012970;font-size:10.5pt}
+.meta-field .val{font-weight:700;color:#1a1f36;font-size:10.5pt}
 
 /* Status badge */
 .status-badge{display:inline-block;padding:3px 12px;border-radius:12px;font-weight:700;font-size:10pt}
@@ -30,7 +30,7 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:11.5pt;color:#1
 /* Patient */
 .pt-box{background:#f9f9f9;border-left:3px solid #00bcd4;padding:8px 12px;margin-bottom:12px;border-radius:0 6px 6px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .pt-lbl{font-size:8pt;color:#888}
-.pt-val{font-weight:700;color:#012970;font-size:10.5pt}
+.pt-val{font-weight:700;color:#1a1f36;font-size:10.5pt}
 
 /* Section */
 .sec-title{font-size:9.5pt;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:5px 10px;margin-bottom:6px;border-radius:4px}
@@ -39,9 +39,9 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:11.5pt;color:#1
 
 /* Line items table */
 .items-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:10.5pt}
-.items-table th{background:#f5f5f5;font-weight:800;font-size:9pt;padding:6px 8px;border:1px solid #ddd;color:#012970}
+.items-table th{background:#f5f5f5;font-weight:800;font-size:9pt;padding:6px 8px;border:1px solid #ddd;color:#1a1f36}
 .items-table td{padding:7px 8px;border:1px solid #e6eaf5;vertical-align:middle}
-.items-table tr:nth-child(even) td{background:#fafbff}
+.items-table tr:nth-child(even) td{background:#f9fafb}
 .items-table .num{text-align:right;font-weight:700}
 .paid-chip{font-size:8.5pt;padding:1px 7px;border-radius:8px;font-weight:700}
 .paid-yes{background:#e8f8ef;color:#1D9E75}
@@ -51,7 +51,7 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:11.5pt;color:#1
 .total-box{margin-left:auto;max-width:260px;border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:14px}
 .total-row{display:flex;justify-content:space-between;padding:7px 14px;font-size:10.5pt;border-bottom:1px solid #f0f0f0}
 .total-row:last-child{border:none}
-.total-grand{background:#012970;color:#fff;font-size:13pt;font-weight:900;padding:10px 14px}
+.total-grand{background:#1a1f36;color:#fff;font-size:13pt;font-weight:900;padding:10px 14px}
 
 /* Signature */
 .sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px;margin-top:16px;padding-top:14px;border-top:1px dashed #ddd}

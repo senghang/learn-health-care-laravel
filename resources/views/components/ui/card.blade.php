@@ -1,31 +1,21 @@
 {{--
-    Full card:
+    Card container.
+
+    Full (with named header slot):
     <x-ui.card>
-        <x-slot:header>
-            <x-ui.card-header title="Patients" km="អ្នកជំងឺ" icon="bi-people-fill" :count="100">
-                <x-slot:actions>
-                    <x-ui.button size="sm">Add</x-ui.button>
-                </x-slot:actions>
-            </x-ui.card-header>
-        </x-slot:header>
-        <x-ui.card-body>…content…</x-ui.card-body>
-        <x-slot:footer>
-            <x-ui.card-footer>…</x-ui.card-footer>
-        </x-slot:footer>
+        <x-slot:header><x-ui.card-header km="អ្នកជំងឺ" icon="bi-people-fill" /></x-slot:header>
+        body content
     </x-ui.card>
 
-    Shorthand (title auto-creates header):
-    <x-ui.card title="Lab Queue" km="វេជ្ជស្ថាន" icon="bi-flask-fill">
-        <p>content</p>
+    Shorthand (auto-creates header row):
+    <x-ui.card km="វេជ្ជស្ថាន" title="Lab Queue" icon="bi-flask-fill">
+        body content
     </x-ui.card>
 
     Props:
-        title      — header title (shorthand — creates header automatically)
-        km         — Khmer title
-        icon       — Bootstrap icon class
-        iconColor  — icon color (default: #4154f1)
-        count      — record count in header
-        noPadding  — remove body padding (for tables)
+        title|km|icon|iconColor  — shorthand header
+        count      — record count badge in shorthand header
+        noPadding  — remove body padding (for full-bleed tables)
         compact    — smaller padding
 --}}
 @props([
@@ -38,48 +28,52 @@
     'compact'   => false,
 ])
 
-<div {{ $attributes->merge(['class' => 'bg-white rounded-xl border border-[#e6e9f0] overflow-hidden']) }}
-     style="box-shadow:0 1px 2px rgba(17,24,39,.05),0 4px 16px rgba(17,24,39,.04)">
+<div {{ $attributes->merge(['class' => 'bg-white rounded-xl border border-[var(--border-subtle)] overflow-hidden shadow-sm']) }}>
 
-    {{-- Shorthand header --}}
+    {{-- Shorthand header (only when using title/km/icon props) --}}
     @if($title || $km || $icon)
-    <div class="flex items-center justify-between px-5 {{ $compact ? 'py-3' : 'py-4' }}"
-         style="border-bottom:1px solid #e6e9f0">
-        <div class="flex items-center gap-2">
-            @if($icon)
-            <i class="bi {{ $icon }}" style="color:{{ $iconColor }};font-size:15px" aria-hidden="true"></i>
-            @endif
-            <div>
-                @if($km)
-                <span class="text-sm font-bold" style="color:#1a1f36">{{ $km }}</span>
-                @if($title)<span class="text-xs ml-1.5" style="color:#6b7280">/ {{ $title }}</span>@endif
-                @else
-                <span class="text-sm font-bold" style="color:#1a1f36">{{ $title }}</span>
+        <div class="flex items-center justify-between px-5 {{ $compact ? 'py-3' : 'py-4' }}
+                    border-b border-[var(--border-subtle)]">
+            <div class="flex items-center gap-2 min-w-0">
+                @if($icon)
+                    <i class="bi {{ $icon }} text-sm flex-shrink-0"
+                       style="color:{{ $iconColor }}" aria-hidden="true"></i>
+                @endif
+                <div class="min-w-0">
+                    @if($km)
+                        <span class="text-sm font-bold text-[var(--text-primary)] font-khmer">{{ $km }}</span>
+                        @if($title)
+                            <span class="text-xs ml-1.5 text-[var(--text-muted)]">/ {{ $title }}</span>
+                        @endif
+                    @else
+                        <span class="text-sm font-bold text-[var(--text-primary)]">{{ $title }}</span>
+                    @endif
+                </div>
+                @if($count !== null)
+                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 flex-shrink-0">
+                        {{ number_format($count) }}
+                    </span>
                 @endif
             </div>
-            @if($count !== null)
-            <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
-                  style="background:#f3f4f6;color:#6b7280">{{ number_format($count) }}</span>
-            @endif
+            @isset($actions)
+                <div class="flex items-center gap-2 flex-shrink-0">{{ $actions }}</div>
+            @endisset
         </div>
-        @isset($actions)
-        <div class="flex items-center gap-2">{{ $actions }}</div>
-        @endisset
-    </div>
     @endif
 
-    {{-- Named header slot (full custom header) --}}
+    {{-- Named header slot (full custom header component) --}}
     @isset($header)
-    {{ $header }}
+        {{ $header }}
     @endisset
 
     {{-- Body --}}
-    <div @if($noPadding) style="padding:0" @else class="{{ $compact ? 'p-4' : 'p-5' }}" @endif>
+    <div class="{{ $noPadding ? '' : ($compact ? 'p-4' : 'p-5') }}">
         {{ $slot }}
     </div>
 
     {{-- Footer --}}
     @isset($footer)
-    <div style="border-top:1px solid #e6e9f0">{{ $footer }}</div>
+        <div class="border-t border-[var(--border-subtle)]">{{ $footer }}</div>
     @endisset
+
 </div>

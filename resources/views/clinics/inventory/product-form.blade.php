@@ -1,135 +1,206 @@
 @extends('clinics.layout.app')
 @section('title', $medicine ? 'Edit Product' : 'New Product')
+
 @section('content')
 
-<div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-    <div>
-        <x-ui.breadcrumbs :items="[
-            ['label'=>'ដើម','url'=>url('/')],
-            ['label'=>'Products','url'=>route('inventory.products')],
-            ['label'=>$medicine ? 'Edit' : 'New'],
-        ]" />
-        <h1 class="text-xl font-black mt-1" style="color:#012970">
-            {{ $medicine ? 'កែប្រែផលិតផល' : 'ផលិតផលថ្មី' }}
-            <span class="text-sm font-normal text-slate-400">/ {{ $medicine ? 'Edit Product' : 'New Product' }}</span>
-        </h1>
-    </div>
-    <div>
-        <x-ui.button variant="secondary" size="sm" href="{{ route('inventory.products') }}">
-            <i class="bi bi-arrow-left"></i> Back
+<x-ui.page-header
+    :km="$medicine ? 'កែប្រែផលិតផល' : 'ផលិតផលថ្មី'"
+    :title="$medicine ? 'Edit Product' : 'New Product'"
+    :breadcrumbs="[
+        ['label' => __('app.home'), 'url' => route('dashboard')],
+        ['label' => 'Inventory', 'url' => route('inventory.products')],
+        ['label' => $medicine ? 'Edit' : 'New'],
+    ]">
+    <x-slot:actions>
+        <x-ui.button href="{{ route('inventory.products') }}" variant="secondary" size="sm">
+            <x-slot:icon><i class="bi bi-arrow-left" aria-hidden="true"></i></x-slot:icon>
+            Back
         </x-ui.button>
-    </div>
-</div>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if($errors->any())
-<x-ui.alert type="error" class="mb-3">
-    <ul style="margin:0;padding-left:16px;font-size:12px">@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
-</x-ui.alert>
+    <x-ui.alert type="error" class="mb-4">
+        <ul class="list-disc pl-4 text-xs space-y-0.5">
+            @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+        </ul>
+    </x-ui.alert>
 @endif
 
 <form method="POST"
       action="{{ $medicine ? route('inventory.product.update', $medicine->id) : route('inventory.product.store') }}"
       novalidate>
-@csrf
-@if($medicine) @method('PATCH') @endif
+    @csrf
+    @if($medicine) @method('PATCH') @endif
 
-<div class="row g-3">
-<div class="col-12 col-lg-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-  <x-ui.card class="mb-3">
-    <x-slot:header>
-        <x-ui.card-header km="ព័ត៌មានផលិតផល" label="Product Info" icon="bi-box-seam-fill"/>
-    </x-slot:header>
-    <div class="row g-3">
-      <div class="col-6 col-md-4">
-        <x-form.field name="code" km="លេខ Code" en="Product Code"
-                      :value="old('code',$medicine?->code)"
-                      :readonly="(bool)$medicine" required/>
-      </div>
-      <div class="col-12 col-md-8">
-        <x-form.field name="name" km="ឈ្មោះ" en="Name (English)" :value="old('name',$medicine?->name)" required/>
-      </div>
-      <div class="col-12 col-md-6">
-        <x-form.field name="name_kh" km="ឈ្មោះខ្មែរ" en="Name (Khmer)" :value="old('name_kh',$medicine?->name_kh)"/>
-      </div>
-      <div class="col-12 col-md-6">
-        <x-form.field name="generic_name" km="ឈ្មោះទូទៅ" en="Generic Name" :value="old('generic_name',$medicine?->generic_name)"/>
-      </div>
-      <div class="col-6 col-md-4">
-        <div class="fld">
-          <label class="flbl"><span class="km">ប្រភេទ</span><span class="en">/ Category</span></label>
-          <input name="category" class="form-control" list="catlist"
-                 value="{{ old('category',$medicine?->category) }}" placeholder="Antibiotic, Analgesic…"/>
-          <datalist id="catlist">
-            @foreach($categories as $cat)<option value="{{ $cat }}">@endforeach
-          </datalist>
+        {{-- ── Product Info ──────────────────────────────────────── --}}
+        <div class="lg:col-span-2">
+            <x-ui.card>
+                <x-slot:header>
+                    <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                        <i class="bi bi-box-seam-fill" style="color:#4154f1;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">Product Info</span>
+                        <span class="text-xs" style="color:#6b7280">/ ព័ត៌មានផលិតផល</span>
+                    </div>
+                </x-slot:header>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            លេខ Code <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.input name="code" :value="old('code', $medicine?->code)"
+                                       required :readonly="(bool)$medicine" />
+                        @error('code')
+                            <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div class="col-span-2 space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            ឈ្មោះ / Name (English) <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.input name="name" :value="old('name', $medicine?->name)" required />
+                        @error('name')
+                            <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
+
+                    <div class="col-span-2 md:col-span-1 space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ឈ្មោះខ្មែរ / Name (Khmer)</label>
+                        <x-forms.input name="name_kh" :value="old('name_kh', $medicine?->name_kh)" />
+                    </div>
+
+                    <div class="col-span-2 md:col-span-2 space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ឈ្មោះទូទៅ / Generic Name</label>
+                        <x-forms.input name="generic_name" :value="old('generic_name', $medicine?->generic_name)" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ប្រភេទ / Category</label>
+                        <input name="category" list="catlist"
+                               value="{{ old('category', $medicine?->category) }}"
+                               placeholder="Antibiotic, Analgesic…"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#9ca3af] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors" />
+                        <datalist id="catlist">
+                            @foreach($categories as $cat)<option value="{{ $cat }}">@endforeach
+                        </datalist>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ទំរង់ / Form</label>
+                        <x-forms.select name="form">
+                            <option value="">—</option>
+                            @foreach(['Tablet','Capsule','Syrup','Injection','Cream','Drops','Powder','Other'] as $f)
+                                <option value="{{ $f }}" @selected(old('form', $medicine?->form) === $f)>{{ $f }}</option>
+                            @endforeach
+                        </x-forms.select>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">កម្លាំង / Strength</label>
+                        <x-forms.input name="strength" placeholder="500mg / 250mg/5ml"
+                                       :value="old('strength', $medicine?->strength)" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ឯកតា / Unit</label>
+                        <x-forms.input name="unit" placeholder="Tablet, Vial, Bottle"
+                                       :value="old('unit', $medicine?->unit)" />
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            តម្លៃ KHR / Unit Price <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.input type="number" name="price" required placeholder="0"
+                                       :value="old('price', $medicine?->price)" />
+                    </div>
+
+                    @if(!$medicine)
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">
+                                ស្តុកដើម / Initial Stock <span style="color:#ef4444">*</span>
+                            </label>
+                            <x-forms.input type="number" name="stock" required placeholder="0"
+                                           :value="old('stock', 0)" />
+                        </div>
+                    @endif
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            ដែនកំណត់ / Low Stock Alert <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.input type="number" name="stock_alert" required placeholder="10"
+                                       :value="old('stock_alert', $medicine?->stock_alert ?? 10)" />
+                    </div>
+
+                    @if($medicine)
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">ស្ថានភាព / Status</label>
+                            <x-forms.select name="is_active">
+                                <option value="1" @selected(old('is_active', $medicine->is_active ? '1' : '0') === '1')>Active</option>
+                                <option value="0" @selected(old('is_active', $medicine->is_active ? '1' : '0') === '0')>Inactive</option>
+                            </x-forms.select>
+                        </div>
+                    @endif
+
+                </div>
+            </x-ui.card>
         </div>
-      </div>
-      <div class="col-6 col-md-4">
-        <x-form.select name="form" km="ទំរង់" en="Form"
-            :options="[''=> '—', 'Tablet'=>'Tablet','Capsule'=>'Capsule','Syrup'=>'Syrup','Injection'=>'Injection','Cream'=>'Cream','Drops'=>'Drops','Powder'=>'Powder','Other'=>'Other']"
-            :value="old('form',$medicine?->form)"/>
-      </div>
-      <div class="col-6 col-md-4">
-        <x-form.field name="strength" km="កម្លាំង" en="Strength" placeholder="500mg / 250mg/5ml"
-                      :value="old('strength',$medicine?->strength)"/>
-      </div>
-      <div class="col-6 col-md-4">
-        <x-form.field name="unit" km="ឯកតា" en="Unit" placeholder="Tablet, Vial, Bottle"
-                      :value="old('unit',$medicine?->unit)"/>
-      </div>
-      <div class="col-6 col-md-4">
-        <x-form.field name="price" km="តម្លៃ KHR" en="Unit Price" type="number" required
-                      :value="old('price',$medicine?->price)" placeholder="0"/>
-      </div>
-      @if(!$medicine)
-      <div class="col-6 col-md-4">
-        <x-form.field name="stock" km="ស្តុកដើម" en="Initial Stock" type="number" required
-                      :value="old('stock',0)" placeholder="0"/>
-      </div>
-      @endif
-      <div class="col-6 col-md-4">
-        <x-form.field name="stock_alert" km="ដែនកំណត់ទាប" en="Low Stock Alert" type="number" required
-                      :value="old('stock_alert',$medicine?->stock_alert ?? 10)" placeholder="10"/>
-      </div>
-      @if($medicine)
-      <div class="col-6 col-md-4">
-        <div class="fld">
-          <label class="flbl"><span class="km">ស្ថានភាព</span><span class="en">/ Status</span></label>
-          <select name="is_active" class="form-select">
-            <option value="1" {{ old('is_active',$medicine->is_active ? '1':'0') === '1' ? 'selected':'' }}>Active</option>
-            <option value="0" {{ old('is_active',$medicine->is_active ? '1':'0') === '0' ? 'selected':'' }}>Inactive</option>
-          </select>
+
+        {{-- ── Sidebar: Save ─────────────────────────────────────── --}}
+        <div>
+            <x-ui.card class="sticky top-20">
+                <x-slot:header>
+                    <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                        <i class="bi bi-save-fill" style="color:#4154f1;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">Save</span>
+                    </div>
+                </x-slot:header>
+
+                <div class="space-y-2">
+                    <x-ui.button type="submit" variant="primary" :fullWidth="true">
+                        <x-slot:icon><i class="bi bi-check2-circle" aria-hidden="true"></i></x-slot:icon>
+                        {{ $medicine ? 'Update Product' : 'Create Product' }}
+                    </x-ui.button>
+                    <x-ui.button href="{{ route('inventory.products') }}" variant="secondary" :fullWidth="true">
+                        Cancel
+                    </x-ui.button>
+                </div>
+
+                @if($medicine)
+                    <div class="mt-4 pt-4 space-y-2" style="border-top:1px solid #e6e9f0">
+                        @php
+                            $isOut = $medicine->stock === 0;
+                            $isLow = !$isOut && $medicine->isLowStock();
+                            $sCol  = $isOut ? '#e74c3c' : ($isLow ? '#ff771d' : '#2eca6a');
+                        @endphp
+                        <div class="flex items-center justify-between text-xs">
+                            <span style="color:#6b7280">Current Stock</span>
+                            <strong style="color:{{ $sCol }}">{{ $medicine->stock }} {{ $medicine->unit }}</strong>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span style="color:#6b7280">Created</span>
+                            <span style="color:#1a1f36">{{ $medicine->created_at?->format('d/m/Y') }}</span>
+                        </div>
+                        <a href="{{ route('inventory.stock-in') }}?medicine={{ $medicine->id }}"
+                           class="flex items-center gap-1.5 text-xs font-semibold hover:underline" style="color:#2eca6a">
+                            <i class="bi bi-plus-circle" aria-hidden="true"></i> Add Stock
+                        </a>
+                    </div>
+                @endif
+            </x-ui.card>
         </div>
-      </div>
-      @endif
-    </div>
-  </x-ui.card>
 
-</div>
-<div class="col-12 col-lg-4">
-  <x-ui.card style="position:sticky;top:76px">
-    <x-slot:header>
-        <x-ui.card-header km="រក្សាទុក" icon="bi-save-fill"/>
-    </x-slot:header>
-    <button type="submit" class="btn btn-primary btn-w100 mb-2">
-      <i class="bi bi-check2-circle"></i> {{ $medicine ? 'Update Product' : 'Create Product' }}
-    </button>
-    <a href="{{ route('inventory.products') }}" class="btn btn-outline-primary btn-w100">Cancel</a>
-
-    @if($medicine)
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid #f0f2ff;font-size:11px;color:#aaa">
-      <div><i class="bi bi-box-seam"></i> Stock: <strong style="color:{{ $medicine->stock===0?'#e74c3c':($medicine->isLowStock()?'#ff771d':'#2eca6a') }}">{{ $medicine->stock }} {{ $medicine->unit }}</strong></div>
-      <div><i class="bi bi-calendar"></i> Created: {{ $medicine->created_at?->format('d/m/Y') }}</div>
-      <div style="margin-top:8px">
-        <a href="{{ route('inventory.stock-in') }}?medicine={{ $medicine->id }}" style="color:#2eca6a;font-size:11px">
-          <i class="bi bi-plus-circle"></i> Add Stock
-        </a>
-      </div>
-    </div>
-    @endif
-  </x-ui.card>
-</div>
-</div>
+    </div>{{-- /grid --}}
 </form>
+
 @endsection

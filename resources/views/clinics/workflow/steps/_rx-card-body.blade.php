@@ -123,7 +123,7 @@
                   style="{{ $stockQty === null ? 'display:none' : '' }}">
                 {{ $stockLbl }}
             </span>
-            <span style="font-size:11px;color:#94a3b8" id="rx_stock_empty_{{ $i }}"
+            <span style="font-size:11px;color:#6b7280" id="rx_stock_empty_{{ $i }}"
                   style="{{ $stockQty !== null ? 'display:none' : '' }}">
                 Select medicine first
             </span>

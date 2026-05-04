@@ -85,21 +85,23 @@ $modalId = $id ?? 'modal_' . uniqid();
         >
             {{-- Header --}}
             @if($title || $km || isset($header))
-            <div class="flex items-center justify-between px-6 py-4 flex-shrink-0"
-                 style="border-bottom:1px solid #e6e9f0">
+            <div class="flex items-center justify-between px-6 py-4 flex-shrink-0
+                        border-b border-[var(--border-subtle)]">
                 @isset($header)
                 {{ $header }}
                 @else
                 <div id="{{ $modalId }}-title">
-                    @if($km)<span class="text-base font-bold text-[#1a1f36]">{{ $km }}</span>@endif
-                    @if($km && $title)<span class="text-xs ml-1.5 text-[#6b7280]">/ {{ $title }}</span>
-                    @elseif($title)<span class="text-base font-bold text-[#1a1f36]">{{ $title }}</span>@endif
+                    @if($km)<span class="text-base font-bold text-[var(--text-primary)] font-khmer">{{ $km }}</span>@endif
+                    @if($km && $title)<span class="text-xs ml-1.5 text-[var(--text-muted)]">/ {{ $title }}</span>
+                    @elseif($title)<span class="text-base font-bold text-[var(--text-primary)]">{{ $title }}</span>@endif
                 </div>
                 @endisset
                 <button @click="open = false" type="button"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg text-[#6b7280] hover:text-[#374151] hover:bg-[#f3f4f6] transition-colors ml-4"
+                        class="flex items-center justify-center w-8 h-8 rounded-lg ml-4
+                               text-[var(--text-secondary)] hover:text-[var(--text-primary)]
+                               hover:bg-slate-100 transition-colors"
                         aria-label="Close modal">
-                    <i class="bi bi-x-lg" style="font-size:13px" aria-hidden="true"></i>
+                    <i class="bi bi-x-lg text-[13px]" aria-hidden="true"></i>
                 </button>
             </div>
             @endif
@@ -111,8 +113,8 @@ $modalId = $id ?? 'modal_' . uniqid();
 
             {{-- Footer --}}
             @isset($footer)
-            <div class="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0"
-                 style="border-top:1px solid #e6e9f0;background:#f9fafb">
+            <div class="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0
+                        border-t border-[var(--border-subtle)] bg-[var(--bg-app)]">
                 {{ $footer }}
             </div>
             @endisset

@@ -22,7 +22,8 @@ $alignCls = ['left'=>'text-left','center'=>'text-center','right'=>'text-right'][
 $nextDir = $sortDir === 'asc' ? 'desc' : 'asc';
 @endphp
 
-<th {{ $attributes->merge(['class' => "px-4 py-3 text-xs font-semibold uppercase tracking-wider text-[#6b7280] $alignCls whitespace-nowrap"]) }}>
+<th {{ $attributes->merge(['class' => "px-4 py-3 text-xs font-semibold uppercase tracking-wider $alignCls whitespace-nowrap"]) }}
+    style="color:var(--text-secondary,#475569)">
     @if($sortable && $sortKey)
     <a href="{{ request()->fullUrlWithQuery(['sort' => $sortKey, 'dir' => $nextDir]) }}"
        class="inline-flex items-center gap-1 hover:text-[#4154f1] transition-colors">

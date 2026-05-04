@@ -32,7 +32,10 @@
       "Bash(find /d/learn/learn-health-care-laravel/resources/lang/en -type f -name *.php)",
       "Bash(find /d/learn/learn-health-care-laravel/resources/lang/km -type f -name *.php)",
       "Bash(find D:/learn/learn-health-care-laravel/tests -name *.php)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(__NEW_LINE_726db90c1ecd3a0a__ grep:*)",
+      "Bash(__NEW_LINE_0bf567e75bf90629__ sed:*)",
+      "Bash(ls:*)"
     ]
   }
 }

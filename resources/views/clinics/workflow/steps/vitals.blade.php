@@ -139,7 +139,7 @@
 </div>
 
 {{-- Progress bar --}}
-<div style="height:3px;background:#f0f2ff">
+<div style="height:3px;background:#e6e9f0">
     <div style="height:100%;width:{{ round($stepIdx/count($steps)*100) }}%;background:linear-gradient(90deg,#4154f1,#717ff5)"></div>
 </div>
 
@@ -182,7 +182,7 @@
             @php $savedVal = old('vitals.' . $v['name'], $obs->get($v['name'], '')); @endphp
             <div class="col-6 col-sm-4 col-lg-3">
                 <div class="vital-card" id="vcard_{{ $v['name'] }}"
-                     style="background:#f6f9ff;border-radius:12px;padding:12px 10px 10px;border:1.5px solid #f0f2ff;text-align:center;position:relative;transition:border-color .2s,background .2s">
+                     style="background:#f6f8fa;border-radius:12px;padding:12px 10px 10px;border:1.5px solid #e6e9f0;text-align:center;position:relative;transition:border-color .2s,background .2s">
                     <div style="position:absolute;top:8px;right:10px">
                         <i class="bi {{ $v['icon'] }}" style="font-size:13px;color:{{ $v['color'] }}33"></i>
                     </div>
@@ -214,7 +214,7 @@
         {{-- Pulse pressure (auto-calculated) --}}
         <div class="row g-2 mt-1">
             <div class="col-6 col-sm-3">
-                <div style="background:#f6f9ff;border-radius:10px;padding:10px;border:1px solid #f0f2ff;text-align:center">
+                <div style="background:#f6f8fa;border-radius:10px;padding:10px;border:1px solid #e6e9f0;text-align:center">
                     <div style="font-size:9.5px;color:#9b59b6;font-weight:700;margin-bottom:3px">Pulse Pressure</div>
                     <div id="ppDisplay" style="font-size:17px;font-weight:800;color:#9b59b6">—</div>
                     <div style="font-size:8.5px;color:#bbb;margin-top:2px">mmHg (SBP − DBP)</div>
@@ -238,7 +238,7 @@
             <div style="overflow-x:auto">
                 <table style="width:100%;border-collapse:collapse;font-size:11px">
                     <thead>
-                        <tr style="background:#f6f9ff">
+                        <tr style="background:#f6f8fa">
                             <th style="padding:6px 10px;text-align:left;color:#64748b;font-weight:700;white-space:nowrap">Recorded At</th>
                             <th style="padding:6px 8px;text-align:center;color:#e74c3c">T°</th>
                             <th style="padding:6px 8px;text-align:center;color:#e91e8c">HR</th>
@@ -251,7 +251,7 @@
                     <tbody>
                     @foreach($allVitals->skip(1)->take(5) as $vh)
                     @php $vhObs = $vh->observations->pluck('value','name'); @endphp
-                    <tr style="border-bottom:1px solid #f0f2ff">
+                    <tr style="border-bottom:1px solid #e6e9f0">
                         <td style="padding:5px 10px;color:#64748b;white-space:nowrap">{{ $vh->recorded_at?->format('d/m H:i') ?? '—' }}</td>
                         <td style="padding:5px 8px;text-align:center">{{ $vhObs->get('temperature','—') }}</td>
                         <td style="padding:5px 8px;text-align:center">{{ $vhObs->get('heart_rate','—') }}</td>
@@ -287,7 +287,7 @@ var VITAL_RANGES = {
 
 // Level: 0=normal, 1=warn, 2=critical  →  colors
 var LEVEL_CFG = {
-    0: { bg:'#f6f9ff', border:'#f0f2ff', tag:'',         tagColor:'',       cardColor:'#f6f9ff' },
+    0: { bg:'#f6f8fa', border:'#e6e9f0', tag:'',         tagColor:'',       cardColor:'#f6f8fa' },
     1: { bg:'#fff8ee', border:'#ffd080', tag:'⚠ Warning', tagColor:'#c97700',cardColor:'#fff8ee' },
     2: { bg:'#fde8e8', border:'#e74c3c', tag:'🔴 Critical',tagColor:'#e74c3c',cardColor:'#fde8e8' },
 };
@@ -316,8 +316,8 @@ function assessVital(name, val) {
     if (!card || !input || !tag) return;
 
     if (level < 0) {
-        card.style.background   = '#f6f9ff';
-        card.style.borderColor  = '#f0f2ff';
+        card.style.background   = '#f6f8fa';
+        card.style.borderColor  = '#e6e9f0';
         input.style.borderColor = VITAL_RANGES[name] ? '' : '';
         tag.textContent = '';
         tag.style.color = '';

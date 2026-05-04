@@ -122,14 +122,14 @@
                 <x-slot:body>
                 @forelse($medicines as $med)
                 @php $lowStock = $med->stock <= $med->stock_alert; @endphp
-                <tr class="{{ $lowStock ? 'bg-[#fff8ee]' : 'hover:bg-[#fafbff]' }} transition-colors">
+                <tr class="{{ $lowStock ? 'bg-[#fff8ee]' : 'hover:bg-[#f9fafb]' }} transition-colors">
                     <x-ui.table-td>
                         <code class="text-xs font-mono" style="color:#e91e8c">{{ $med->code }}</code>
                     </x-ui.table-td>
                     <x-ui.table-td>
-                        <div class="font-semibold text-[#012970] text-sm">{{ $med->name }}</div>
+                        <div class="font-semibold text-[#1a1f36] text-sm">{{ $med->name }}</div>
                         @if($med->name_kh)<div class="text-[10px] text-[#888]">{{ $med->name_kh }}</div>@endif
-                        @if($med->generic_name)<div class="text-[10px] text-[#94a3b8]">{{ $med->generic_name }}</div>@endif
+                        @if($med->generic_name)<div class="text-[10px] text-[#6b7280]">{{ $med->generic_name }}</div>@endif
                     </x-ui.table-td>
                     <x-ui.table-td>
                         @if($med->form)

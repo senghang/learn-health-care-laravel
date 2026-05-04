@@ -60,12 +60,15 @@ return new class extends Migration {
             $table->string('service_code', 30)->nullable();
             $table->string('service_name', 200);
             $table->string('service_category', 80)->nullable();
+            $table->decimal('qty', 10, 2)->default(1);
             $table->decimal('price', 14, 2)->default(0);
             $table->decimal('payment', 14, 2)->default(0);
             $table->decimal('paid', 14, 2)->default(0);
             $table->string('discount_type', 20)->nullable()
                 ->comment('percentage | fixed');
             $table->decimal('discount', 14, 2)->default(0);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -85,6 +88,8 @@ return new class extends Migration {
             $table->decimal('paid', 14, 2)->default(0);
             $table->string('discount_type', 20)->nullable();
             $table->decimal('discount', 14, 2)->default(0);
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 

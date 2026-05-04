@@ -1,65 +1,96 @@
 {{--
-    Form field wrapper — label + input slot + error message.
-    Reduces repetition of the label/error pattern across every form.
+    Form field wrapper — owns label, control slot, validation error, hint.
+    Every field in every form should use this. Never write bare label+input pairs.
 
-    <x-forms.field name="name" label="Full Name" km="ឈ្មោះពេញ" required>
-        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-               value="{{ old('name') }}">
+    Basic:
+    <x-forms.field name="surname" km="នាមត្រកូល" label="Surname" required>
+        <x-forms.input name="surname" :value="old('surname')" />
     </x-forms.field>
 
-    <x-forms.field name="role_id" label="Role" required>
-        <select name="role_id" class="form-select @error('role_id') is-invalid @enderror">...</select>
+    With AUTO badge:
+    <x-forms.field name="" km="លេខអ្នកជំងឺ" label="Patient Code" badge="auto">
+        <div class="...readonly display...">{{ $nextCode }}</div>
+    </x-forms.field>
+
+    With hint:
+    <x-forms.field name="spid" km="លេខ SPID" hint="HEF / NSSF card number">
+        <x-forms.input name="spid" />
     </x-forms.field>
 
     Props:
-        name     — field name used to look up validation errors
-        label    — English label text
-        km       — Khmer label text (shown first if provided)
-        required — bool: show asterisk
-        hint     — small helper text below the input
-        col      — Bootstrap col class (e.g. "col-12 col-sm-6") — wraps in that div if provided
+        name     — for @error lookup and <label for="…"> (pass '' to suppress lookup)
+        label    — English label (muted qualifier after km)
+        km       — Khmer label (dominant)
+        badge    — inline label pill: 'auto' | 'optional' | null
+        required — bool: show red * marker
+        hint     — helper text below (hidden when error shown)
+        for      — explicit <label for="…"> id override
 --}}
 @props([
     'name'     => '',
     'label'    => null,
     'km'       => null,
+    'badge'    => null,
     'required' => false,
     'hint'     => null,
-    'col'      => null,
+    'for'      => null,
 ])
+@php
+$inputId  = $for ?? $name;
+$hasError = $name && $errors->has($name);
 
-@php $hasError = $errors->has($name); @endphp
+$badgeCfg = match($badge) {
+    'auto'     => ['text' => 'AUTO',     'cls' => 'bg-emerald-100 text-emerald-800'],
+    'optional' => ['text' => 'Optional', 'cls' => 'bg-slate-100 text-slate-500'],
+    default    => null,
+};
+@endphp
 
-@if($col)
-<div class="{{ $col }}">
-@endif
+<div {{ $attributes->merge(['class' => 'space-y-1']) }}>
 
-<div class="mb-0 {{ $attributes->get('class') }}">
-    @if($label || $km)
-    <label for="{{ $name }}"
-           class="form-label d-block"
-           style="font-size:12px;font-weight:700;color:#444;margin-bottom:4px">
+    {{-- Label row --}}
+    @if($label || $km || $badgeCfg)
+    <label for="{{ $inputId }}"
+           class="flex items-center gap-1.5 leading-none cursor-default select-none">
+
         @if($km)
-            {{ $km }}
-            @if($label)<span style="font-weight:400;color:#94a3b8;margin-left:4px">/ {{ $label }}</span>@endif
-        @else
-            {{ $label }}
+            <span class="text-[13px] font-semibold text-[var(--text-primary)] font-khmer">{{ $km }}</span>
+            @if($label)
+                <span class="text-[11px] font-normal text-[var(--text-muted)]">/ {{ $label }}</span>
+            @endif
+        @elseif($label)
+            <span class="text-[13px] font-semibold text-[var(--text-primary)]">{{ $label }}</span>
         @endif
-        @if($required)<span style="color:#e74c3c;margin-left:2px">*</span>@endif
+
+        @if($badgeCfg)
+            <span class="inline-flex items-center text-[10px] font-bold px-1.5 py-[3px] rounded-full leading-none flex-shrink-0 {{ $badgeCfg['cls'] }}">
+                {{ $badgeCfg['text'] }}
+            </span>
+        @endif
+
+        @if($required)
+            <span class="text-sm font-black leading-none flex-shrink-0 text-red-500" aria-hidden="true">*</span>
+        @endif
+
     </label>
     @endif
 
+    {{-- Control --}}
     {{ $slot }}
 
-    @error($name)
-        <div class="invalid-feedback d-block" style="font-size:11px">{{ $message }}</div>
-    @enderror
-
-    @if($hint && !$hasError)
-        <div style="font-size:11px;color:#94a3b8;margin-top:3px">{{ $hint }}</div>
+    {{-- Error or hint --}}
+    @if($hasError)
+        @error($name)
+            <p id="{{ $name }}_error" role="alert" aria-live="polite"
+               class="flex items-center gap-1 text-[11px] leading-tight text-red-500 mt-0.5">
+                <i class="bi bi-exclamation-circle-fill flex-shrink-0 text-[10px]" aria-hidden="true"></i>
+                {{ $message }}
+            </p>
+        @enderror
+    @elseif($hint)
+        <p class="text-[11px] leading-tight text-[var(--text-muted)] mt-0.5">
+            {{ $hint }}
+        </p>
     @endif
-</div>
 
-@if($col)
 </div>
-@endif

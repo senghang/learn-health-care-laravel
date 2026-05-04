@@ -41,8 +41,10 @@ $widthClass = $width ? "max-w-{$width}" : '';
         placeholder="{{ $placeholder }}"
         {{ $autofocus ? 'autofocus' : '' }}
         autocomplete="off"
-        class="form-control ps-9 {{ $clearable ? 'pe-9' : '' }}"
-        style="font-size:13px">
+        class="w-full py-[9px] pl-9 {{ $clearable ? 'pr-9' : 'pr-3' }} text-sm rounded-lg border
+               transition-colors duration-150
+               focus:outline-none focus:ring-2 focus:ring-[#4154f1]/25 focus:border-[#4154f1]"
+        style="font-size:13px;color:var(--text-primary,#0F172A);border-color:var(--border-default,#CBD5E1);background:white">
 
     {{-- Clear button --}}
     @if($clearable)

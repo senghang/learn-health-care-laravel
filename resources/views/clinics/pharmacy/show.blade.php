@@ -4,7 +4,7 @@
 
 @php
     $items       = $stockCheck['items'];
-    $errors      = $stockCheck['errors'];
+    $checkErrors = $stockCheck['errors'];
     $warnings    = $stockCheck['warnings'];
     $canFull     = $stockCheck['can_full_dispense'];
     $anyPending  = collect($items)->where('already_dispensed', false)->where('can_dispense', true)->count();
@@ -13,469 +13,439 @@
 
 @section('content')
 
-    <x-page-header
-        title="Dispense {{ $prescription->code }}"
-        subtitle="ចែកចាយថ្នាំ"
-        :breadcrumbs="[
-        ['label' => __('app.home'),     'url' => route('dashboard')],
-        ['label' => 'Pharmacy',         'url' => route('pharmacy.index')],
+<x-ui.page-header
+    title="Dispense {{ $prescription->code }}"
+    km="ចែកចាយថ្នាំ"
+    :breadcrumbs="[
+        ['label' => __('app.home'),   'url' => route('dashboard')],
+        ['label' => 'Pharmacy',       'url' => route('pharmacy.index')],
         ['label' => $prescription->code],
     ]">
-        <a href="{{ route('print.prescription', $prescription->code) }}" class="btn btn-outline-secondary btn-sm"
-           target="_blank">
-            <i class="bi bi-printer-fill"></i> Print Rx
-        </a>
+    <x-slot:actions>
+        <x-ui.button href="{{ route('print.prescription', $prescription->code) }}"
+            variant="secondary" target="_blank">
+            <x-slot:icon><i class="bi bi-printer-fill" aria-hidden="true"></i></x-slot:icon>
+            Print Rx
+        </x-ui.button>
         @if($prescription->visit_code)
-            <a href="{{ url('/workflow/' . $prescription->visit_code) }}" class="btn btn-outline-primary btn-sm">
-                <i class="bi bi-diagram-3-fill"></i> Visit
-            </a>
+            <x-ui.button href="{{ url('/workflow/'.$prescription->visit_code) }}" variant="secondary">
+                <x-slot:icon><i class="bi bi-diagram-3-fill" aria-hidden="true"></i></x-slot:icon>
+                Visit
+            </x-ui.button>
         @endif
-    </x-page-header>
+    </x-slot:actions>
+</x-ui.page-header>
 
-    {{-- Flash messages --}}
-    @if(session('success'))
-        <div class="note note-success mb-3">
-            <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
-        </div>
-    @endif
-    @if(session('info'))
-        <div class="note note-warn mb-3">
-            <i class="bi bi-info-circle-fill"></i> {{ session('info') }}
-        </div>
-    @endif
-    @if(isset($errors) && $errors instanceof MessageBag && $errors->has('dispense'))
-        <div class="note note-danger mb-3">
-            <i class="bi bi-exclamation-triangle-fill"></i> {{ $errors->first('dispense') }}
-        </div>
-    @endif
+{{-- Flash messages --}}
+@if(session('success'))
+    <x-ui.alert type="success" class="mb-4">{{ session('success') }}</x-ui.alert>
+@endif
+@if(session('info'))
+    <x-ui.alert type="info" class="mb-4">{{ session('info') }}</x-ui.alert>
+@endif
+@if(isset($errors) && $errors instanceof MessageBag && $errors->has('dispense'))
+    <x-ui.alert type="error" class="mb-4">{{ $errors->first('dispense') }}</x-ui.alert>
+@endif
 
-    <div class="row g-3">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {{-- ── LEFT: Medication Items ───────────────────────────────────────────── --}}
-        <div class="col-12 col-lg-8">
+    {{-- ── LEFT: Medication Items ──────────────────────────────────── --}}
+    <div class="lg:col-span-2 space-y-4">
 
-            {{-- Stock check alerts --}}
-            @if(count($errors) > 0)
-                <div class="note note-danger mb-3">
-                    <div style="font-weight:800;margin-bottom:6px">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                        Stock Errors — Cannot fully dispense:
-                    </div>
-                    @foreach($errors as $err)
-                        <div style="font-size:12px;margin-top:4px">• {{ $err }}</div>
+        {{-- Stock errors --}}
+        @if(count($checkErrors) > 0)
+            <div class="flex gap-3 p-4 rounded-xl" style="background:#fde8e8;border:1px solid #fca5a5">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-0.5" style="color:#dc2626"></i>
+                <div>
+                    <p class="text-sm font-bold mb-1" style="color:#dc2626">
+                        Stock Errors — Cannot fully dispense
+                    </p>
+                    @foreach($checkErrors as $err)
+                        <p class="text-xs" style="color:#b91c1c">• {{ $err }}</p>
                     @endforeach
                 </div>
-            @endif
-            @if(count($warnings) > 0)
-                <div class="note note-warn mb-3">
-                    <div style="font-weight:800;margin-bottom:4px">
-                        <i class="bi bi-exclamation-circle-fill"></i> Warnings:
-                    </div>
+            </div>
+        @endif
+
+        {{-- Warnings --}}
+        @if(count($warnings) > 0)
+            <div class="flex gap-3 p-4 rounded-xl" style="background:#fff8e1;border:1px solid #fde68a">
+                <i class="bi bi-exclamation-circle-fill flex-shrink-0 mt-0.5" style="color:#b45309"></i>
+                <div>
+                    <p class="text-sm font-bold mb-1" style="color:#b45309">Warnings</p>
                     @foreach($warnings as $warn)
-                        <div style="font-size:12px;margin-top:4px">• {{ $warn }}</div>
+                        <p class="text-xs" style="color:#92400e">• {{ $warn }}</p>
                     @endforeach
                 </div>
-            @endif
+            </div>
+        @endif
 
-            {{-- Medication items table --}}
-            <div class="card-emr mb-3">
-                <div class="card-hd" style="background:#fdf0f8">
-                    <div class="card-hd-title">
-                        <i class="bi bi-capsule-fill" style="color:#e91e8c"></i>
-                        ថ្នាំ / Medication Items
-                        <span
-                            style="background:#e91e8c22;color:#e91e8c;border:1px solid #e91e8c66;font-size:10px;padding:1px 8px;border-radius:10px;margin-left:6px">
-                        {{ count($items) }} items
-                    </span>
+        {{-- Medication items --}}
+        <x-ui.card :noPadding="true">
+            <x-slot:header>
+                <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-capsule-fill" style="color:#e91e8c;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">ថ្នាំ / Medication Items</span>
+                        <span class="text-xs font-semibold px-2 py-0.5 rounded-full"
+                              style="background:#fde8f5;color:#e91e8c">{{ count($items) }}</span>
                     </div>
                     @if(!$isFullyDone)
-                        <label
-                            style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#4154f1;cursor:pointer">
-                            <input type="checkbox" id="selectAll" onchange="toggleAll(this)"/>
+                        <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold" style="color:#4154f1">
+                            <input type="checkbox" id="selectAll" onchange="toggleAll(this)"
+                                   class="w-3.5 h-3.5 rounded accent-[#4154f1]">
                             Select all
                         </label>
                     @endif
                 </div>
-                <div class="card-bd" style="padding:0">
-                    <div class="table-responsive">
-                        <table class="tbl">
-                            <thead>
-                            <tr>
-                                @if(!$isFullyDone)
-                                    <th style="width:36px"></th>
-                                @endif
-                                <th>#</th>
-                                <th>Medicine</th>
-                                <th style="text-align:center">Dose (M/A/E/N)</th>
-                                <th style="text-align:center">Days</th>
-                                <th style="text-align:center">Need</th>
-                                <th style="text-align:center">Stock</th>
-                                <th style="text-align:center">Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($items as $i => $row)
-                                @php
-                                    $med       = $row['medication'];
-                                    $medicine  = $row['medicine'];
-                                    $needed    = $row['needed'];
-                                    $available = $row['available'];
-                                    $canDispense = $row['can_dispense'];
-                                    $done      = $row['already_dispensed'];
+            </x-slot:header>
 
-                                    // Stock badge
-                                    if ($available === null) {
-                                        $stockCls = ''; $stockTxt = '— no code';
-                                    } elseif ($available <= 0) {
-                                        $stockCls = 'stock-out'; $stockTxt = 'Out of stock';
-                                    } elseif (!$row['sufficient']) {
-                                        $stockCls = 'stock-out'; $stockTxt = "Only {$available}";
-                                    } elseif ($medicine && $available <= ($medicine->stock_alert ?? 10)) {
-                                        $stockCls = 'stock-low'; $stockTxt = "Low: {$available}";
-                                    } else {
-                                        $stockCls = 'stock-ok'; $stockTxt = "✓ {$available}";
-                                    }
-                                @endphp
-                                <tr style="{{ $done ? 'opacity:.55' : '' }}">
-                                    @if(!$isFullyDone)
-                                        <td style="text-align:center">
-                                            @if($canDispense)
-                                                <input type="checkbox" class="item-check"
-                                                       name="item_ids[]" value="{{ $med->id }}"
-                                                       form="partialForm" checked/>
-                                            @elseif($done)
-                                                <i class="bi bi-check-circle-fill"
-                                                   style="color:#2eca6a;font-size:14px"></i>
-                                            @else
-                                                <i class="bi bi-x-circle-fill" style="color:#e74c3c;font-size:14px"></i>
-                                            @endif
-                                        </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="background:#f8f9fb;border-bottom:1px solid #e6e9f0">
+                            @if(!$isFullyDone)
+                                <th class="w-9 px-3 py-3"></th>
+                            @endif
+                            <th class="text-left px-3 py-3 text-xs font-bold" style="color:#6b7280">#</th>
+                            <th class="text-left px-3 py-3 text-xs font-bold" style="color:#6b7280">Medicine</th>
+                            <th class="text-center px-3 py-3 text-xs font-bold" style="color:#6b7280">Dose (M/A/E/N)</th>
+                            <th class="text-center px-3 py-3 text-xs font-bold" style="color:#6b7280">Days</th>
+                            <th class="text-center px-3 py-3 text-xs font-bold" style="color:#6b7280">Need</th>
+                            <th class="text-center px-3 py-3 text-xs font-bold" style="color:#6b7280">Stock</th>
+                            <th class="text-center px-3 py-3 text-xs font-bold" style="color:#6b7280">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($items as $i => $row)
+                        @php
+                            $med       = $row['medication'];
+                            $medicine  = $row['medicine'];
+                            $needed    = $row['needed'];
+                            $available = $row['available'];
+                            $canDispense = $row['can_dispense'];
+                            $done      = $row['already_dispensed'];
+
+                            if ($available === null) {
+                                $stockVariant = 'secondary'; $stockTxt = '— no code';
+                            } elseif ($available <= 0) {
+                                $stockVariant = 'danger'; $stockTxt = 'Out of stock';
+                            } elseif (!$row['sufficient']) {
+                                $stockVariant = 'danger'; $stockTxt = "Only {$available}";
+                            } elseif ($medicine && $available <= ($medicine->stock_alert ?? 10)) {
+                                $stockVariant = 'warning'; $stockTxt = "Low: {$available}";
+                            } else {
+                                $stockVariant = 'success'; $stockTxt = "✓ {$available}";
+                            }
+                        @endphp
+                        <tr class="{{ $done ? 'opacity-50' : '' }} transition-colors"
+                            style="border-bottom:1px solid #f8f9fb">
+                            @if(!$isFullyDone)
+                                <td class="px-3 py-3 text-center">
+                                    @if($canDispense)
+                                        <input type="checkbox" class="item-check w-3.5 h-3.5 rounded accent-[#4154f1]"
+                                               name="item_ids[]" value="{{ $med->id }}"
+                                               form="partialForm" checked>
+                                    @elseif($done)
+                                        <i class="bi bi-check-circle-fill text-sm" style="color:#2eca6a" aria-label="Dispensed"></i>
+                                    @else
+                                        <i class="bi bi-x-circle-fill text-sm" style="color:#e74c3c" aria-label="Cannot dispense"></i>
                                     @endif
-                                    <td style="color:#aaa;font-size:11px">{{ $i + 1 }}</td>
-                                    <td>
-                                        <div style="font-weight:700;color:#012970;font-size:13px">
-                                            {{ $med->medicine_name }}
-                                        </div>
-                                        @if($med->strength)
-                                            <code
-                                                style="font-size:10.5px;background:#eef0fd;color:#4154f1;padding:1px 5px;border-radius:4px">
-                                                {{ $med->strength }}
-                                            </code>
-                                        @endif
-                                        @if($med->form)
-                                            <span
-                                                style="font-size:10px;color:#9b59b6;margin-left:4px">{{ $med->form }}</span>
-                                        @endif
-                                        @if($med->note)
-                                            <div
-                                                style="font-size:10px;color:#aaa;font-style:italic">{{ $med->note }}</div>
-                                        @endif
-                                        @if(!$med->medication_code)
-                                            <div style="font-size:10px;color:#e74c3c;margin-top:2px">
-                                                <i class="bi bi-exclamation-triangle-fill"></i> No catalogue code
-                                            </div>
-                                        @endif
-                                    </td>
-                                    <td style="text-align:center">
-                                        @php
-                                            $parts = array_filter([
-                                                $med->morning   > 0 ? $med->morning   . 'M' : null,
-                                                $med->afternoon > 0 ? $med->afternoon . 'A' : null,
-                                                $med->evening   > 0 ? $med->evening   . 'E' : null,
-                                                $med->night     > 0 ? $med->night     . 'N' : null,
-                                            ]);
-                                        @endphp
-                                        <span style="font-size:11px;color:#555">
-                                        {{ implode(' · ', $parts) ?: '—' }}
-                                    </span>
-                                    </td>
-                                    <td style="text-align:center;font-size:12px;font-weight:700;color:#4154f1">
-                                        {{ $med->days ?? '—' }}
-                                    </td>
-                                    <td style="text-align:center">
-                                        <span style="font-size:15px;font-weight:800;color:#e91e8c">{{ $needed }}</span>
-                                        @if($med->unit)
-                                            <span style="font-size:10px;color:#aaa"> {{ $med->unit }}</span>
-                                        @endif
-                                    </td>
-                                    <td style="text-align:center">
-                                        @if($available !== null)
-                                            <span class="stock-badge {{ $stockCls }}">{{ $stockTxt }}</span>
-                                        @else
-                                            <span style="font-size:11px;color:#bbb">{{ $stockTxt }}</span>
-                                        @endif
-                                    </td>
-                                    <td style="text-align:center">
-                                        @if($done)
-                                            <span
-                                                style="font-size:11px;background:#e8f8ef;color:#1D9E75;border:1px solid #b7eacf;padding:3px 8px;border-radius:8px;font-weight:700">
-                                            ✅ Dispensed
-                                        </span>
-                                        @elseif($canDispense)
-                                            <span
-                                                style="font-size:11px;background:#fff4ec;color:#ff771d;border:1px solid #ffd0a8;padding:3px 8px;border-radius:8px;font-weight:700">
-                                            ⏸ Pending
-                                        </span>
-                                        @else
-                                            <span
-                                                style="font-size:11px;background:#fde8e8;color:#dc2626;border:1px solid #fca5a5;padding:3px 8px;border-radius:8px;font-weight:700">
-                                            ✗ Cannot
-                                        </span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Previous dispense history --}}
-            @if($prescription->dispenses && $prescription->dispenses->count() > 0)
-                <div class="card-emr">
-                    <div class="card-hd">
-                        <div class="card-hd-title">
-                            <i class="bi bi-clock-history" style="color:#7c3aed"></i>
-                            Dispense History
-                        </div>
-                    </div>
-                    <div class="card-bd" style="padding:0">
-                        <table class="tbl">
-                            <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Medicine</th>
-                                <th style="text-align:center">Qty</th>
-                                <th>Dispensed By</th>
-                                <th>Date</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @foreach($prescription->dispenses->where('status','dispensed') as $d)
-                                <tr>
-                                    <td><code style="font-size:10px;color:#7c3aed">{{ $d->code }}</code></td>
-                                    <td style="font-size:12px;font-weight:600;color:#012970">{{ $d->medicine_name }}</td>
-                                    <td style="text-align:center;font-weight:700;color:#e91e8c">{{ $d->quantity }}</td>
-                                    <td style="font-size:12px;color:#555">{{ $d->dispensed_by ?? '—' }}</td>
-                                    <td style="font-size:11px;color:#aaa">{{ $d->dispensed_at?->format('d/m/Y H:i') }}</td>
-                                </tr>
-                            @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            @endif
-
-        </div>
-
-        {{-- ── RIGHT: Patient info + Dispense actions ───────────────────────────── --}}
-        <div class="col-12 col-lg-4">
-
-            {{-- Prescription header --}}
-            <div class="card-emr mb-3">
-                <div class="card-hd" style="background:#fdf0f8">
-                    <div class="card-hd-title">
-                        <i class="bi bi-capsule-fill" style="color:#e91e8c"></i>
-                        <code style="font-size:12px;color:#e91e8c">{{ $prescription->code }}</code>
-                    </div>
-                </div>
-                <div class="card-bd">
-                    @foreach([
-                        ['Doctor',       $prescription->prescribed_by ?? '—'],
-                        ['Prescribed At', $prescription->prescribed_at?->format('d/m/Y H:i') ?? '—'],
-                        ['Visit',         $prescription->visit_code ?? '—'],
-                    ] as [$lbl, $val])
-                        <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:12px">
-                            <span style="color:#aaa">{{ $lbl }}</span>
-                            <span style="font-weight:600;color:#333">{{ $val }}</span>
-                        </div>
-                    @endforeach
-                    @php
-                        $statusCfg = match($prescription->dispensed_status) {
-                            'dispensed' => ['✅ Fully dispensed', '#2eca6a', '#e8f8ef'],
-                            'partial'   => ['⏳ Partially dispensed', '#9b59b6', '#f5eeff'],
-                            default     => ['⏸ Pending', '#ff771d', '#fff4ec'],
-                        };
-                        [$statusLabel, $statusColor, $statusBg] = $statusCfg;
-                    @endphp
-                    <div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0f2ff;text-align:center">
-                    <span
-                        style="font-size:12px;padding:5px 14px;border-radius:10px;font-weight:800;background:{{ $statusBg }};color:{{ $statusColor }}">
-                        {{ $statusLabel }}
-                    </span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Patient --}}
-            @if($prescription->patient)
-                @php $pt = $prescription->patient; $colors = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6']; $col = $colors[abs(crc32($pt->code)) % count($colors)]; @endphp
-                <div class="card-emr mb-3">
-                    <div class="card-hd" style="background:#f6f9ff">
-                        <div class="card-hd-title"><i class="bi bi-person-vcard-fill" style="color:#4154f1"></i> Patient
-                        </div>
-                        <a href="{{ route('patients.show', $pt->code) }}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-person-fill"></i>
-                        </a>
-                    </div>
-                    <div class="card-bd">
-                        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                            <div
-                                style="width:38px;height:38px;border-radius:10px;background:{{ $col }};color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0">
-                                {{ strtoupper(substr($pt->surname,0,1) . substr($pt->name,0,1)) }}
-                            </div>
-                            <div>
-                                <div style="font-weight:800;color:#012970;font-size:14px">{{ $pt->surname }}
-                                    , {{ $pt->name }}</div>
-                                <code style="font-size:11px;color:#4154f1">{{ $pt->code }}</code>
-                            </div>
-                        </div>
-                        @foreach([['DOB', $pt->birthdate?->format('d/m/Y') ?? '—'], ['Phone', $pt->phone ?? '—']] as [$l, $v])
-                            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px">
-                                <span style="color:#aaa">{{ $l }}</span>
-                                <span style="font-weight:600;color:#333">{{ $v }}</span>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @endif
-
-            {{-- Dispense Actions --}}
-            @if(!$isFullyDone)
-                <div class="card-emr" style="position:sticky;top:76px">
-                    <div class="card-hd" style="background:#f5f3ff">
-                        <div class="card-hd-title">
-                            <i class="bi bi-bag-heart-fill" style="color:#7c3aed"></i>
-                            Dispense
-                        </div>
-                    </div>
-                    <div class="card-bd">
-
-                        {{-- Dispensed By field (shared by both forms) --}}
-                        <div class="fld mb-3">
-                            <label class="flbl" style="color:#7c3aed;font-weight:800">
-                                Dispensed By <span class="req">*</span>
-                            </label>
-                            <input type="text" id="dispensedByInput" class="form-control"
-                                   style="border-color:#c4b5fd"
-                                   placeholder="Pharmacist name"
-                                   value="{{ auth()->user()?->name ?? '' }}"
-                                   oninput="syncDispensedBy(this.value)"/>
-                        </div>
-
-                        @if($anyPending > 0)
-                            {{-- FULL DISPENSE --}}
-                            @if($canFull)
-                                <form method="POST" action="{{ route('pharmacy.dispense', $prescription->code) }}"
-                                      id="fullForm">
-                                    @csrf
-                                    <input type="hidden" name="mode" value="full"/>
-                                    <input type="hidden" name="dispensed_by" id="dispensedBy_full"
-                                           value="{{ auth()->user()?->name ?? '' }}"/>
-                                    <button type="submit" class="btn btn-w100 mb-2"
-                                            style="background:#7c3aed;color:#fff;font-weight:700;padding:12px 0;font-size:15px"
-                                            onclick="document.getElementById('dispensedBy_full').value = document.getElementById('dispensedByInput').value">
-                                        <i class="bi bi-bag-check-fill"></i>
-                                        Dispense All ({{ $anyPending }}) Items
-                                    </button>
-                                </form>
+                                </td>
                             @endif
 
-                            {{-- PARTIAL DISPENSE --}}
-                            <form method="POST" action="{{ route('pharmacy.dispense', $prescription->code) }}"
-                                  id="partialForm">
-                                @csrf
-                                <input type="hidden" name="mode" value="partial"/>
-                                <input type="hidden" name="dispensed_by" id="dispensedBy_partial"
-                                       value="{{ auth()->user()?->name ?? '' }}"/>
-                                <button type="submit" class="btn btn-outline-primary btn-w100"
-                                        style="font-weight:700;padding:10px 0"
-                                        onclick="document.getElementById('dispensedBy_partial').value = document.getElementById('dispensedByInput').value">
-                                    <i class="bi bi-pie-chart-fill"></i>
-                                    Dispense Selected Items
-                                </button>
-                                <div style="font-size:10.5px;color:#aaa;text-align:center;margin-top:6px">
-                                    Check items above to select for partial dispense
+                            <td class="px-3 py-3 text-xs" style="color:#9ca3af">{{ $i + 1 }}</td>
+
+                            <td class="px-3 py-3">
+                                <div class="text-sm font-bold" style="color:#1a1f36">{{ $med->medicine_name }}</div>
+                                <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                    @if($med->strength)
+                                        <code class="text-xs px-1.5 py-0.5 rounded font-semibold"
+                                              style="background:#eef0fd;color:#4154f1">{{ $med->strength }}</code>
+                                    @endif
+                                    @if($med->form)
+                                        <span class="text-xs" style="color:#9b59b6">{{ $med->form }}</span>
+                                    @endif
                                 </div>
-                            </form>
-                        @else
-                            <div class="note note-warn" style="font-size:12px">
-                                <i class="bi bi-exclamation-triangle-fill"></i>
-                                No items can be dispensed. Fix stock errors above.
-                            </div>
-                        @endif
+                                @if($med->note)
+                                    <div class="text-xs italic mt-0.5" style="color:#9ca3af">{{ $med->note }}</div>
+                                @endif
+                                @if(!$med->medication_code)
+                                    <div class="flex items-center gap-1 text-xs mt-1" style="color:#e74c3c">
+                                        <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+                                        No catalogue code
+                                    </div>
+                                @endif
+                            </td>
 
-                        {{-- Divider --}}
-                        <div
-                            style="margin-top:16px;padding-top:16px;border-top:1px solid #f0f2ff;font-size:11.5px;color:#aaa">
-                            <i class="bi bi-info-circle"></i>
-                            Full dispense deducts stock for all pending catalogue items at once.
-                            Partial dispense only processes checked items.
-                        </div>
-                    </div>
-                </div>
-            @else
-                <div class="card-emr">
-                    <div class="card-bd" style="text-align:center;padding:24px">
-                        <div style="font-size:36px;margin-bottom:8px">✅</div>
-                        <div style="font-weight:800;color:#1D9E75;font-size:14px">Fully Dispensed</div>
-                        @if($prescription->dispensed_by)
-                            <div style="font-size:11px;color:#aaa;margin-top:4px">
-                                by {{ $prescription->dispensed_by }}</div>
-                        @endif
-                    </div>
-                </div>
-            @endif
+                            <td class="px-3 py-3 text-center text-xs" style="color:#6b7280">
+                                @php
+                                    $parts = array_filter([
+                                        $med->morning   > 0 ? $med->morning   . 'M' : null,
+                                        $med->afternoon > 0 ? $med->afternoon . 'A' : null,
+                                        $med->evening   > 0 ? $med->evening   . 'E' : null,
+                                        $med->night     > 0 ? $med->night     . 'N' : null,
+                                    ]);
+                                @endphp
+                                {{ implode(' · ', $parts) ?: '—' }}
+                            </td>
 
-        </div>
+                            <td class="px-3 py-3 text-center text-xs font-bold" style="color:#4154f1">
+                                {{ $med->days ?? '—' }}
+                            </td>
+
+                            <td class="px-3 py-3 text-center">
+                                <span class="text-base font-black" style="color:#e91e8c">{{ $needed }}</span>
+                                @if($med->unit)
+                                    <span class="text-xs" style="color:#9ca3af"> {{ $med->unit }}</span>
+                                @endif
+                            </td>
+
+                            <td class="px-3 py-3 text-center">
+                                @if($available !== null)
+                                    <x-ui.badge :variant="$stockVariant" size="sm">{{ $stockTxt }}</x-ui.badge>
+                                @else
+                                    <span class="text-xs" style="color:#d1d5db">{{ $stockTxt }}</span>
+                                @endif
+                            </td>
+
+                            <td class="px-3 py-3 text-center">
+                                @if($done)
+                                    <x-ui.badge variant="success" size="sm">Dispensed</x-ui.badge>
+                                @elseif($canDispense)
+                                    <x-ui.badge variant="warning" size="sm">Pending</x-ui.badge>
+                                @else
+                                    <x-ui.badge variant="danger" size="sm">Cannot</x-ui.badge>
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </x-ui.card>
+
+        {{-- Dispense History --}}
+        @if($prescription->dispenses && $prescription->dispenses->count() > 0)
+            <x-ui.card :noPadding="true">
+                <x-slot:header>
+                    <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                        <i class="bi bi-clock-history" style="color:#7c3aed;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">Dispense History</span>
+                    </div>
+                </x-slot:header>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr style="background:#f8f9fb;border-bottom:1px solid #e6e9f0">
+                                <th class="text-left px-5 py-3 text-xs font-bold" style="color:#6b7280">Code</th>
+                                <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Medicine</th>
+                                <th class="text-center px-4 py-3 text-xs font-bold" style="color:#6b7280">Qty</th>
+                                <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Dispensed By</th>
+                                <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach($prescription->dispenses->where('status','dispensed') as $d)
+                            <tr style="border-bottom:1px solid #f8f9fb">
+                                <td class="px-5 py-3">
+                                    <code class="text-xs px-1.5 py-0.5 rounded font-bold"
+                                          style="background:#f5eeff;color:#7c3aed">{{ $d->code }}</code>
+                                </td>
+                                <td class="px-4 py-3 text-sm font-semibold" style="color:#1a1f36">{{ $d->medicine_name }}</td>
+                                <td class="px-4 py-3 text-center text-sm font-black" style="color:#e91e8c">{{ $d->quantity }}</td>
+                                <td class="px-4 py-3 text-xs" style="color:#6b7280">{{ $d->dispensed_by ?? '—' }}</td>
+                                <td class="px-4 py-3 text-xs" style="color:#9ca3af">{{ $d->dispensed_at?->format('d/m/Y H:i') }}</td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </x-ui.card>
+        @endif
     </div>
+
+    {{-- ── RIGHT: Info + Dispense actions ───────────────────────────── --}}
+    <div class="space-y-4">
+
+        {{-- Prescription info --}}
+        <x-ui.card>
+            <div class="flex items-center gap-2 mb-4">
+                <i class="bi bi-capsule-fill" style="color:#e91e8c" aria-hidden="true"></i>
+                <code class="text-sm font-bold" style="color:#e91e8c">{{ $prescription->code }}</code>
+            </div>
+            <dl class="space-y-2.5">
+                @foreach([
+                    ['Doctor',        $prescription->prescribed_by ?? '—'],
+                    ['Prescribed At', $prescription->prescribed_at?->format('d/m/Y H:i') ?? '—'],
+                    ['Visit',         $prescription->visit_code ?? '—'],
+                ] as [$lbl, $val])
+                    <div class="flex justify-between text-xs">
+                        <dt style="color:#9ca3af">{{ $lbl }}</dt>
+                        <dd class="font-semibold" style="color:#374151">{{ $val }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+            @php
+                $sVariant = match($prescription->dispensed_status) {
+                    'dispensed' => 'success',
+                    'partial'   => 'warning',
+                    default     => 'secondary',
+                };
+                $sLabel = match($prescription->dispensed_status) {
+                    'dispensed' => 'Fully Dispensed',
+                    'partial'   => 'Partially Dispensed',
+                    default     => 'Pending',
+                };
+            @endphp
+            <div class="flex justify-center mt-4 pt-4" style="border-top:1px solid #e6e9f0">
+                <x-ui.badge :variant="$sVariant">{{ $sLabel }}</x-ui.badge>
+            </div>
+        </x-ui.card>
+
+        {{-- Patient --}}
+        @if($prescription->patient)
+            @php
+                $pt     = $prescription->patient;
+                $colors = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#9b59b6'];
+                $pcol   = $colors[abs(crc32($pt->code)) % count($colors)];
+            @endphp
+            <x-ui.card>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-person-vcard-fill" style="color:#4154f1" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">Patient</span>
+                    </div>
+                    <x-ui.button href="{{ route('patients.show', $pt->code) }}" variant="ghost" size="sm">
+                        <x-slot:icon><i class="bi bi-arrow-right" aria-hidden="true"></i></x-slot:icon>
+                    </x-ui.button>
+                </div>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black text-white flex-shrink-0"
+                         style="background:{{ $pcol }}" aria-hidden="true">
+                        {{ strtoupper(substr($pt->surname,0,1) . substr($pt->name,0,1)) }}
+                    </div>
+                    <div>
+                        <div class="text-sm font-black" style="color:#1a1f36">{{ $pt->surname }}, {{ $pt->name }}</div>
+                        <code class="text-xs font-bold" style="color:#4154f1">{{ $pt->code }}</code>
+                    </div>
+                </div>
+                <dl class="space-y-2">
+                    @foreach([['DOB', $pt->birthdate?->format('d/m/Y') ?? '—'], ['Phone', $pt->phone ?? '—']] as [$l, $v])
+                        <div class="flex justify-between text-xs">
+                            <dt style="color:#9ca3af">{{ $l }}</dt>
+                            <dd class="font-semibold" style="color:#374151">{{ $v }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </x-ui.card>
+        @endif
+
+        {{-- Dispense Actions --}}
+        @if(!$isFullyDone)
+            <div class="sticky" style="top:76px">
+                <x-ui.card>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="bi bi-bag-heart-fill" style="color:#7c3aed" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">Dispense</span>
+                    </div>
+
+                    {{-- Dispensed by --}}
+                    <div class="mb-4">
+                        <label for="dispensedByInput" class="block text-xs font-semibold mb-1.5"
+                               style="color:#7c3aed">Dispensed By <span style="color:#ef4444">*</span></label>
+                        <input type="text" id="dispensedByInput"
+                               class="w-full text-sm rounded-lg border px-3 py-2.5 text-[#374151] focus:outline-none focus:ring-2 transition-colors"
+                               style="border-color:#c4b5fd;focus-ring-color:#7c3aed"
+                               placeholder="Pharmacist name"
+                               value="{{ auth()->user()?->name ?? '' }}"
+                               oninput="syncDispensedBy(this.value)">
+                    </div>
+
+                    @if($anyPending > 0)
+                        {{-- Full dispense --}}
+                        @if($canFull)
+                            <form method="POST" action="{{ route('pharmacy.dispense', $prescription->code) }}"
+                                  id="fullForm">
+                                @csrf
+                                <input type="hidden" name="mode" value="full">
+                                <input type="hidden" name="dispensed_by" id="dispensedBy_full"
+                                       value="{{ auth()->user()?->name ?? '' }}">
+                                <button type="submit"
+                                        onclick="document.getElementById('dispensedBy_full').value = document.getElementById('dispensedByInput').value"
+                                        class="w-full flex items-center justify-center gap-2 text-sm font-bold text-white rounded-xl px-4 py-3 mb-2.5 transition-all hover:opacity-90 active:scale-95"
+                                        style="background:linear-gradient(135deg,#7c3aed,#9b59b6)">
+                                    <i class="bi bi-bag-check-fill" aria-hidden="true"></i>
+                                    Dispense All ({{ $anyPending }}) Items
+                                </button>
+                            </form>
+                        @endif
+
+                        {{-- Partial dispense --}}
+                        <form method="POST" action="{{ route('pharmacy.dispense', $prescription->code) }}"
+                              id="partialForm">
+                            @csrf
+                            <input type="hidden" name="mode" value="partial">
+                            <input type="hidden" name="dispensed_by" id="dispensedBy_partial"
+                                   value="{{ auth()->user()?->name ?? '' }}">
+                            <button type="submit"
+                                    onclick="document.getElementById('dispensedBy_partial').value = document.getElementById('dispensedByInput').value"
+                                    class="w-full flex items-center justify-center gap-2 text-sm font-bold rounded-xl px-4 py-2.5 border-2 transition-all hover:bg-[#eef0fd] active:scale-95"
+                                    style="color:#4154f1;border-color:#4154f1">
+                                <i class="bi bi-pie-chart-fill" aria-hidden="true"></i>
+                                Dispense Selected Items
+                            </button>
+                        </form>
+                        <p class="text-xs text-center mt-2" style="color:#9ca3af">
+                            Check items in the table to select for partial dispense
+                        </p>
+
+                    @else
+                        <div class="flex gap-2 p-3 rounded-lg" style="background:#fff8e1;border:1px solid #fde68a">
+                            <i class="bi bi-exclamation-triangle-fill flex-shrink-0" style="color:#b45309"></i>
+                            <p class="text-xs" style="color:#92400e">
+                                No items can be dispensed. Fix stock errors above.
+                            </p>
+                        </div>
+                    @endif
+
+                    <p class="flex items-start gap-1.5 text-xs mt-4 pt-4" style="border-top:1px solid #e6e9f0;color:#9ca3af">
+                        <i class="bi bi-info-circle flex-shrink-0 mt-0.5" aria-hidden="true"></i>
+                        Full dispense deducts stock for all pending items. Partial dispense processes checked items only.
+                    </p>
+                </x-ui.card>
+            </div>
+
+        @else
+            <x-ui.card>
+                <div class="flex flex-col items-center justify-center py-6 text-center">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3"
+                         style="background:#e8f8ef">
+                        <i class="bi bi-bag-check-fill text-3xl" style="color:#2eca6a" aria-hidden="true"></i>
+                    </div>
+                    <div class="text-base font-black" style="color:#1D9E75">Fully Dispensed</div>
+                    @if($prescription->dispensed_by)
+                        <p class="text-xs mt-1" style="color:#9ca3af">by {{ $prescription->dispensed_by }}</p>
+                    @endif
+                </div>
+            </x-ui.card>
+        @endif
+    </div>
+
+</div>
 
 @endsection
 
 @push('scripts')
-    <script>
-        function toggleAll(cb) {
-            document.querySelectorAll('.item-check').forEach(function (el) {
-                el.checked = cb.checked;
-            });
-        }
-
-        function syncDispensedBy(val) {
-            var f = document.getElementById('dispensedBy_full');
-            var p = document.getElementById('dispensedBy_partial');
-            if (f) f.value = val;
-            if (p) p.value = val;
-        }
-    </script>
+<script>
+function toggleAll(cb) {
+    document.querySelectorAll('.item-check').forEach(el => { el.checked = cb.checked; });
+}
+function syncDispensedBy(val) {
+    var f = document.getElementById('dispensedBy_full');
+    var p = document.getElementById('dispensedBy_partial');
+    if (f) f.value = val;
+    if (p) p.value = val;
+}
+</script>
 @endpush
-
-<style>
-    .stock-badge {
-        font-size: 10px;
-        padding: 2px 8px;
-        border-radius: 10px;
-        font-weight: 700;
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-    }
-
-    .stock-ok {
-        background: #e8f8ef;
-        color: #1D9E75;
-        border: 1px solid #b7eacf;
-    }
-
-    .stock-low {
-        background: #fff8e1;
-        color: #b45309;
-        border: 1px solid #fde68a;
-    }
-
-    .stock-out {
-        background: #fde8e8;
-        color: #dc2626;
-        border: 1px solid #fca5a5;
-    }
-</style>

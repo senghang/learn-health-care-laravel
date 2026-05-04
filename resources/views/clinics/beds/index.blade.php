@@ -49,16 +49,16 @@
     @if ($totalBeds > 0)
         <x-ui.card class="mb-4" :noPadding="false">
             <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs font-bold text-[#012970]">Overall Occupancy</span>
+                <span class="text-xs font-bold text-[#1a1f36]">Overall Occupancy</span>
                 <span class="text-sm font-black"
                     style="color:{{ $occPct > 80 ? '#e74c3c' : ($occPct > 60 ? '#ff771d' : '#2eca6a') }}">{{ $occPct }}%</span>
             </div>
-            <div class="h-2 bg-[#f0f2ff] rounded-full overflow-hidden">
+            <div class="h-2 bg-[#e6e9f0] rounded-full overflow-hidden">
                 <div class="h-full rounded-full transition-all duration-300"
                     style="width:{{ $occPct }}%;background:{{ $occPct > 80 ? 'linear-gradient(90deg,#e74c3c,#ff6b5b)' : ($occPct > 60 ? 'linear-gradient(90deg,#ff771d,#ffaa6b)' : 'linear-gradient(90deg,#2eca6a,#5de08a)') }}">
                 </div>
             </div>
-            <p class="text-[10.5px] text-[#94a3b8] mt-1">{{ $occupiedBeds }} occupied · {{ $availBeds }} available ·
+            <p class="text-[10.5px] text-[#6b7280] mt-1">{{ $occupiedBeds }} occupied · {{ $availBeds }} available ·
                 {{ $totalBeds }} total beds</p>
         </x-ui.card>
     @endif
@@ -122,7 +122,7 @@
             </div>
 
             {{-- Occupancy mini bar --}}
-            <div style="height:3px;background:#f0f2ff">
+            <div style="height:3px;background:#e6e9f0">
                 <div
                     style="height:100%;width:{{ $wPct }}%;background:{{ $wPct > 80 ? '#e74c3c' : ($wPct > 60 ? '#ff771d' : '#2eca6a') }};transition:width .3s">
                 </div>
@@ -136,7 +136,7 @@
                             <div style="display:flex;align-items:center;gap:8px">
                                 <i class="bi bi-door-open" style="color:#64748b;font-size:13px"></i>
                                 <span class="bed-room-name">{{ $room->name }}</span>
-                                <span style="font-size:10px;color:#94a3b8;font-style:italic">
+                                <span style="font-size:10px;color:#6b7280;font-style:italic">
                                     {{ ucfirst($room->type) }} · Floor {{ $room->floor }}
                                 </span>
                             </div>
@@ -173,7 +173,7 @@
                                         'reserved' => ['#e6f1fb', '#378ADD', '📅'],
                                         'maintenance' => ['#f5f5f5', '#888780', '🔧'],
                                     ];
-                                    [$bbg, $bcol, $bicon] = $bColors[$bed->status] ?? ['#f6f9ff', '#aaa', '?'];
+                                    [$bbg, $bcol, $bicon] = $bColors[$bed->status] ?? ['#f6f8fa', '#aaa', '?'];
                                 @endphp
                                 <div class="bed-chip"
                                     style="background:{{ $bbg }};border-color:{{ $bcol }}"
@@ -198,7 +198,7 @@
                 @empty
                     <div class="bed-no-rooms">
                         <i class="bi bi-door-open" style="font-size:24px;opacity:.3"></i>
-                        <div style="margin-top:8px;font-size:12px;color:#94a3b8">No rooms yet</div>
+                        <div style="margin-top:8px;font-size:12px;color:#6b7280">No rooms yet</div>
                         <a href="{{ route('beds.room.create', $ward->id) }}" class="btn btn-sm btn-outline-primary"
                             style="margin-top:8px">
                             <i class="bi bi-plus"></i> Add Room
@@ -229,7 +229,7 @@
             </div>
             <div class="emr-modal-body">
                 <div
-                    style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:10px">
+                    style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:10px">
                     <i class="bi bi-arrow-left-right" style="margin-right:4px"></i> Change Status
                 </div>
                 @php

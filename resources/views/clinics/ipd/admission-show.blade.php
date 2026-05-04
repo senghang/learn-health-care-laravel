@@ -8,7 +8,7 @@
     $patient = $admission->patient;
     $statusColors = [
         'admitted'    => ['#e8f8ef','#2eca6a'],
-        'discharged'  => ['#f0f2ff','#4154f1'],
+        'discharged'  => ['#e6e9f0','#4154f1'],
         'transferred' => ['#fff3e8','#ff771d'],
         'deceased'    => ['#f5f5f5','#666'],
         'cancelled'   => ['#fde8e8','#e74c3c'],
@@ -85,7 +85,7 @@
                     {{ strtoupper(mb_substr($patient->surname ?? '?', 0, 1)) }}
                 </div>
                 <div>
-                    <div style="font-weight:800;color:#012970;font-size:14px">{{ $patient->surname }} {{ $patient->name }}</div>
+                    <div style="font-weight:800;color:#1a1f36;font-size:14px">{{ $patient->surname }} {{ $patient->name }}</div>
                     <div style="font-size:11px;color:#aaa">{{ $patient->code }}</div>
                 </div>
             </div>
@@ -144,7 +144,7 @@
                 <div class="col-5" style="color:#888">LOS</div>
                 <div class="col-7" style="font-weight:800;color:#4154f1;font-size:14px">{{ $los }} day{{ $los != 1 ? 's' : '' }}</div>
 
-                <div class="col-12" style="border-top:1px solid #f0f2ff;margin:6px 0;padding-top:6px"></div>
+                <div class="col-12" style="border-top:1px solid #e6e9f0;margin:6px 0;padding-top:6px"></div>
 
                 <div class="col-5" style="color:#888">Attending Dr.</div>
                 <div class="col-7" style="font-weight:600">{{ $admission->attending_doctor ?? '—' }}</div>
@@ -156,9 +156,9 @@
                 <div class="col-7">{{ $admission->primary_nurse ?? '—' }}</div>
 
                 @if($admission->admission_reason)
-                <div class="col-12" style="border-top:1px solid #f0f2ff;margin:6px 0;padding-top:6px"></div>
+                <div class="col-12" style="border-top:1px solid #e6e9f0;margin:6px 0;padding-top:6px"></div>
                 <div class="col-12" style="color:#888;font-size:11px">Admission Reason</div>
-                <div class="col-12" style="color:#333;font-size:12px;background:#fafbff;padding:8px;border-radius:8px;margin-top:4px">
+                <div class="col-12" style="color:#333;font-size:12px;background:#f9fafb;padding:8px;border-radius:8px;margin-top:4px">
                     {{ $admission->admission_reason }}
                 </div>
                 @endif
@@ -204,7 +204,7 @@
     {{-- Discharge summary (if discharged) --}}
     @if($admission->isDischarged())
     <div class="card-emr mb-3">
-        <div class="card-hd" style="background:#f0f2ff">
+        <div class="card-hd" style="background:#e6e9f0">
             <div class="card-hd-title"><i class="bi bi-clipboard2-check-fill" style="color:#4154f1"></i> Discharge Summary</div>
         </div>
         <div class="card-bd">
@@ -224,9 +224,9 @@
                 <div class="col-5" style="color:#888">By</div>
                 <div class="col-7">{{ $admission->discharged_by ?? '—' }}</div>
                 @if($admission->discharge_summary)
-                <div class="col-12" style="border-top:1px solid #f0f2ff;margin:6px 0;padding-top:6px"></div>
+                <div class="col-12" style="border-top:1px solid #e6e9f0;margin:6px 0;padding-top:6px"></div>
                 <div class="col-12" style="color:#888;font-size:11px">Summary</div>
-                <div class="col-12" style="font-size:12px;background:#f6f9ff;padding:10px;border-radius:8px;margin-top:4px;white-space:pre-line">{{ $admission->discharge_summary }}</div>
+                <div class="col-12" style="font-size:12px;background:#f6f8fa;padding:10px;border-radius:8px;margin-top:4px;white-space:pre-line">{{ $admission->discharge_summary }}</div>
                 @endif
             </div>
         </div>
@@ -279,7 +279,7 @@
                 </div>
                 <div style="flex:1;min-width:0">
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                        <span style="font-weight:700;color:#012970;font-size:13px">{{ $trt->name }}</span>
+                        <span style="font-weight:700;color:#1a1f36;font-size:13px">{{ $trt->name }}</span>
                         <span style="font-size:9.5px;background:{{ $tbg }};color:{{ $tcol }};padding:1px 7px;border-radius:6px;font-weight:700">{{ ucfirst(str_replace('_',' ',$trt->status)) }}</span>
                         <span style="font-size:10px;background:#f5f6ff;color:#888;padding:1px 7px;border-radius:6px">{{ ucfirst(str_replace('_',' ',$trt->treatment_type)) }}</span>
                     </div>
@@ -345,7 +345,7 @@
                 </div>
                 <div style="flex:1;min-width:0">
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                        <span style="font-weight:700;color:#012970;font-size:13px">{{ $med->medicine_name }}</span>
+                        <span style="font-weight:700;color:#1a1f36;font-size:13px">{{ $med->medicine_name }}</span>
                         @if($med->dosage)
                         <span style="font-size:10.5px;background:#eef0fd;color:#4154f1;padding:1px 7px;border-radius:6px">{{ $med->dosage }}</span>
                         @endif
@@ -681,8 +681,8 @@
 }
 .ipd-modal-hd {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 20px; border-bottom: 1px solid #f0f2ff;
-    font-weight: 800; font-size: 14px; color: #012970;
+    padding: 16px 20px; border-bottom: 1px solid #e6e9f0;
+    font-weight: 800; font-size: 14px; color: #1a1f36;
     border-radius: 16px 16px 0 0;
 }
 .ipd-modal-bd {
@@ -690,7 +690,7 @@
 }
 .ipd-modal-ft {
     display: flex; gap: 8px; padding: 14px 20px;
-    border-top: 1px solid #f0f2ff;
+    border-top: 1px solid #e6e9f0;
     border-radius: 0 0 16px 16px;
 }
 </style>

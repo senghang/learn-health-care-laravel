@@ -12,7 +12,7 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:12pt;color:#111
 /* Header */
 .clinic-hd{display:flex;align-items:center;gap:16px;padding-bottom:10px;border-bottom:2.5px solid #e91e8c;margin-bottom:10px}
 .clinic-logo{width:56px;height:56px;border-radius:50%;background:#fce7f3;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
-.clinic-name{font-size:16pt;font-weight:900;color:#012970}
+.clinic-name{font-size:16pt;font-weight:900;color:#1a1f36}
 .clinic-sub{font-size:9pt;color:#888;margin-top:2px}
 .rx-badge{background:#e91e8c;color:#fff;padding:3px 16px;border-radius:20px;font-size:11pt;font-weight:700;margin-left:auto;flex-shrink:0}
 
@@ -20,17 +20,17 @@ body{font-family:'Hanuman','Khmer OS',Arial,sans-serif;font-size:12pt;color:#111
 .patient-box{background:#f9f0ff;border:1.5px solid #e91e8c33;border-radius:8px;padding:10px 14px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .pt-field{font-size:10pt}
 .pt-label{font-size:8pt;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:1px}
-.pt-val{font-weight:700;color:#012970}
+.pt-val{font-weight:700;color:#1a1f36}
 
 /* Section title */
 .sec-title{font-size:10pt;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#e91e8c;padding:6px 0 4px;border-bottom:1px solid #fce7f3;margin-bottom:8px;display:flex;align-items:center;gap:6px}
 
 /* Med table */
 .med-table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:10.5pt}
-.med-table th{background:#fce7f3;color:#012970;font-weight:800;font-size:9pt;padding:6px 8px;border:1px solid #e91e8c44;text-align:left}
+.med-table th{background:#fce7f3;color:#1a1f36;font-weight:800;font-size:9pt;padding:6px 8px;border:1px solid #e91e8c44;text-align:left}
 .med-table td{padding:7px 8px;border:1px solid #e6eaf5;vertical-align:top}
 .med-table tr:nth-child(even) td{background:#fdf4ff}
-.med-name{font-weight:700;font-size:11pt;color:#012970}
+.med-name{font-weight:700;font-size:11pt;color:#1a1f36}
 .med-detail{font-size:9pt;color:#666;margin-top:2px}
 .dose-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
 .dose-chip{background:#e91e8c11;color:#e91e8c;border:1px solid #e91e8c44;border-radius:4px;padding:1px 6px;font-size:8.5pt;font-weight:700}

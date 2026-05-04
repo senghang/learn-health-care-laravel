@@ -22,7 +22,7 @@
         <div class="card-hd-title">
             <i class="bi bi-door-open" style="color:#ff771d"></i>
             {{ $room ? 'Edit Room' : 'Add Room' }}
-            <span style="font-size:11px;color:#94a3b8;font-weight:400">— {{ $ward->name_kh ?? $ward->name }}</span>
+            <span style="font-size:11px;color:#6b7280;font-weight:400">— {{ $ward->name_kh ?? $ward->name }}</span>
         </div>
     </div>
     <div class="card-bd">
@@ -84,7 +84,7 @@
             </div>
             @endif
 
-            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #f0f2ff">
+            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #e6e9f0">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check2-circle"></i>
                     {{ $room ? 'Update Room' : 'Create Room' }}

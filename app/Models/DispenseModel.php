@@ -15,7 +15,7 @@ class DispenseModel extends Model
 {
     use SoftDeletes, Auditable, ClinicScope;
 
-    protected $table = 'dispenses';
+    protected $table = 'pharmacy_dispenses';
 
     protected $fillable = [
         'clinic_id', 'code', 'prescription_code', 'medicine_id', 'medicine_name',

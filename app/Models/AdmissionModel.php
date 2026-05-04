@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,7 +27,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class AdmissionModel extends Model
 {
-    use SoftDeletes, Auditable, ClinicScope;
+    use SoftDeletes, Auditable, ClinicScope, HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\AdmissionFactory::new();
+    }
 
     protected $table = 'admissions';
 

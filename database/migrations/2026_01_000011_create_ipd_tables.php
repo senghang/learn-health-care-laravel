@@ -147,6 +147,7 @@ return new class extends Migration {
             $table->string('code', 30)->unique();
             $table->string('admission_code', 30)->index();
             $table->string('visit_code', 30)->nullable();
+            $table->string('patient_code', 30)->nullable();
             $table->string('encounter_code', 30)->nullable();
             $table->string('treatment_type', 60)->nullable()
                 ->comment('medication | procedure | therapy | nursing_care');
@@ -180,6 +181,7 @@ return new class extends Migration {
             $table->string('code', 30)->unique();
             $table->string('admission_code', 30)->index();
             $table->string('visit_code', 30)->nullable();
+            $table->string('patient_code', 30)->nullable();
             $table->foreignId('medicine_id')->nullable()->constrained('medicines')->nullOnDelete();
             $table->string('medicine_code', 30)->nullable();
             $table->string('medicine_name', 120);

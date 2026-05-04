@@ -45,7 +45,7 @@
         @isset($head)
         <thead>
             <tr class="{{ $sticky ? 'sticky top-0 z-10' : '' }}"
-                style="background:#f8f9fb;border-bottom:1px solid #e6e9f0">
+                style="background:var(--bg-app,#F8FAFC);border-bottom:1px solid var(--border-subtle,#E2E8F0)">
                 {{ $head }}
             </tr>
         </thead>
@@ -55,10 +55,10 @@
         <tbody>
             @if($loading)
                 @for($i = 0; $i < 5; $i++)
-                <tr style="border-bottom:1px solid #f0f2f5">
+                <tr style="border-bottom:1px solid var(--border-subtle,#E2E8F0)">
                     @for($j = 0; $j < 5; $j++)
                     <td class="px-4 py-3.5">
-                        <div class="h-3 rounded-full animate-pulse" style="background:#e2e8f0;width:{{ rand(40,90) }}%"></div>
+                        <div class="skeleton h-3 rounded-full" style="width:{{ rand(40,90) }}%"></div>
                     </td>
                     @endfor
                 </tr>

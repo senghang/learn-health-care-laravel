@@ -41,7 +41,7 @@
 @php $dateLabel = \Carbon\Carbon::parse(request('date', today()))->format(\App\Common\Constants\DateFormats::DISPLAY_LONG); @endphp
 
 {{-- Header banner --}}
-<div style="background:linear-gradient(135deg,#012970,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;color:#fff">
+<div style="background:linear-gradient(135deg,#1a1f36,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;color:#fff">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
         <div>
             <div style="font-size:11px;color:#8aabdc;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">
@@ -92,7 +92,7 @@
                     <tr>
                         <td style="color:#aaa;font-size:11px">{{ $i + 1 }}</td>
                         <td style="font-size:11.5px;color:#888">{{ df_t($v->admitted_at) }}</td>
-                        <td style="font-weight:700;color:#012970">{{ $v->surname }}, {{ $v->name }}</td>
+                        <td style="font-weight:700;color:#1a1f36">{{ $v->surname }}, {{ $v->name }}</td>
                         <td><code style="font-size:11px;color:#4154f1">{{ $v->code }}</code></td>
                         <td style="font-size:11.5px;color:#777">{{ $v->admission_type ?? '—' }}</td>
                         <td>
@@ -136,7 +136,7 @@
                     <tr>
                         <td style="color:#aaa;font-size:11px">{{ $i + 1 }}</td>
                         <td style="font-size:11.5px;color:#888">{{ df_t($v->admitted_at) }}</td>
-                        <td style="font-weight:700;color:#012970">{{ $v->surname }}, {{ $v->name }}</td>
+                        <td style="font-weight:700;color:#1a1f36">{{ $v->surname }}, {{ $v->name }}</td>
                         <td><code style="font-size:11px;color:#ff771d">{{ $v->code }}</code></td>
                         <td>
                             @if(is_null($v->discharged_at))

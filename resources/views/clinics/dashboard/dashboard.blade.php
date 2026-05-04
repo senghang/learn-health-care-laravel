@@ -19,7 +19,7 @@
 
 {{-- ── HERO ─────────────────────────────────────────────────── --}}
 <div class="rounded-2xl p-6 mb-5 relative overflow-hidden"
-     style="background:linear-gradient(135deg,#012970 0%,#1e3a8a 50%,#4154f1 100%)">
+     style="background:linear-gradient(135deg,#1a1f36 0%,#1e3a8a 50%,#4154f1 100%)">
 
     {{-- Decorative blobs --}}
     <div class="absolute top-0 right-0 w-64 h-64 rounded-full pointer-events-none"
@@ -57,7 +57,7 @@
         {{-- CTA buttons --}}
         <div class="flex items-center gap-2 flex-shrink-0">
             <x-ui.button href="{{ route('workflow.create') }}"
-                         class="!bg-white !text-[#4154f1] !border-white hover:!bg-[#f8faff] !shadow-lg hover:scale-105">
+                         class="!bg-white !text-[#4154f1] !border-white hover:!bg-[#f8f9fb] !shadow-lg hover:scale-105">
                 <x-slot:icon><i class="bi bi-plus-circle-fill" aria-hidden="true"></i></x-slot:icon>
                 <span class="hidden sm:inline">New Visit</span>
             </x-ui.button>
@@ -142,8 +142,8 @@ $quickActions = [
             <i class="bi {{ $qa['icon'] }}"></i>
         </div>
         <div class="min-w-0">
-            <div class="text-xs font-bold truncate" style="color:#012970">{{ $qa['en'] }}</div>
-            <div class="text-xs truncate" style="color:#94a3b8">{{ $qa['km'] }}</div>
+            <div class="text-xs font-bold truncate" style="color:#1a1f36">{{ $qa['en'] }}</div>
+            <div class="text-xs truncate" style="color:#6b7280">{{ $qa['km'] }}</div>
         </div>
     </a>
     @endforeach
@@ -195,7 +195,7 @@ $quickActions = [
                     @endif
                 </div>
                 <div class="text-xs font-semibold whitespace-nowrap"
-                     style="color:{{ $isToday ? '#4154f1' : '#94a3b8' }};font-weight:{{ $isToday ? '800' : '500' }}">
+                     style="color:{{ $isToday ? '#4154f1' : '#6b7280' }};font-weight:{{ $isToday ? '800' : '500' }}">
                     {{ $d['day'] }}
                 </div>
             </div>
@@ -203,24 +203,24 @@ $quickActions = [
         </div>
 
         {{-- Summary row --}}
-        <div class="grid grid-cols-4 gap-2 mt-4 pt-4" style="border-top:1px solid #f0f2ff">
+        <div class="grid grid-cols-4 gap-2 mt-4 pt-4" style="border-top:1px solid #e6e9f0">
             @foreach([
-                ['7-Day','Total',$total7,'#012970'],
+                ['7-Day','Total',$total7,'#1a1f36'],
                 ['OPD','OPD',collect($weeklyStats)->sum('opd'),'#4154f1'],
                 ['IPD','IPD',collect($weeklyStats)->sum('ipd'),'#ff771d'],
                 ['Rate','OPD %',($total7>0?round(collect($weeklyStats)->sum('opd')/$total7*100).'%':'—'),'#2eca6a'],
             ] as [$km,$en,$val,$col])
             <div class="text-center">
                 <div class="text-lg font-black" style="color:{{ $col }}">{{ $val }}</div>
-                <div class="text-xs text-[#94a3b8]">{{ $en }}</div>
+                <div class="text-xs text-[#6b7280]">{{ $en }}</div>
             </div>
             @endforeach
         </div>
     </x-ui.card>
 
     {{-- Live Patient Queue --}}
-    <div class="bg-white rounded-2xl border border-[#f0f2ff] flex flex-col lg:col-span-2"
-         style="box-shadow:0 1px 3px rgba(1,41,112,.06),0 4px 16px rgba(1,41,112,.04);max-height:360px">
+    <div class="bg-white rounded-2xl border border-[#e6e9f0] flex flex-col lg:col-span-2"
+         style="box-shadow:0 1px 3px rgba(17,24,39,.04),0 4px 16px rgba(17,24,39,.03);max-height:360px">
 
         <x-ui.card-header icon="bi-broadcast" title="Today's patients" km="Live Queue" :compact="true">
             <a href="{{ route('visits.index') }}" class="text-xs font-semibold text-[#4154f1] hover:underline">
@@ -237,15 +237,15 @@ $quickActions = [
                 $act = is_null($v->discharged_at);
             @endphp
             <a href="{{ url('/workflow/'.$v->code) }}"
-               class="flex items-center gap-3 px-5 py-3 hover:bg-[#f8faff] transition-colors"
-               style="border-bottom:1px solid #f8faff">
+               class="flex items-center gap-3 px-5 py-3 hover:bg-[#f8f9fb] transition-colors"
+               style="border-bottom:1px solid #f8f9fb">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black flex-shrink-0"
                      style="background:{{ $col }}18;color:{{ $col }};border:1.5px solid {{ $col }}33" aria-hidden="true">
                     {{ strtoupper(substr($v->patient?->surname ?? $v->surname ?? 'U',0,1)) }}{{ strtoupper(substr($v->patient?->name ?? $v->name ?? '',0,1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold truncate" style="color:#012970">{{ $nm ?: $v->patient_code }}</div>
-                    <div class="text-xs text-[#94a3b8]">{{ $v->code }} · {{ $v->visit_type }}</div>
+                    <div class="text-xs font-bold truncate" style="color:#1a1f36">{{ $nm ?: $v->patient_code }}</div>
+                    <div class="text-xs text-[#6b7280]">{{ $v->code }} · {{ $v->visit_type }}</div>
                 </div>
                 <div class="flex-shrink-0 text-right">
                     @if($act)
@@ -303,8 +303,8 @@ $quickActions = [
                 $nm        = trim(($visit->patient?->surname ?? $visit->surname ?? '') . ', ' . ($visit->patient?->name ?? $visit->name ?? ''));
                 $typeColor = $visit->visit_type === 'IPD' ? '#ff771d' : '#4154f1';
             @endphp
-            <tr class="hover:bg-[#f8faff] transition-colors cursor-pointer"
-                style="border-bottom:1px solid #f8faff"
+            <tr class="hover:bg-[#f8f9fb] transition-colors cursor-pointer"
+                style="border-bottom:1px solid #f8f9fb"
                 onclick="location.href='{{ url('/workflow/'.$visit->code) }}'">
 
                 <x-ui.table-td>
@@ -313,8 +313,8 @@ $quickActions = [
                 </x-ui.table-td>
 
                 <x-ui.table-td>
-                    <div class="text-sm font-bold" style="color:#012970">{{ $nm ?: '—' }}</div>
-                    <div class="text-xs text-[#94a3b8]">{{ $visit->patient_code }}</div>
+                    <div class="text-sm font-bold" style="color:#1a1f36">{{ $nm ?: '—' }}</div>
+                    <div class="text-xs text-[#6b7280]">{{ $visit->patient_code }}</div>
                 </x-ui.table-td>
 
                 <x-ui.table-td class="hidden sm:table-cell">

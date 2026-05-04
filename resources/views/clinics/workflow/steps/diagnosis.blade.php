@@ -44,7 +44,7 @@
     </div>
 </div>
 
-<div style="height:3px;background:#f0f2ff">
+<div style="height:3px;background:#e6e9f0">
     <div style="height:100%;width:{{ round($stepIdx/count($steps)*100) }}%;background:linear-gradient(90deg,#4154f1,#717ff5)"></div>
 </div>
 
@@ -74,7 +74,7 @@
 
         {{-- Type legend --}}
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
-            <span style="font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Types:</span>
+            <span style="font-size:10px;color:#6b7280;font-weight:700;text-transform:uppercase;letter-spacing:.4px">Types:</span>
             @foreach($typeCfg as $t => $tc)
             <span style="font-size:10.5px;background:{{ $tc['bg'] }};color:{{ $tc['color'] }};border:1px solid {{ $tc['border'] }};padding:2px 8px;border-radius:6px;font-weight:700">
                 {{ $tc['icon'] }} {{ $t }}
@@ -93,11 +93,11 @@
             @endforelse
         </div>
 
-        <div style="padding-top:12px;border-top:1px solid #f0f2ff;margin-top:8px;display:flex;align-items:center;gap:8px">
+        <div style="padding-top:12px;border-top:1px solid #e6e9f0;margin-top:8px;display:flex;align-items:center;gap:8px">
             <button type="button" class="btn btn-sm btn-outline-primary" onclick="addDiagRow()">
                 <i class="bi bi-plus-lg"></i> បន្ថែម / Add Diagnosis
             </button>
-            <span id="diagCountBadge" style="font-size:11px;color:#94a3b8">
+            <span id="diagCountBadge" style="font-size:11px;color:#6b7280">
                 <span id="diagCountNum">{{ count($existingDiags) ?: 1 }}</span> entr{{ count($existingDiags) === 1 ? 'y' : 'ies' }}
             </span>
         </div>
@@ -154,7 +154,7 @@ function addDiagRow() {
     div.innerHTML = `
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
             <span class="diag-type-badge" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:#eef0fd;color:#4154f1;border:1px solid #4154f144">Secondary</span>
-            <span style="font-size:10px;color:#94a3b8;margin-left:auto">Row ${i+1}</span>
+            <span style="font-size:10px;color:#6b7280;margin-left:auto">Row ${i+1}</span>
             <button type="button" class="btn btn-sm btn-outline-danger" style="padding:2px 8px;font-size:11px"
                     onclick="this.closest('.diag-row').remove();checkPrimary();updateDiagCount()">
                 <i class="bi bi-trash"></i>

@@ -120,7 +120,7 @@
 
 <div class="col-12 col-lg-4">
   <div class="card-emr" style="position:sticky;top:76px">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-save-fill" style="color:#4154f1"></i> Actions</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-save-fill" style="color:#4154f1"></i> Actions</div></div>
     <div class="card-bd">
       <button type="submit" class="btn btn-primary btn-w100 mb-2"><i class="bi bi-check2-circle"></i> Create Lab Order</button>
       <a href="{{ route('laboratory.index') }}" class="btn btn-outline-primary btn-w100"><i class="bi bi-x-circle"></i> Cancel</a>

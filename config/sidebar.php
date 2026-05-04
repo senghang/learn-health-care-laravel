@@ -23,12 +23,18 @@
  * Child items share the same fields except icon (not shown in sub-items).
  */
 
-return [
+ return [
 
-    // ── MAIN ──────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // MAIN
+    // ─────────────────────────────────────────────
     [
-        'key' => 'main', 'label' => 'MAIN', 'emoji' => '📊',
+        'key'   => 'main',
+        'label' => 'MAIN',
+        'emoji' => '📊',
+
         'items' => [
+
             [
                 'key'        => 'dashboard',
                 'label_en'   => 'Dashboard',
@@ -38,6 +44,7 @@ return [
                 'permission' => null,
                 'active'     => ['dashboard'],
             ],
+
             [
                 'key'        => 'patients',
                 'label_en'   => 'Patients',
@@ -46,29 +53,46 @@ return [
                 'route'      => 'patients.index',
                 'permission' => 'patients.view',
                 'active'     => ['patients.*'],
-                'children'   => [
+
+                'children' => [
+
                     [
                         'label_en' => 'List',
                         'label_km' => 'បញ្ជី',
                         'route'    => 'patients.index',
-                        'active'   => ['patients.index', 'patients.show', 'patients.edit', 'patients.update'],
+                        'active'   => [
+                            'patients.index',
+                            'patients.show',
+                            'patients.edit',
+                            'patients.update',
+                        ],
                     ],
+
                     [
                         'label_en'   => 'Register',
                         'label_km'   => 'ចុះឈ្មោះ',
                         'route'      => 'patients.create',
                         'permission' => 'patients.create',
-                        'active'     => ['patients.create', 'patients.store'],
+                        'active'     => [
+                            'patients.create',
+                            'patients.store',
+                        ],
                     ],
                 ],
             ],
         ],
     ],
 
-    // ── OPD ───────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // OPD
+    // ─────────────────────────────────────────────
     [
-        'key' => 'opd', 'label' => 'OPD', 'emoji' => '🩺',
+        'key'   => 'opd',
+        'label' => 'OPD',
+        'emoji' => '🩺',
+
         'items' => [
+
             [
                 'key'        => 'opd_nav',
                 'label_en'   => 'OPD',
@@ -76,8 +100,14 @@ return [
                 'icon'       => 'bi-activity',
                 'route'      => 'visits.index',
                 'permission' => 'visits.view',
-                'active'     => ['visits.*', 'workflow.*', 'prescriptions.*'],
-                'children'   => [
+                'active'     => [
+                    'visits.*',
+                    'workflow.*',
+                    'prescriptions.*',
+                ],
+
+                'children' => [
+
                     [
                         'label_en'   => 'Visits',
                         'label_km'   => 'ការចូលព្យាបាល',
@@ -86,6 +116,7 @@ return [
                         'active'     => ['visits.*'],
                         'badge'      => 'visits_today',
                     ],
+
                     [
                         'label_en'   => 'Triage',
                         'label_km'   => 'ការចូលព្យាបាលថ្មី',
@@ -93,13 +124,19 @@ return [
                         'permission' => 'visits.create',
                         'active'     => ['workflow.create', 'workflow.store'],
                     ],
+
                     [
                         'label_en'   => 'Consultations',
                         'label_km'   => 'ពិគ្រោះព្យាបាល',
                         'route'      => 'workflow.index',
                         'permission' => 'workflow.manage',
-                        'active'     => ['workflow.index', 'workflow.show', 'workflow.step'],
+                        'active'     => [
+                            'workflow.index',
+                            'workflow.show',
+                            'workflow.step',
+                        ],
                     ],
+
                     [
                         'label_en'   => 'Prescriptions',
                         'label_km'   => 'វេជ្ជបញ្ជា',
@@ -112,10 +149,16 @@ return [
         ],
     ],
 
-    // ── LAB & IMAGING ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // LAB & IMAGING
+    // ─────────────────────────────────────────────
     [
-        'key' => 'lab', 'label' => 'LAB & IMAGING', 'emoji' => '🔬',
+        'key'   => 'lab',
+        'label' => 'LAB & IMAGING',
+        'emoji' => '🔬',
+
         'items' => [
+
             [
                 'key'        => 'lab_nav',
                 'label_en'   => 'Lab & Imaging',
@@ -125,7 +168,9 @@ return [
                 'permission' => 'laboratory.view',
                 'active'     => ['laboratory.*', 'imagery.*'],
                 'badge'      => 'pending_labs',
-                'children'   => [
+
+                'children' => [
+
                     [
                         'label_en'   => 'Lab Orders',
                         'label_km'   => 'បញ្ជាសាំអ្នក',
@@ -133,6 +178,7 @@ return [
                         'permission' => 'laboratory.manage',
                         'active'     => ['laboratory.create'],
                     ],
+
                     [
                         'label_en'   => 'Lab Results',
                         'label_km'   => 'លទ្ធផលមន្ទីរ',
@@ -140,6 +186,7 @@ return [
                         'permission' => 'laboratory.view',
                         'active'     => ['laboratory.index', 'laboratory.show'],
                     ],
+
                     [
                         'label_en'   => 'Imaging Orders',
                         'label_km'   => 'បញ្ជារូបភាព',
@@ -147,6 +194,7 @@ return [
                         'permission' => 'imagery.manage',
                         'active'     => ['imagery.create'],
                     ],
+
                     [
                         'label_en'   => 'Imaging Results',
                         'label_km'   => 'លទ្ធផលរូបភាព',
@@ -159,10 +207,16 @@ return [
         ],
     ],
 
-    // ── BILLING ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // BILLING
+    // ─────────────────────────────────────────────
     [
-        'key' => 'billing', 'label' => 'BILLING', 'emoji' => '💰',
+        'key'   => 'billing',
+        'label' => 'BILLING',
+        'emoji' => '💰',
+
         'items' => [
+
             [
                 'key'        => 'billing_nav',
                 'label_en'   => 'Billing',
@@ -172,7 +226,9 @@ return [
                 'permission' => 'invoices.view',
                 'active'     => ['invoices.*', 'payments.*'],
                 'badge'      => 'pending_invoices',
-                'children'   => [
+
+                'children' => [
+
                     [
                         'label_en'   => 'Invoices',
                         'label_km'   => 'វិក្កយបត្រ',
@@ -180,6 +236,7 @@ return [
                         'permission' => 'invoices.view',
                         'active'     => ['invoices.*'],
                     ],
+
                     [
                         'label_en'   => 'Payments',
                         'label_km'   => 'ការបង់ប្រាក់',
@@ -192,10 +249,16 @@ return [
         ],
     ],
 
-    // ── PHARMACY ──────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // PHARMACY
+    // ─────────────────────────────────────────────
     [
-        'key' => 'pharmacy', 'label' => 'PHARMACY', 'emoji' => '💊',
+        'key'   => 'pharmacy',
+        'label' => 'PHARMACY',
+        'emoji' => '💊',
+
         'items' => [
+
             [
                 'key'        => 'pharmacy_nav',
                 'label_en'   => 'Pharmacy',
@@ -203,16 +266,26 @@ return [
                 'icon'       => 'bi-capsule',
                 'route'      => 'pharmacy.index',
                 'permission' => 'pharmacy.view',
-                'active'     => ['pharmacy.*', 'inventory.products', 'inventory.product.*'],
-                'badge'      => 'pending_rx',
-                'children'   => [
+                'active'     => [
+                    'pharmacy.*',
+                    'inventory.products',
+                    'inventory.product.*',
+                ],
+                'badge' => 'pending_rx',
+
+                'children' => [
+
                     [
                         'label_en'   => 'Medicines',
                         'label_km'   => 'ថ្នាំ / ផលិតផល',
                         'route'      => 'inventory.products',
                         'permission' => 'inventory.view',
-                        'active'     => ['inventory.products', 'inventory.product.*'],
+                        'active'     => [
+                            'inventory.products',
+                            'inventory.product.*',
+                        ],
                     ],
+
                     [
                         'label_en'   => 'Dispensing',
                         'label_km'   => 'ការចែកថ្នាំ',
@@ -225,10 +298,16 @@ return [
         ],
     ],
 
-    // ── INVENTORY ─────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // INVENTORY
+    // ─────────────────────────────────────────────
     [
-        'key' => 'inventory', 'label' => 'INVENTORY', 'emoji' => '📦',
+        'key'   => 'inventory',
+        'label' => 'INVENTORY',
+        'emoji' => '📦',
+
         'items' => [
+
             [
                 'key'        => 'inventory_nav',
                 'label_en'   => 'Inventory',
@@ -236,17 +315,29 @@ return [
                 'icon'       => 'bi-box-seam-fill',
                 'route'      => 'inventory.movements',
                 'permission' => 'inventory.view',
-                'active'     => ['inventory.movements', 'inventory.report', 'inventory.adjustment',
-                                 'inventory.stock-in', 'inventory.stock-out'],
-                'children'   => [
+                'active'     => [
+                    'inventory.movements',
+                    'inventory.report',
+                    'inventory.adjustment',
+                    'inventory.stock-in',
+                    'inventory.stock-out',
+                ],
+
+                'children' => [
+
                     [
                         'label_en'   => 'Stock Movements',
                         'label_km'   => 'ចលនាស្តុក',
                         'route'      => 'inventory.movements',
                         'permission' => 'inventory.view',
-                        'active'     => ['inventory.movements', 'inventory.stock-in',
-                                        'inventory.stock-out', 'inventory.adjustment'],
+                        'active'     => [
+                            'inventory.movements',
+                            'inventory.stock-in',
+                            'inventory.stock-out',
+                            'inventory.adjustment',
+                        ],
                     ],
+
                     [
                         'label_en'   => 'Stock Balance',
                         'label_km'   => 'សមតុល្យស្តុក',
@@ -259,10 +350,16 @@ return [
         ],
     ],
 
-    // ── IPD ───────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // IPD
+    // ─────────────────────────────────────────────
     [
-        'key' => 'ipd', 'label' => 'IPD', 'emoji' => '🏥',
+        'key'   => 'ipd',
+        'label' => 'IPD',
+        'emoji' => '🏥',
+
         'items' => [
+
             [
                 'key'        => 'ipd_nav',
                 'label_en'   => 'IPD',
@@ -272,7 +369,9 @@ return [
                 'permission' => 'visits.create',
                 'active'     => ['admissions.*', 'discharge.*', 'beds.*'],
                 'badge'      => 'active_ipd',
-                'children'   => [
+
+                'children' => [
+
                     [
                         'label_en'   => 'Admissions',
                         'label_km'   => 'ការចូលសម្រាក',
@@ -280,6 +379,7 @@ return [
                         'permission' => 'visits.create',
                         'active'     => ['admissions.*'],
                     ],
+
                     [
                         'label_en'   => 'Wards',
                         'label_km'   => 'វ៉ត / បន្ទប់',
@@ -287,6 +387,7 @@ return [
                         'permission' => 'inventory.view',
                         'active'     => ['beds.ward.create', 'beds.room.*'],
                     ],
+
                     [
                         'label_en'   => 'Beds',
                         'label_km'   => 'គ្រែ',
@@ -294,6 +395,7 @@ return [
                         'permission' => 'inventory.view',
                         'active'     => ['beds.index', 'beds.ward', 'beds.bed.*', 'beds.available'],
                     ],
+
                     [
                         'label_en'   => 'Treatments',
                         'label_km'   => 'ការព្យាបាល',
@@ -306,10 +408,16 @@ return [
         ],
     ],
 
-    // ── EMPLOYEE ──────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // EMPLOYEE
+    // ─────────────────────────────────────────────
     [
-        'key' => 'employee', 'label' => 'EMPLOYEE', 'emoji' => '👨‍💼',
+        'key'   => 'employee',
+        'label' => 'EMPLOYEE',
+        'emoji' => '👨‍💼',
+
         'items' => [
+
             [
                 'key'        => 'employee_nav',
                 'label_en'   => 'Employee',
@@ -318,7 +426,9 @@ return [
                 'route'      => 'employees.index',
                 'permission' => 'employees.view',
                 'active'     => ['employees.*', 'users.*'],
-                'children'   => [
+
+                'children' => [
+
                     [
                         'label_en'   => 'Employees',
                         'label_km'   => 'បុគ្គលិក',
@@ -326,6 +436,7 @@ return [
                         'permission' => 'employees.view',
                         'active'     => ['employees.*'],
                     ],
+
                     [
                         'label_en'   => 'Users',
                         'label_km'   => 'អ្នកប្រើប្រាស់',
@@ -338,10 +449,16 @@ return [
         ],
     ],
 
-    // ── SYSTEM ────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────
+    // SYSTEM
+    // ─────────────────────────────────────────────
     [
-        'key' => 'system', 'label' => 'SYSTEM', 'emoji' => '⚙️',
+        'key'   => 'system',
+        'label' => 'SYSTEM',
+        'emoji' => '⚙️',
+
         'items' => [
+
             [
                 'key'        => 'roles_nav',
                 'label_en'   => 'Roles & Permissions',
@@ -349,24 +466,39 @@ return [
                 'icon'       => 'bi-shield-lock-fill',
                 'route'      => 'settings.roles',
                 'permission' => 'settings.manage',
-                'active'     => ['settings.roles', 'settings.roles.permissions', 'settings.roles.seed-permissions'],
-                'children'   => [
+                'active'     => [
+                    'settings.roles',
+                    'settings.roles.permissions',
+                    'settings.roles.seed-permissions',
+                ],
+
+                'children' => [
+
                     [
                         'label_en'   => 'Roles',
                         'label_km'   => 'តួនាទី',
                         'route'      => 'settings.roles',
                         'permission' => 'settings.manage',
-                        'active'     => ['settings.roles', 'settings.roles.update', 'settings.roles.destroy'],
+                        'active'     => [
+                            'settings.roles',
+                            'settings.roles.update',
+                            'settings.roles.destroy',
+                        ],
                     ],
+
                     [
                         'label_en'   => 'Permissions',
                         'label_km'   => 'សិទ្ធិ',
-                        'route'      => 'settings.roles',   // permissions matrix is on the roles page
+                        'route'      => 'settings.roles',
                         'permission' => 'settings.manage',
-                        'active'     => ['settings.roles.permissions', 'settings.roles.seed-permissions'],
+                        'active'     => [
+                            'settings.roles.permissions',
+                            'settings.roles.seed-permissions',
+                        ],
                     ],
                 ],
             ],
+
             [
                 'key'        => 'settings',
                 'label_en'   => 'Settings',
@@ -374,8 +506,13 @@ return [
                 'icon'       => 'bi-gear-fill',
                 'route'      => 'settings.general',
                 'permission' => 'settings.view',
-                'active'     => ['settings.general', 'settings.services',
-                                 'settings.medicines', 'settings.store-settings', 'settings.store-settings.*'],
+                'active'     => [
+                    'settings.general',
+                    'settings.services',
+                    'settings.medicines',
+                    'settings.store-settings',
+                    'settings.store-settings.*',
+                ],
             ],
         ],
     ],

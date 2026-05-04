@@ -124,7 +124,7 @@
     <x-slot:header>
         <x-ui.card-header label="Daily Breakdown" icon="bi-bar-chart-fill">
             <x-slot:actions>
-                <span class="text-[10px] text-[#94a3b8]">{{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', df_d(now())) }}</span>
+                <span class="text-[10px] text-[#6b7280]">{{ request('date_from', now()->startOfMonth()->format('d/m')) }} – {{ request('date_to', df_d(now())) }}</span>
                 <span class="text-[10px] text-[#4154f1] flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#4154f1] inline-block"></span>OPD</span>
                 <span class="text-[10px] text-[#ff771d] flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#ff771d] inline-block"></span>IPD</span>
             </x-slot:actions>
@@ -205,7 +205,7 @@
                                 {{ $v->code }}
                             </code>
                         </td>
-                        <td style="font-weight:700;color:#012970;white-space:nowrap">
+                        <td style="font-weight:700;color:#1a1f36;white-space:nowrap">
                             {{ $v->surname }}, {{ $v->name }}
                         </td>
                         <td style="font-size:11px;color:#aaa">{{ $v->patient_code }}</td>
@@ -232,13 +232,13 @@
                                 {{ $doneN }}/10
                                 @if($skipN > 0)<span style="color:#c97700"> ·{{ $skipN }}⏭</span>@endif
                             </div>
-                            <div style="width:60px;height:4px;background:#f0f2ff;border-radius:2px;overflow:hidden">
+                            <div style="width:60px;height:4px;background:#e6e9f0;border-radius:2px;overflow:hidden">
                                 <div style="height:100%;width:{{ $doneN * 10 }}%;background:linear-gradient(90deg,#4154f1,#717ff5);border-radius:2px"></div>
                             </div>
                         </td>
                         <td>
                             @if($inv)
-                                <div style="font-size:11px;font-weight:700;color:#012970">
+                                <div style="font-size:11px;font-weight:700;color:#1a1f36">
                                     {{ khr_fmt($inv->total) }} <span style="font-size:9px;color:#aaa">KHR</span>
                                 </div>
                                 <span style="font-size:9.5px;background:#e0f7fa;color:#00838f;padding:1px 7px;border-radius:10px;font-weight:700">

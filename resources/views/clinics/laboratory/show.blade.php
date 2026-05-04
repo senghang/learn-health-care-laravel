@@ -52,7 +52,7 @@
       </div>
 
       {{-- Action buttons based on status --}}
-      <div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #f0f2ff;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid #e6e9f0;flex-wrap:wrap">
         @if($lab->status === 'requested')
         <form method="POST" action="{{ route('laboratory.update', $lab->code) }}">
           @csrf @method('PATCH')
@@ -90,7 +90,7 @@
       <div class="card-bd" style="padding:0;overflow-x:auto">
         <table style="width:100%;font-size:12px;border-collapse:collapse">
           <thead>
-            <tr style="background:#f6f9ff;color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px">
+            <tr style="background:#f6f8fa;color:#888;font-size:10px;text-transform:uppercase;letter-spacing:.5px">
               <th style="padding:10px 12px;text-align:left">Test Name</th>
               <th style="padding:10px 8px;text-align:left">Category</th>
               <th style="padding:10px 8px;text-align:left;min-width:120px">Result</th>
@@ -104,7 +104,7 @@
             @foreach($lab->results as $result)
             @php $isCrit = $result->is_abnormal; @endphp
             <tr style="border-bottom:1px solid #f8f9ff;{{ $isCrit ? 'background:#fff5f5' : '' }}">
-              <td style="padding:8px 12px;font-weight:700;color:#012970">
+              <td style="padding:8px 12px;font-weight:700;color:#1a1f36">
                 <input type="hidden" name="results[{{ $result->id }}][id]" value="{{ $result->id }}"/>
                 {{ $result->name }}
                 @if($result->value_unit) <span style="font-weight:400;color:#aaa">({{ $result->value_unit }})</span> @endif
@@ -151,7 +151,7 @@
         </table>
       </div>
 
-      <div style="padding:12px 16px;border-top:1px solid #f0f2ff">
+      <div style="padding:12px 16px;border-top:1px solid #e6e9f0">
         <button type="submit" class="btn btn-primary btn-sm">
           <i class="bi bi-check2-circle"></i> Save Results
         </button>
@@ -172,9 +172,9 @@
 
   @if($lab->patient)
   <div class="card-emr mb-3">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-person-fill" style="color:#4154f1"></i> Patient</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-person-fill" style="color:#4154f1"></i> Patient</div></div>
     <div class="card-bd">
-      <div style="font-weight:700;color:#012970;font-size:14px">{{ $lab->patient->full_name }}</div>
+      <div style="font-weight:700;color:#1a1f36;font-size:14px">{{ $lab->patient->full_name }}</div>
       <div style="font-size:11px;color:#aaa;font-family:monospace;margin-bottom:8px">{{ $lab->patient->code }}</div>
       @if($lab->patient->sex) <div style="font-size:12px;color:#555">{{ $lab->patient->sex === 'M' ? '♂ Male' : '♀ Female' }} @if($lab->patient->age) · {{ $lab->patient->age }}y @endif</div> @endif
       @if($lab->patient->phone) <div style="font-size:12px;color:#555"><i class="bi bi-telephone" style="color:#bbb"></i> {{ $lab->patient->phone }}</div> @endif
@@ -185,7 +185,7 @@
 
   @if($lab->visit)
   <div class="card-emr mb-3">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-clipboard2-pulse" style="color:#2eca6a"></i> Visit</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-clipboard2-pulse" style="color:#2eca6a"></i> Visit</div></div>
     <div class="card-bd">
       <code style="font-size:12px;color:#4154f1">{{ $lab->visit->code }}</code>
       <span class="badge-s {{ $lab->visit->visit_type === 'IPD' ? 'b-ipd' : 'b-opd' }}" style="margin-left:6px">{{ $lab->visit->visit_type }}</span>
@@ -197,7 +197,7 @@
 
   {{-- Order timeline --}}
   <div class="card-emr">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-clock-history" style="color:#9b59b6"></i> Timeline</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-clock-history" style="color:#9b59b6"></i> Timeline</div></div>
     <div class="card-bd" style="font-size:12px;line-height:2">
       <div><i class="bi bi-circle-fill" style="color:#ff771d;font-size:8px"></i> Requested: {{ $lab->requested_at?->format('d/m/Y H:i') }} <span style="color:#aaa">by {{ $lab->requested_by }}</span></div>
       @if($lab->collected_at)

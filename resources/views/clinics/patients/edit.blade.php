@@ -1,5 +1,5 @@
 @extends('clinics.layout.app')
-@section('title', 'កែប្រែ ' . $patient->surname . ', ' . $patient->name)
+@section('title', 'Edit — ' . $patient->surname . ', ' . $patient->name)
 
 @section('content')
 
@@ -9,327 +9,369 @@
     km="កែប្រែអ្នកជំងឺ"
     title="Edit Patient — {{ $patient->code }}"
     :breadcrumbs="[
-        ['label' => 'ដើម',      'url' => url('/')],
-        ['label' => 'អ្នកជំងឺ', 'url' => url('/patients')],
+        ['label' => __('app.home'), 'url' => route('dashboard')],
+        ['label' => 'Patients', 'url' => url('/patients')],
         ['label' => $patient->code, 'url' => url('/patients/' . $patient->code)],
         ['label' => 'Edit'],
     ]">
     <x-slot:actions>
         <x-ui.button href="{{ url('/patients/' . $patient->code) }}" variant="secondary" size="sm">
-            <x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>
+            <x-slot:icon><i class="bi bi-arrow-left" aria-hidden="true"></i></x-slot:icon>
             Cancel
         </x-ui.button>
     </x-slot:actions>
 </x-ui.page-header>
 
 @if($errors->any())
-<x-ui.alert type="error" class="mb-3">
-    <i class="bi bi-exclamation-triangle-fill"></i>
-    <ul style="margin:0;padding-left:16px;font-size:12px">
-        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-    </ul>
-</x-ui.alert>
+    <x-ui.alert type="error" class="mb-4">
+        <ul class="list-disc pl-4 text-xs space-y-0.5">
+            @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+        </ul>
+    </x-ui.alert>
 @endif
 
 <form method="POST" action="{{ url('/patients/' . $patient->code) }}" id="patientForm" novalidate>
 @csrf @method('PATCH')
 
-<div class="row g-3">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-{{-- ════════════════════════════════════════════════════════════════════════════
-     LEFT COLUMN: Patient Info
-     ════════════════════════════════════════════════════════════════════════════ --}}
-<div class="col-12 col-lg-8">
+    {{-- ── LEFT: Patient Info ─────────────────────────────────── --}}
+    <div class="lg:col-span-2 space-y-4">
 
-  {{-- ── Identity ──────────────────────────────────────────────────────────── --}}
-  <x-ui.card title="Identity" km="អត្តសញ្ញាណ" icon="bi-person-fill" icon-color="#4154f1" class="mb-3">
-    <div class="row g-3">
-      <div class="col-12 col-sm-4">
-        <x-form.field name="code_display" km="លេខអ្នកជំងឺ" en="Patient Code"
-                      :value="$patient->code" :readonly="true"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.field name="surname" km="នាមត្រកូល" en="Surname"
-                      :value="old('surname', $patient->surname)" required/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.field name="name" km="ឈ្មោះ" en="Given Name"
-                      :value="old('name', $patient->name)" required/>
-      </div>
-      <div class="col-6 col-sm-3">
-        <x-form.select name="sex" km="ភេទ" en="Sex" required
-            :options="['' => '— ជ្រើស —', 'M' => '♂ ប្រុស / Male', 'F' => '♀ ស្រី / Female']"
-            :value="old('sex', $patient->sex)"/>
-      </div>
-      <div class="col-6 col-sm-3">
-        <x-form.field name="birthdate" km="ថ្ងៃខែឆ្នាំ" en="Date of Birth"
-                      type="date" :value="old('birthdate', $patient->birthdate?->format('Y-m-d'))"/>
-      </div>
-      <div class="col-6 col-sm-3">
-        <x-form.field name="phone" km="ទូរស័ព្ទ" en="Phone"
-                      type="tel" placeholder="012 345 678"
-                      :value="old('phone', $patient->phone)"/>
-      </div>
-      <div class="col-6 col-sm-3">
-        <x-form.field name="nationality" km="សញ្ជាតិ" en="Nationality"
-                      :value="old('nationality', $patient->nationality ?? 'ខ្មែរ')"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.select name="marital_status" km="ស្ថានភាពអាពាហ៍ពិពាហ៍" en="Marital Status"
-            :options="['' => '—', 'Single' => 'នៅលីវ / Single', 'Married' => 'រៀបការ / Married', 'Widowed' => 'មេម៉ាយ / Widowed', 'Divorced' => 'លែងលះ / Divorced']"
-            :value="old('marital_status', $patient->marital_status)"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.field name="occupation" km="មុខរបរ" en="Occupation"
-                      :value="old('occupation', $patient->occupation)"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.field name="spid" km="លេខ SPID" en="Social Protection ID"
-                      placeholder="HEF / NSSF card no."
-                      :value="old('spid', $patient->spid)"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.select name="blood_type" km="ប្រភេទឈាម" en="Blood Type"
-            :options="['' => '—', 'A+' => 'A+', 'A-' => 'A-', 'B+' => 'B+', 'B-' => 'B-', 'AB+' => 'AB+', 'AB-' => 'AB-', 'O+' => 'O+', 'O-' => 'O-']"
-            :value="old('blood_type', $patient->blood_type)"/>
-      </div>
-      <div class="col-6 col-sm-4">
-        <x-form.select name="status" km="ស្ថានភាព" en="Status"
-            :options="['Active' => 'Active', 'Inactive' => 'Inactive']"
-            :value="old('status', $patient->status)"/>
-      </div>
+        {{-- Identity --}}
+        <x-ui.card>
+            <x-slot:header>
+                <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <i class="bi bi-person-fill" style="color:#4154f1;font-size:15px" aria-hidden="true"></i>
+                    <span class="text-sm font-bold" style="color:#1a1f36">អត្តសញ្ញាណ / Identity</span>
+                </div>
+            </x-slot:header>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">លេខអ្នកជំងឺ</label>
+                    <div class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-[#f9fafb] px-3 py-2.5 font-mono font-bold"
+                         style="color:#4154f1">{{ $patient->code }}</div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">
+                        នាមត្រកូល / Surname <span style="color:#ef4444">*</span>
+                    </label>
+                    <x-forms.input name="surname" :value="old('surname', $patient->surname)" required />
+                    @error('surname')<p class="text-xs" style="color:#ef4444">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">
+                        ឈ្មោះ / Given Name <span style="color:#ef4444">*</span>
+                    </label>
+                    <x-forms.input name="name" :value="old('name', $patient->name)" required />
+                    @error('name')<p class="text-xs" style="color:#ef4444">{{ $message }}</p>@enderror
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">
+                        ភេទ / Sex <span style="color:#ef4444">*</span>
+                    </label>
+                    <x-forms.select name="sex" required>
+                        <option value="">— ជ្រើស —</option>
+                        <option value="M" @selected(old('sex', $patient->sex) === 'M')>♂ ប្រុស / Male</option>
+                        <option value="F" @selected(old('sex', $patient->sex) === 'F')>♀ ស្រី / Female</option>
+                    </x-forms.select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ថ្ងៃខែឆ្នាំ / Date of Birth</label>
+                    <x-forms.input type="date" name="birthdate"
+                                   :value="old('birthdate', $patient->birthdate?->format('Y-m-d'))" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ទូរស័ព្ទ / Phone</label>
+                    <x-forms.input type="tel" name="phone" placeholder="012 345 678"
+                                   :value="old('phone', $patient->phone)" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">សញ្ជាតិ / Nationality</label>
+                    <x-forms.input name="nationality" :value="old('nationality', $patient->nationality ?? 'ខ្មែរ')" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ស្ថានភាព / Marital Status</label>
+                    <x-forms.select name="marital_status">
+                        <option value="">—</option>
+                        <option value="Single"   @selected(old('marital_status', $patient->marital_status) === 'Single')>Single</option>
+                        <option value="Married"  @selected(old('marital_status', $patient->marital_status) === 'Married')>Married</option>
+                        <option value="Widowed"  @selected(old('marital_status', $patient->marital_status) === 'Widowed')>Widowed</option>
+                        <option value="Divorced" @selected(old('marital_status', $patient->marital_status) === 'Divorced')>Divorced</option>
+                    </x-forms.select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">មុខរបរ / Occupation</label>
+                    <x-forms.input name="occupation" :value="old('occupation', $patient->occupation)" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">លេខ SPID</label>
+                    <x-forms.input name="spid" placeholder="HEF / NSSF card no." :value="old('spid', $patient->spid)" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ប្រភេទឈាម / Blood Type</label>
+                    <x-forms.select name="blood_type">
+                        <option value="">—</option>
+                        @foreach(['A+','A-','B+','B-','AB+','AB-','O+','O-'] as $bt)
+                            <option value="{{ $bt }}" @selected(old('blood_type', $patient->blood_type) === $bt)>{{ $bt }}</option>
+                        @endforeach
+                    </x-forms.select>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ស្ថានភាព / Status</label>
+                    <x-forms.select name="status">
+                        <option value="Active"   @selected(old('status', $patient->status) === 'Active')>Active</option>
+                        <option value="Inactive" @selected(old('status', $patient->status) === 'Inactive')>Inactive</option>
+                    </x-forms.select>
+                </div>
+            </div>
+        </x-ui.card>
+
+        {{-- Address --}}
+        <x-ui.card>
+            <x-slot:header>
+                <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <i class="bi bi-geo-alt-fill" style="color:#ff771d;font-size:15px" aria-hidden="true"></i>
+                    <span class="text-sm font-bold" style="color:#1a1f36">អាសយដ្ឋាន / Address</span>
+                </div>
+            </x-slot:header>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                @foreach([
+                    ['province_name', 'ខេត្ត / Province',     $addr?->province_name],
+                    ['district_name', 'ស្រុក / District',     $addr?->district_name],
+                    ['commune_name',  'ឃុំ / Commune',        $addr?->commune_name],
+                    ['village_name',  'ភូមិ / Village',       $addr?->village_name],
+                    ['house_number',  'លេខផ្ទះ / House No.',  $addr?->house_number],
+                    ['street_number', 'លេខផ្លូវ / Street No.',$addr?->street_number],
+                ] as [$field, $label, $current])
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">{{ $label }}</label>
+                        <x-forms.input name="{{ $field }}" :value="old($field, $current)" />
+                    </div>
+                @endforeach
+            </div>
+        </x-ui.card>
+
+        {{-- ID Cards --}}
+        @php
+            $existingIds = old('identifications', $patient->identifications->map(fn($id) => [
+                'id' => $id->id, 'card_type' => $id->card_type, 'card_code' => $id->card_code
+            ])->toArray());
+        @endphp
+        <x-ui.card>
+            <x-slot:header>
+                <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-credit-card-fill" style="color:#9b59b6;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">ប័ណ្ណអត្តសញ្ញាណ / ID Cards</span>
+                    </div>
+                    <x-ui.button type="button" variant="secondary" size="sm" onclick="addIdRow()">
+                        <x-slot:icon><i class="bi bi-plus-lg" aria-hidden="true"></i></x-slot:icon>
+                        Add
+                    </x-ui.button>
+                </div>
+            </x-slot:header>
+            <div id="idCardContainer" class="space-y-2">
+                @foreach($existingIds as $i => $card)
+                    <div class="id-row flex items-end gap-2">
+                        @if(!empty($card['id']))
+                            <input type="hidden" name="identifications[{{ $i }}][id]" value="{{ $card['id'] }}" />
+                        @endif
+                        <div class="flex-1 space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">ប្រភេទប័ណ្ណ</label>
+                            <x-forms.select name="identifications[{{ $i }}][card_type]">
+                                <option value="">—</option>
+                                @foreach(['NID' => 'NID', 'Passport' => 'Passport', 'HEF' => 'HEF Card', 'NSSF' => 'NSSF', 'Other' => 'Other'] as $v => $l)
+                                    <option value="{{ $v }}" @selected(($card['card_type'] ?? '') === $v)>{{ $l }}</option>
+                                @endforeach
+                            </x-forms.select>
+                        </div>
+                        <div class="flex-1 space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">លេខប័ណ្ណ</label>
+                            <x-forms.input name="identifications[{{ $i }}][card_code]" :value="$card['card_code'] ?? ''" />
+                        </div>
+                        <button type="button" onclick="this.closest('.id-row').remove()"
+                                class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border border-[#fca5a5] hover:bg-[#fde8e8] transition-colors text-xs"
+                                style="color:#e74c3c">
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                @endforeach
+                @if(empty($existingIds))
+                    <div id="idCardEmpty" class="text-xs py-1" style="color:#9ca3af">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> No ID cards recorded
+                    </div>
+                @endif
+            </div>
+        </x-ui.card>
+
+        {{-- Emergency Contacts --}}
+        @php
+            $existingContacts = old('contacts', $patient->contacts->map(fn($c) => [
+                'id' => $c->id, 'contact_name' => $c->contact_name, 'contact_phone' => $c->contact_phone,
+                'relationship' => $c->relationship, 'is_emergency' => $c->is_emergency,
+            ])->toArray());
+        @endphp
+        <x-ui.card>
+            <x-slot:header>
+                <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-people-fill" style="color:#2eca6a;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">ទំនាក់ទំនងបន្ទាន់ / Contacts</span>
+                    </div>
+                    <x-ui.button type="button" variant="secondary" size="sm" onclick="addContactRow()">
+                        <x-slot:icon><i class="bi bi-plus-lg" aria-hidden="true"></i></x-slot:icon>
+                        Add
+                    </x-ui.button>
+                </div>
+            </x-slot:header>
+            <div id="contactContainer" class="space-y-2">
+                @foreach($existingContacts as $i => $c)
+                    <div class="contact-row grid gap-2 items-end"
+                         style="grid-template-columns: 1fr 1fr 1fr auto">
+                        @if(!empty($c['id']))
+                            <input type="hidden" name="contacts[{{ $i }}][id]" value="{{ $c['id'] }}" />
+                        @endif
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">Name</label>
+                            <x-forms.input name="contacts[{{ $i }}][contact_name]" :value="$c['contact_name'] ?? ''" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">Phone</label>
+                            <x-forms.input name="contacts[{{ $i }}][contact_phone]" :value="$c['contact_phone'] ?? ''" />
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">Relation</label>
+                            <x-forms.select name="contacts[{{ $i }}][relationship]">
+                                <option value="">—</option>
+                                @foreach(['Spouse','Parent','Child','Sibling','Guardian','Other'] as $rel)
+                                    <option value="{{ $rel }}" @selected(($c['relationship'] ?? '') === $rel)>{{ $rel }}</option>
+                                @endforeach
+                            </x-forms.select>
+                        </div>
+                        <button type="button" onclick="this.closest('.contact-row').remove()"
+                                class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border border-[#fca5a5] hover:bg-[#fde8e8] transition-colors text-xs mb-0.5"
+                                style="color:#e74c3c">
+                            <i class="bi bi-trash" aria-hidden="true"></i>
+                        </button>
+                    </div>
+                @endforeach
+                @if(empty($existingContacts))
+                    <div id="contactEmpty" class="text-xs py-1" style="color:#9ca3af">
+                        <i class="bi bi-info-circle" aria-hidden="true"></i> No contacts recorded
+                    </div>
+                @endif
+            </div>
+        </x-ui.card>
+
+    </div>{{-- /left --}}
+
+    {{-- ── RIGHT: Actions Sidebar ───────────────────────────────── --}}
+    <div>
+        <x-ui.card class="sticky top-20">
+            <x-slot:header>
+                <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <i class="bi bi-save-fill" style="color:#4154f1;font-size:15px" aria-hidden="true"></i>
+                    <span class="text-sm font-bold" style="color:#1a1f36">Save Changes</span>
+                </div>
+            </x-slot:header>
+
+            <div class="space-y-2">
+                <x-ui.button type="submit" variant="primary" :fullWidth="true">
+                    <x-slot:icon><i class="bi bi-check2-circle" aria-hidden="true"></i></x-slot:icon>
+                    Save Changes
+                </x-ui.button>
+                <x-ui.button href="{{ url('/patients/' . $patient->code) }}" variant="secondary" :fullWidth="true">
+                    <x-slot:icon><i class="bi bi-x-circle" aria-hidden="true"></i></x-slot:icon>
+                    Cancel
+                </x-ui.button>
+            </div>
+
+            <div class="mt-4 pt-4 space-y-2" style="border-top:1px solid #e6e9f0">
+                <div class="flex items-center justify-between text-xs">
+                    <span style="color:#6b7280">Code</span>
+                    <code class="font-mono font-bold px-1.5 py-0.5 rounded" style="background:#eef0fd;color:#4154f1">{{ $patient->code }}</code>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span style="color:#6b7280">Created</span>
+                    <span style="color:#374151">{{ $patient->created_at?->format('d/m/Y') }}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                    <span style="color:#6b7280">Updated</span>
+                    <span style="color:#374151">{{ $patient->updated_at?->format('d/m/Y H:i') }}</span>
+                </div>
+            </div>
+        </x-ui.card>
     </div>
-  </x-ui.card>
 
-  {{-- ── Address ───────────────────────────────────────────────────────────── --}}
-  <x-ui.card title="Address" km="អាសយដ្ឋាន" icon="bi-geo-alt-fill" icon-color="#ff771d" class="mb-3">
-    <div class="row g-3">
-      <div class="col-6 col-md-3">
-        <x-form.field name="province_name" km="ខេត្ត" en="Province"
-                      :value="old('province_name', $addr?->province_name)"/>
-      </div>
-      <div class="col-6 col-md-3">
-        <x-form.field name="district_name" km="ស្រុក" en="District"
-                      :value="old('district_name', $addr?->district_name)"/>
-      </div>
-      <div class="col-6 col-md-3">
-        <x-form.field name="commune_name" km="ឃុំ" en="Commune"
-                      :value="old('commune_name', $addr?->commune_name)"/>
-      </div>
-      <div class="col-6 col-md-3">
-        <x-form.field name="village_name" km="ភូមិ" en="Village"
-                      :value="old('village_name', $addr?->village_name)"/>
-      </div>
-      <div class="col-6">
-        <x-form.field name="house_number" km="លេខផ្ទះ" en="House No."
-                      :value="old('house_number', $addr?->house_number)"/>
-      </div>
-      <div class="col-6">
-        <x-form.field name="street_number" km="លេខផ្លូវ" en="Street No."
-                      :value="old('street_number', $addr?->street_number)"/>
-      </div>
-    </div>
-  </x-ui.card>
-
-  {{-- ── Identifications ───────────────────────────────────────────────────── --}}
-  <x-ui.card title="ID Cards" km="ប័ណ្ណអត្តសញ្ញាណ" icon="bi-credit-card-fill" icon-color="#9b59b6" class="mb-3">
-    <x-slot:actions>
-      <x-ui.button type="button" variant="secondary" size="sm" onclick="addIdRow()">
-        <x-slot:icon><i class="bi bi-plus-lg"></i></x-slot:icon>
-        បន្ថែម
-      </x-ui.button>
-    </x-slot:actions>
-    <div id="idCardContainer">
-      @php $existingIds = old('identifications', $patient->identifications->map(fn($id) => ['id' => $id->id, 'card_type' => $id->card_type, 'card_code' => $id->card_code])->toArray()); @endphp
-      @foreach($existingIds as $i => $card)
-      <div class="row g-2 mb-2 id-row align-items-end">
-        @if(!empty($card['id']))
-        <input type="hidden" name="identifications[{{ $i }}][id]" value="{{ $card['id'] }}"/>
-        @endif
-        <div class="col-5">
-          <x-form.select name="identifications[{{ $i }}][card_type]" km="ប្រភេទប័ណ្ណ" en="Card Type"
-              :options="['' => '—', 'NID' => 'អត្តសញ្ញាណប័ណ្ណ / NID', 'Passport' => 'លិខិតឆ្លងដែន / Passport', 'HEF' => 'បណ្ណសមធម៌ / HEF Card', 'NSSF' => 'បណ្ណ NSSF', 'Other' => 'ផ្សេង / Other']"
-              :value="$card['card_type'] ?? ''"/>
-        </div>
-        <div class="col-5">
-          <x-form.field name="identifications[{{ $i }}][card_code]" km="លេខប័ណ្ណ" en="Card Number"
-                        :value="$card['card_code'] ?? ''"/>
-        </div>
-        <div class="col-2">
-          <x-ui.button type="button" variant="danger" size="sm" :full-width="true" onclick="this.closest('.id-row').remove()">
-            <x-slot:icon><i class="bi bi-trash"></i></x-slot:icon>
-          </x-ui.button>
-        </div>
-      </div>
-      @endforeach
-      @if(empty($existingIds))
-      <div style="font-size:11px;color:#bbb;padding-top:4px" id="idCardEmpty">
-        <i class="bi bi-info-circle"></i> គ្មានប័ណ្ណ / No ID cards recorded
-      </div>
-      @endif
-    </div>
-  </x-ui.card>
-
-  {{-- ── Contacts ──────────────────────────────────────────────────────────── --}}
-  <x-ui.card title="Emergency Contacts" km="ទំនាក់ទំនងបន្ទាន់" icon="bi-people-fill" icon-color="#2eca6a" class="mb-3">
-    <x-slot:actions>
-      <x-ui.button type="button" variant="secondary" size="sm" onclick="addContactRow()">
-        <x-slot:icon><i class="bi bi-plus-lg"></i></x-slot:icon>
-        បន្ថែម
-      </x-ui.button>
-    </x-slot:actions>
-    <div id="contactContainer">
-      @php $existingContacts = old('contacts', $patient->contacts->map(fn($c) => ['id' => $c->id, 'contact_name' => $c->contact_name, 'contact_phone' => $c->contact_phone, 'relationship' => $c->relationship, 'is_emergency' => $c->is_emergency])->toArray()); @endphp
-      @foreach($existingContacts as $i => $c)
-      <div class="row g-2 mb-2 contact-row align-items-end">
-        @if(!empty($c['id']))
-        <input type="hidden" name="contacts[{{ $i }}][id]" value="{{ $c['id'] }}"/>
-        @endif
-        <div class="col-12 col-sm-3">
-          <x-form.field name="contacts[{{ $i }}][contact_name]" km="ឈ្មោះ" en="Name"
-                        :value="$c['contact_name'] ?? ''"/>
-        </div>
-        <div class="col-6 col-sm-3">
-          <x-form.field name="contacts[{{ $i }}][contact_phone]" km="ទូរស័ព្ទ" en="Phone"
-                        :value="$c['contact_phone'] ?? ''"/>
-        </div>
-        <div class="col-6 col-sm-3">
-          <x-form.select name="contacts[{{ $i }}][relationship]" km="ទំនាក់ទំនង" en="Relation"
-              :options="['' => '—', 'Spouse' => 'ប្រពន្ធ/ប្តី / Spouse', 'Parent' => 'មាតា/បិតា / Parent', 'Child' => 'កូន / Child', 'Sibling' => 'បងប្អូន / Sibling', 'Guardian' => 'អាណាព្យាបាល / Guardian', 'Other' => 'ផ្សេង / Other']"
-              :value="$c['relationship'] ?? ''"/>
-        </div>
-        <div class="col-6 col-sm-2">
-          <div class="fld">
-            <label class="flbl"><span class="en">Emergency?</span></label>
-            <select name="contacts[{{ $i }}][is_emergency]" class="form-select">
-              <option value="0">No</option>
-              <option value="1" {{ ($c['is_emergency'] ?? 0) ? 'selected' : '' }}>Yes</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-6 col-sm-1">
-          <x-ui.button type="button" variant="danger" size="sm" :full-width="true" onclick="this.closest('.contact-row').remove()">
-            <x-slot:icon><i class="bi bi-trash"></i></x-slot:icon>
-          </x-ui.button>
-        </div>
-      </div>
-      @endforeach
-      @if(empty($existingContacts))
-      <div style="font-size:11px;color:#bbb;padding-top:4px" id="contactEmpty">
-        <i class="bi bi-info-circle"></i> គ្មានទំនាក់ទំនង / No contacts recorded
-      </div>
-      @endif
-    </div>
-  </x-ui.card>
-
-</div>{{-- /col-lg-8 --}}
-
-{{-- ════════════════════════════════════════════════════════════════════════════
-     RIGHT COLUMN: Actions
-     ════════════════════════════════════════════════════════════════════════════ --}}
-<div class="col-12 col-lg-4">
-  <x-ui.card title="Actions" km="សកម្មភាព" icon="bi-save-fill" icon-color="#4154f1" style="position:sticky;top:76px">
-    <x-ui.button type="submit" variant="primary" :full-width="true" class="mb-2">
-      <x-slot:icon><i class="bi bi-check2-circle"></i></x-slot:icon>
-      រក្សាទុកការកែប្រែ / Save Changes
-    </x-ui.button>
-    <x-ui.button href="{{ url('/patients/' . $patient->code) }}" variant="secondary" :full-width="true">
-      <x-slot:icon><i class="bi bi-x-circle"></i></x-slot:icon>
-      បោះបង់ / Cancel
-    </x-ui.button>
-
-    <div style="border-top:1px solid #f0f2ff;margin-top:14px;padding-top:12px;font-size:11px;color:#aaa;line-height:1.8">
-      <div><i class="bi bi-tag" style="width:14px"></i> Code: <strong style="color:#4154f1;font-family:monospace">{{ $patient->code }}</strong></div>
-      <div><i class="bi bi-calendar" style="width:14px"></i> Created: {{ $patient->created_at?->format('d/m/Y') }}</div>
-      <div><i class="bi bi-pencil" style="width:14px"></i> Updated: {{ $patient->updated_at?->format('d/m/Y H:i') }}</div>
-    </div>
-  </x-ui.card>
-</div>
-
-</div>{{-- /row --}}
+</div>{{-- /grid --}}
 </form>
-
-@endsection
 
 @push('scripts')
 <script>
-// ── Dynamic ID card rows ──────────────────────────────────────────────────────
-let idIdx = {{ count($existingIds ?? []) }};
+var inputCls = 'w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#9ca3af] focus:outline-none transition-colors';
+var selectCls = inputCls + ' appearance-none';
+var trashBtnCls = 'flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg border hover:bg-[#fde8e8] transition-colors text-xs';
+
+var idIdx = {{ count($existingIds ?? []) }};
 
 function addIdRow() {
-    const c = document.getElementById('idCardContainer');
-    const e = document.getElementById('idCardEmpty');
-    if (e) e.style.display = 'none';
-
-    c.insertAdjacentHTML('beforeend', `
-    <div class="row g-2 mb-2 id-row align-items-end">
-      <div class="col-5">
-        <div class="fld">
-          <label class="flbl"><span class="km">ប្រភេទប័ណ្ណ</span><span class="en">/ Card Type</span></label>
-          <select name="identifications[${idIdx}][card_type]" class="form-select">
-            <option value="">—</option>
-            <option value="NID">អត្តសញ្ញាណប័ណ្ណ / NID</option>
-            <option value="Passport">លិខិតឆ្លងដែន / Passport</option>
-            <option value="HEF">បណ្ណសមធម៌ / HEF Card</option>
-            <option value="NSSF">បណ្ណ NSSF</option>
-            <option value="Other">ផ្សេង / Other</option>
-          </select>
-        </div>
-      </div>
-      <div class="col-5">
-        <div class="fld">
-          <label class="flbl"><span class="km">លេខប័ណ្ណ</span><span class="en">/ Card Number</span></label>
-          <input type="text" name="identifications[${idIdx}][card_code]" class="form-control"/>
-        </div>
-      </div>
-      <div class="col-2">
-        <button type="button" class="btn btn-sm btn-outline-danger btn-w100" onclick="this.closest('.id-row').remove()">
-          <i class="bi bi-trash"></i>
-        </button>
-      </div>
-    </div>`);
+    var container = document.getElementById('idCardContainer');
+    var empty = document.getElementById('idCardEmpty');
+    if (empty) empty.style.display = 'none';
+    var div = document.createElement('div');
+    div.className = 'id-row flex items-end gap-2';
+    div.innerHTML =
+        '<div class="flex-1 space-y-1">'
+        + '<label class="block text-xs font-semibold" style="color:#374151">ប្រភេទប័ណ្ណ</label>'
+        + '<div class="relative"><select name="identifications[' + idIdx + '][card_type]" class="' + selectCls + '" style="padding-right:2.5rem">'
+        + '<option value="">—</option><option value="NID">NID</option><option value="Passport">Passport</option>'
+        + '<option value="HEF">HEF Card</option><option value="NSSF">NSSF</option><option value="Other">Other</option>'
+        + '</select><div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"><i class="bi bi-chevron-down text-xs" style="color:#6b7280"></i></div></div></div>'
+        + '<div class="flex-1 space-y-1"><label class="block text-xs font-semibold" style="color:#374151">លេខប័ណ្ណ</label>'
+        + '<input type="text" name="identifications[' + idIdx + '][card_code]" class="' + inputCls + '"/></div>'
+        + '<button type="button" onclick="this.closest(\'.id-row\').remove()" class="' + trashBtnCls + '" style="color:#e74c3c;border-color:#fca5a5"><i class="bi bi-trash"></i></button>';
+    container.appendChild(div);
     idIdx++;
 }
 
-// ── Dynamic contact rows ──────────────────────────────────────────────────────
-let cIdx = {{ count($existingContacts ?? []) }};
+var cIdx = {{ count($existingContacts ?? []) }};
 
 function addContactRow() {
-    const c = document.getElementById('contactContainer');
-    const e = document.getElementById('contactEmpty');
-    if (e) e.style.display = 'none';
-
-    c.insertAdjacentHTML('beforeend', `
-    <div class="row g-2 mb-2 contact-row align-items-end">
-      <div class="col-12 col-sm-3">
-        <div class="fld"><label class="flbl"><span class="km">ឈ្មោះ</span><span class="en">/ Name</span></label>
-          <input type="text" name="contacts[${cIdx}][contact_name]" class="form-control"/></div>
-      </div>
-      <div class="col-6 col-sm-3">
-        <div class="fld"><label class="flbl"><span class="km">ទូរស័ព្ទ</span><span class="en">/ Phone</span></label>
-          <input type="tel" name="contacts[${cIdx}][contact_phone]" class="form-control"/></div>
-      </div>
-      <div class="col-6 col-sm-3">
-        <div class="fld"><label class="flbl"><span class="km">ទំនាក់ទំនង</span><span class="en">/ Relation</span></label>
-          <select name="contacts[${cIdx}][relationship]" class="form-select">
-            <option value="">—</option><option value="Spouse">Spouse</option><option value="Parent">Parent</option>
-            <option value="Child">Child</option><option value="Sibling">Sibling</option>
-            <option value="Guardian">Guardian</option><option value="Other">Other</option>
-          </select></div>
-      </div>
-      <div class="col-6 col-sm-2">
-        <div class="fld"><label class="flbl"><span class="en">Emergency?</span></label>
-          <select name="contacts[${cIdx}][is_emergency]" class="form-select">
-            <option value="0">No</option><option value="1">Yes</option>
-          </select></div>
-      </div>
-      <div class="col-6 col-sm-1">
-        <button type="button" class="btn btn-sm btn-outline-danger btn-w100" onclick="this.closest('.contact-row').remove()">
-          <i class="bi bi-trash"></i>
-        </button>
-      </div>
-    </div>`);
+    var container = document.getElementById('contactContainer');
+    var empty = document.getElementById('contactEmpty');
+    if (empty) empty.style.display = 'none';
+    var div = document.createElement('div');
+    div.className = 'contact-row grid gap-2 items-end';
+    div.style.cssText = 'grid-template-columns: 1fr 1fr 1fr auto';
+    div.innerHTML =
+        '<div class="space-y-1"><label class="block text-xs font-semibold" style="color:#374151">Name</label>'
+        + '<input type="text" name="contacts[' + cIdx + '][contact_name]" class="' + inputCls + '"/></div>'
+        + '<div class="space-y-1"><label class="block text-xs font-semibold" style="color:#374151">Phone</label>'
+        + '<input type="tel" name="contacts[' + cIdx + '][contact_phone]" class="' + inputCls + '"/></div>'
+        + '<div class="space-y-1"><label class="block text-xs font-semibold" style="color:#374151">Relation</label>'
+        + '<div class="relative"><select name="contacts[' + cIdx + '][relationship]" class="' + selectCls + '" style="padding-right:2.5rem">'
+        + '<option value="">—</option><option value="Spouse">Spouse</option><option value="Parent">Parent</option>'
+        + '<option value="Child">Child</option><option value="Sibling">Sibling</option>'
+        + '<option value="Guardian">Guardian</option><option value="Other">Other</option>'
+        + '</select><div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none"><i class="bi bi-chevron-down text-xs" style="color:#6b7280"></i></div></div></div>'
+        + '<button type="button" onclick="this.closest(\'.contact-row\').remove()" class="' + trashBtnCls + ' mb-0.5" style="color:#e74c3c;border-color:#fca5a5"><i class="bi bi-trash"></i></button>';
+    container.appendChild(div);
     cIdx++;
 }
 </script>
 @endpush
+
+@endsection

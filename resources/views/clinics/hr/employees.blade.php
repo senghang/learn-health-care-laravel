@@ -36,7 +36,7 @@
     <form method="GET" action="{{ route('employees.index') }}">
         <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <div class="flex-1 min-w-0">
-                <input type="text" name="search" class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#94a3b8] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                <input type="text" name="search" class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#6b7280] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
                        value="{{ request('search') }}" placeholder="Name, code, phone…" autofocus/>
             </div>
             <div class="sm:w-40">
@@ -103,13 +103,13 @@
             $typeColors = ['doctor'=>'#e91e8c','nurse'=>'#2eca6a','pharmacist'=>'#9b59b6','lab_tech'=>'#00bcd4','admin'=>'#4154f1'];
             $typeColor = $typeColors[$emp->employee_type] ?? '#aaa';
         @endphp
-        <tr onclick="location.href='{{ route('employees.show', $emp->id) }}'" class="cursor-pointer hover:bg-[#fafbff] transition-colors">
+        <tr onclick="location.href='{{ route('employees.show', $emp->id) }}'" class="cursor-pointer hover:bg-[#f9fafb] transition-colors">
             <x-ui.table-td>
                 <code class="text-[#4154f1] text-[11px]">{{ $emp->code }}</code>
             </x-ui.table-td>
             <x-ui.table-td>
-                <div class="font-bold text-[#012970]">{{ $emp->surname }}, {{ $emp->name }}</div>
-                @if($emp->name_kh)<div class="text-[10.5px] text-[#94a3b8]">{{ $emp->name_kh }}</div>@endif
+                <div class="font-bold text-[#1a1f36]">{{ $emp->surname }}, {{ $emp->name }}</div>
+                @if($emp->name_kh)<div class="text-[10.5px] text-[#6b7280]">{{ $emp->name_kh }}</div>@endif
                 @if($emp->specialization)<div class="text-[10.5px] text-[#888] italic">{{ $emp->specialization }}</div>@endif
             </x-ui.table-td>
             <x-ui.table-td>
@@ -117,12 +117,12 @@
                     {{ ucfirst(str_replace('_',' ',$emp->employee_type)) }}
                 </span>
                 @if($emp->department)
-                    <div class="text-[10.5px] text-[#94a3b8] mt-0.5">{{ $emp->department->name }}</div>
+                    <div class="text-[10.5px] text-[#6b7280] mt-0.5">{{ $emp->department->name }}</div>
                 @endif
             </x-ui.table-td>
             <x-ui.table-td>
-                @if($emp->phone)<div class="text-xs text-[#555]"><i class="bi bi-telephone-fill text-[10px] text-[#94a3b8]"></i> {{ $emp->phone }}</div>@endif
-                @if($emp->email)<div class="text-[11px] text-[#94a3b8]">{{ $emp->email }}</div>@endif
+                @if($emp->phone)<div class="text-xs text-[#555]"><i class="bi bi-telephone-fill text-[10px] text-[#6b7280]"></i> {{ $emp->phone }}</div>@endif
+                @if($emp->email)<div class="text-[11px] text-[#6b7280]">{{ $emp->email }}</div>@endif
             </x-ui.table-td>
             <x-ui.table-td>
                 <span class="text-xs text-[#555]">{{ $emp->hire_date?->format('d/m/Y') ?? '—' }}</span>

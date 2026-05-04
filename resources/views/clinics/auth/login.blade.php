@@ -14,7 +14,7 @@
             --pri:   #4154f1;
             --pri-d: #3040d8;
             --pri-l: #eef0fd;
-            --dark:  #012970;
+            --dark:  #1a1f36;
             --success: #2eca6a;
         }
 
@@ -24,7 +24,7 @@
             font-family: 'Hanuman', 'Nunito', sans-serif;
             display: flex;
             min-height: 100vh;
-            background: #f0f2ff;
+            background: #f6f8fa;
         }
 
         /* ── Left panel (branding) ── */
@@ -131,14 +131,14 @@
             box-shadow: 0 6px 18px rgba(65,84,241,.4);
         }
         .mobile-clinic { font-size: 18px; font-weight: 800; color: var(--dark); }
-        .mobile-sub    { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+        .mobile-sub    { font-size: 12px; color: #6b7280; margin-top: 3px; }
 
         /* form card */
         .form-card {
             background: #fff;
             border-radius: 20px;
             padding: 36px 32px;
-            box-shadow: 0 4px 6px rgba(1,41,112,.04), 0 20px 60px rgba(1,41,112,.10);
+            box-shadow: 0 4px 6px rgba(17,24,39,.03), 0 20px 60px rgba(17,24,39,.08);
         }
 
         .form-title {
@@ -146,7 +146,7 @@
             color: var(--dark); margin-bottom: 4px;
         }
         .form-hint {
-            font-size: 12.5px; color: #94a3b8; margin-bottom: 28px;
+            font-size: 12.5px; color: #6b7280; margin-bottom: 28px;
         }
 
         /* field */

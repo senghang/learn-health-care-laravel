@@ -55,9 +55,9 @@
             <div class="w-20 h-20 rounded-full bg-[#eef0fd] text-[#4154f1] text-3xl font-bold flex items-center justify-center mx-auto mb-3">
                 {{ strtoupper(substr($employee->surname,0,1).substr($employee->name,0,1)) }}
             </div>
-            <div class="text-lg font-black text-[#012970]">{{ $employee->surname }}, {{ $employee->name }}</div>
+            <div class="text-lg font-black text-[#1a1f36]">{{ $employee->surname }}, {{ $employee->name }}</div>
             @if($employee->name_kh)
-                <div class="text-sm text-[#94a3b8] mt-0.5">{{ $employee->name_kh }}</div>
+                <div class="text-sm text-[#6b7280] mt-0.5">{{ $employee->name_kh }}</div>
             @endif
             <div class="mt-2">
                 <span class="text-[11px] px-3 py-1 rounded-xl font-bold" style="background:{{ $typeColor }}22;color:{{ $typeColor }}">
@@ -78,7 +78,7 @@
         @foreach([['bi-telephone-fill','#2eca6a',$employee->phone ?? '—'],['bi-envelope-fill','#4154f1',$employee->email ?? '—']] as [$ico,$col,$val])
         <div class="flex items-center gap-2.5 py-2 border-b border-[#f5f6ff]">
             <i class="bi {{ $ico }} w-5 text-center" style="color:{{ $col }};font-size:14px"></i>
-            <span class="text-sm text-[#012970]">{{ $val }}</span>
+            <span class="text-sm text-[#1a1f36]">{{ $val }}</span>
         </div>
         @endforeach
     </x-ui.card>
@@ -91,7 +91,7 @@
         @if($employee->user)
         <div class="p-2.5 bg-[#f5eeff] rounded-lg">
             <div class="font-bold text-[#9b59b6] text-sm">{{ $employee->user->name }}</div>
-            <div class="text-[11px] text-[#94a3b8]">{{ $employee->user->email }}</div>
+            <div class="text-[11px] text-[#6b7280]">{{ $employee->user->email }}</div>
             <div class="flex gap-1.5 mt-1.5">
                 <x-ui.badge :variant="$employee->user->is_active ? 'success' : 'danger'" size="sm">
                     {{ $employee->user->is_active ? 'Active' : 'Inactive' }}
@@ -102,7 +102,7 @@
             </div>
         </div>
         @else
-        <div class="text-center py-3 text-[#94a3b8]">
+        <div class="text-center py-3 text-[#6b7280]">
             <i class="bi bi-person-x text-2xl block mb-1.5 opacity-40"></i>
             <div class="text-xs mb-2">No system account linked.</div>
             <x-ui.button href="{{ route('users.create') }}?employee_id={{ $employee->id }}" variant="ghost" size="sm">
@@ -134,8 +134,8 @@
                 ['Status',         $statusLabel],
             ] as [$label, $val])
             <div class="col-6 col-md-3">
-                <div class="text-[10.5px] text-[#94a3b8] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
-                <div class="font-semibold text-[#012970] text-sm">{{ $val }}</div>
+                <div class="text-[10.5px] text-[#6b7280] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
+                <div class="font-semibold text-[#1a1f36] text-sm">{{ $val }}</div>
             </div>
             @endforeach
         </div>
@@ -154,8 +154,8 @@
                 ['Email',     $employee->email ?? '—'],
             ] as [$label, $val])
             <div class="col-6 col-sm-3">
-                <div class="text-[10.5px] text-[#94a3b8] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
-                <div class="font-semibold text-[#012970] text-sm">{{ $val }}</div>
+                <div class="text-[10.5px] text-[#6b7280] font-bold uppercase tracking-wide mb-0.5">{{ $label }}</div>
+                <div class="font-semibold text-[#1a1f36] text-sm">{{ $val }}</div>
             </div>
             @endforeach
         </div>

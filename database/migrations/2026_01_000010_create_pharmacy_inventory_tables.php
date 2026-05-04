@@ -100,11 +100,12 @@ return new class extends Migration {
             $table->string('code', 30)->unique();
             $table->string('prescription_code', 30)->index();
             $table->foreignId('medicine_id')->constrained('medicines')->restrictOnDelete();
-            $table->string('medicine_code', 30);
+            $table->string('medicine_code', 30)->nullable();
             $table->string('medicine_name', 120);
             $table->string('patient_code', 30)->index();
             $table->string('visit_code', 30)->nullable()->index();
-            $table->integer('quantity_dispensed');
+            $table->integer('quantity')->default(0);
+            $table->string('status', 20)->default('dispensed');
             $table->string('batch_no', 60)->nullable();
             $table->date('expiry_date')->nullable();
             $table->string('dispensed_by', 120)->nullable();
@@ -134,12 +135,13 @@ return new class extends Migration {
             $table->string('reference', 80)->nullable()
                 ->comment('Invoice code / purchase order / prescription code');
             $table->string('supplier', 120)->nullable();
-            $table->decimal('unit_cost', 14, 2)->default(0);
+            $table->decimal('unit_cost', 14, 2)->nullable()->default(0);
             $table->date('expiry_date')->nullable();
             $table->string('batch_no', 60)->nullable();
             $table->text('note')->nullable();
             $table->string('recorded_by', 120)->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 
@@ -185,6 +187,7 @@ return new class extends Migration {
             $table->decimal('total_price', 14, 2)->default(0);
             $table->string('note', 255)->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
             $table->softDeletes();
 

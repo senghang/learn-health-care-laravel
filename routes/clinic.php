@@ -81,6 +81,9 @@ Route::middleware(['userauth'])->group(function () use ($permMiddleware) {
     // ── Dashboard (unchanged) ─────────────────────────────────────────────────
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+    // ── Design System / Component Reference ───────────────────────────────────
+    Route::get('/design-system', fn() => view('clinics.design-system'))->name('design-system');
+
     // ══════════════════════════════════════════════════════════════════════════
     // 🧾 OPERATIONS — ALL EXISTING ROUTES PRESERVED
     // ══════════════════════════════════════════════════════════════════════════

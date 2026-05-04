@@ -218,13 +218,13 @@
     border-bottom:1px solid #fce7f3;
 }
 .rx-card-icon { font-size:18px; }
-.rx-card-name { font-size:14px;color:#012970; }
+.rx-card-name { font-size:14px;color:#1a1f36; }
 .rx-strength-chip {
     font-size:11px;background:#eef0fd;color:#4154f1;
     padding:1px 7px;border-radius:5px;
 }
 .rx-dose-chip {
-    font-size:10px;background:#f0f2ff;color:#4154f1;
+    font-size:10px;background:#e6e9f0;color:#4154f1;
     padding:2px 9px;border-radius:10px;font-weight:700;
 }
 .rx-chev {
@@ -255,7 +255,7 @@
 }
 .dosing-in {
     border:none;background:transparent;text-align:center;
-    font-size:20px;font-weight:800;color:#012970;width:100%;
+    font-size:20px;font-weight:800;color:#1a1f36;width:100%;
     outline:none;font-family:'Nunito',sans-serif;
 }
 @media(max-width:480px){.dosing-grid{grid-template-columns:repeat(3,1fr)}}
@@ -344,7 +344,7 @@ function addRxCard() {
         + '</div></div>'
         + '<div class="rx-card-body" id="rx-body-'+idx+'" style="display:block">'
         // Catalog selector
-        + '<div class="fld mb-3" style="background:#f0f2ff;border-radius:8px;padding:10px 12px">'
+        + '<div class="fld mb-3" style="background:#e6e9f0;border-radius:8px;padding:10px 12px">'
         + '<label class="flbl" style="color:#4154f1;font-size:11px;font-weight:800"><i class="bi bi-search"></i> Quick Select from Formulary</label>'
         + '<select class="form-select" onchange="fillFromCatalog(this,'+idx+')" style="border-color:#c5cbf9">'
         + catalogOpts + '</select>'

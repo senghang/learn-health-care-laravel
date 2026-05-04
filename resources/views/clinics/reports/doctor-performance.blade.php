@@ -83,7 +83,7 @@
                             {{ strtoupper(substr($row['doctor'], 0, 1)) }}
                         </div>
                         <div>
-                            <div style="font-weight:700;color:#012970;font-size:13px">{{ $row['doctor'] }}</div>
+                            <div style="font-weight:700;color:#1a1f36;font-size:13px">{{ $row['doctor'] }}</div>
                         </div>
                     </div>
                 </td>
@@ -97,7 +97,7 @@
                 <td style="font-size:16px;font-weight:700;color:#ff771d">{{ $row['diagnoses'] }}</td>
                 <td style="font-size:16px;font-weight:700;color:#9b59b6">{{ $row['prescriptions'] }}</td>
                 <td>
-                    <span style="font-size:13px;font-weight:700;background:#f0f2ff;color:#4154f1;padding:3px 10px;border-radius:20px">
+                    <span style="font-size:13px;font-weight:700;background:#e6e9f0;color:#4154f1;padding:3px 10px;border-radius:20px">
                         {{ $dxRate }}
                     </span>
                 </td>

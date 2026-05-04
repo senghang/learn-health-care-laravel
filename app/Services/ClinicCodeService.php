@@ -88,6 +88,38 @@ final class ClinicCodeService
          *
          * No two requests ever get the same number.
          */
+        // SQLite (test environment) — no RETURNING support
+        if (DB::getDriverName() === 'sqlite') {
+            return DB::transaction(function () use ($clinicId, $prefix, $today, $pad) {
+                $row = DB::table('clinic_code_sequences')
+                    ->where('clinic_id', $clinicId)
+                    ->where('prefix',    $prefix)
+                    ->where('seq_date',  $today)
+                    ->first();
+
+                if ($row) {
+                    $seq = $row->last_seq + 1;
+                    DB::table('clinic_code_sequences')
+                        ->where('clinic_id', $clinicId)
+                        ->where('prefix',    $prefix)
+                        ->where('seq_date',  $today)
+                        ->update(['last_seq' => $seq, 'updated_at' => now()]);
+                } else {
+                    $seq = 1;
+                    DB::table('clinic_code_sequences')->insert([
+                        'clinic_id'  => $clinicId,
+                        'prefix'     => $prefix,
+                        'seq_date'   => $today,
+                        'last_seq'   => $seq,
+                        'updated_at' => now(),
+                    ]);
+                }
+
+                return $prefix . now()->format('Ymd') . str_pad($seq, $pad, '0', STR_PAD_LEFT);
+            });
+        }
+
+        // PostgreSQL (production) — atomic upsert with RETURNING
         $row = DB::selectOne("
             INSERT INTO clinic_code_sequences
                 (clinic_id, prefix, seq_date, last_seq, updated_at)

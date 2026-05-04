@@ -40,7 +40,7 @@
 {{-- Filter --}}
 <x-ui.card class="mb-4" :noPadding="false">
     <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-bold text-[#012970] flex items-center gap-1.5">
+        <span class="text-xs font-bold text-[#1a1f36] flex items-center gap-1.5">
             <i class="bi bi-funnel-fill text-[#4154f1]"></i> Filter
         </span>
         @if(request()->hasAny(['search','status','ward_id','date']))
@@ -54,7 +54,7 @@
         <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <div class="flex-1 min-w-0">
                 <input type="text" name="search"
-                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#94a3b8] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#6b7280] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
                        placeholder="Search code, patient name…" value="{{ request('search') }}" autofocus/>
             </div>
             <div class="sm:w-40">
@@ -93,7 +93,7 @@
     <x-slot:header>
         <x-ui.card-header km="បញ្ជីចូលសម្រាក" label="Admission List" icon="bi-hospital" :count="$admissions->total()">
             <x-slot:actions>
-                <span class="text-[11px] text-[#94a3b8]">Click a row to open details</span>
+                <span class="text-[11px] text-[#6b7280]">Click a row to open details</span>
             </x-slot:actions>
         </x-ui.card-header>
     </x-slot:header>
@@ -127,7 +127,7 @@
             $los = $adm->length_of_stay ?? 0;
             $overdueStyle = $isAdmitted && $adm->expected_discharge_at?->isPast() ? 'color:#e74c3c;font-weight:700' : '';
         @endphp
-        <tr class="cursor-pointer hover:bg-[#fafbff] transition-colors" onclick="location.href='{{ route('admissions.show', $adm->code) }}'">
+        <tr class="cursor-pointer hover:bg-[#f9fafb] transition-colors" onclick="location.href='{{ route('admissions.show', $adm->code) }}'">
             <x-ui.table-td>
                 <code class="text-[#4154f1] text-[11px]">{{ $adm->code }}</code>
                 @if($isAdmitted && $adm->expected_discharge_at?->isPast())
@@ -137,15 +137,15 @@
                 @endif
             </x-ui.table-td>
             <x-ui.table-td>
-                <div class="font-bold text-[#012970] text-sm">
+                <div class="font-bold text-[#1a1f36] text-sm">
                     {{ $adm->patient?->surname }} {{ $adm->patient?->name }}
                 </div>
-                <div class="text-[10.5px] text-[#94a3b8]">{{ $adm->patient_code }}</div>
+                <div class="text-[10.5px] text-[#6b7280]">{{ $adm->patient_code }}</div>
             </x-ui.table-td>
             <x-ui.table-td>
                 <div class="text-xs text-[#444] font-semibold">{{ $adm->ward?->name ?? '—' }}</div>
                 @if($adm->bed)
-                    <div class="text-[10.5px] text-[#94a3b8]">
+                    <div class="text-[10.5px] text-[#6b7280]">
                         <i class="bi bi-hospital text-[9px]"></i> {{ $adm->bed->name }}
                     </div>
                 @endif
@@ -162,7 +162,7 @@
             </x-ui.table-td>
             <x-ui.table-td>
                 <div class="text-xs font-semibold">{{ $adm->admitted_at?->format('d M Y') }}</div>
-                <div class="text-[10px] text-[#94a3b8]">{{ $adm->admitted_at?->format('H:i') }}</div>
+                <div class="text-[10px] text-[#6b7280]">{{ $adm->admitted_at?->format('H:i') }}</div>
             </x-ui.table-td>
             <x-ui.table-td>
                 <span class="font-black text-sm" style="{{ $overdueStyle ?: 'color:'.($isAdmitted ? '#2eca6a':'#888') }}">

@@ -41,9 +41,9 @@
     @foreach($statCfg as [$key,$km,$en,$col])
     <div class="col-4 col-sm-2">
         <div style="background:#fff;border-radius:10px;padding:12px 8px;text-align:center;
-                    box-shadow:0 2px 8px rgba(1,41,112,.06);border-left:3px solid {{ $col }}">
+                    box-shadow:0 2px 8px rgba(17,24,39,.04);border-left:3px solid {{ $col }}">
             <div style="font-size:22px;font-weight:800;color:{{ $col }}">{{ $stats[$key] }}</div>
-            <div style="font-size:10px;color:#64748b;margin-top:2px">{{ $km }}<br><span style="color:#94a3b8">{{ $en }}</span></div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">{{ $km }}<br><span style="color:#6b7280">{{ $en }}</span></div>
         </div>
     </div>
     @endforeach
@@ -60,11 +60,11 @@
         <div class="card-hd-title">
             <i class="bi bi-door-open" style="color:#64748b"></i>
             {{ $room->name }}
-            <span style="font-size:11px;color:#94a3b8;font-weight:400">
+            <span style="font-size:11px;color:#6b7280;font-weight:400">
                 {{ ucfirst($room->type) }} · Floor {{ $room->floor }}
             </span>
             <span style="font-size:10.5px;color:#2eca6a;font-weight:700">{{ $roomAvail }} free</span>
-            <span style="font-size:10.5px;color:#94a3b8">/ {{ $room->beds->count() }} beds</span>
+            <span style="font-size:10.5px;color:#6b7280">/ {{ $room->beds->count() }} beds</span>
         </div>
         <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
             <a href="{{ route('beds.bed.create', $ward->id) }}?room={{ $room->id }}"
@@ -98,7 +98,7 @@
                     'reserved'    => ['#e6f1fb','#378ADD','📅 Reserved'],
                     'maintenance' => ['#f5f5f5','#888780','🔧 Maint.'],
                 ];
-                [$bg,$col,$lbl] = $bCfg[$bed->status] ?? ['#f6f9ff','#aaa','?'];
+                [$bg,$col,$lbl] = $bCfg[$bed->status] ?? ['#f6f8fa','#aaa','?'];
             @endphp
             <div style="background:{{ $bg }};border:1.5px solid {{ $col }};border-radius:10px;
                         padding:12px 8px;text-align:center;position:relative">
@@ -107,8 +107,8 @@
                 <div style="font-size:9px;font-weight:700;color:{{ $col }};margin-bottom:6px">{{ $lbl }}</div>
 
                 {{-- Bed name --}}
-                <div style="font-size:14px;font-weight:800;color:#012970;margin-bottom:4px">{{ $bed->name }}</div>
-                <div style="font-size:10px;color:#94a3b8;margin-bottom:4px;font-family:monospace">{{ $bed->code }}</div>
+                <div style="font-size:14px;font-weight:800;color:#1a1f36;margin-bottom:4px">{{ $bed->name }}</div>
+                <div style="font-size:10px;color:#6b7280;margin-bottom:4px;font-family:monospace">{{ $bed->code }}</div>
 
                 @if($bed->current_visit_code)
                 <div style="font-size:9.5px;color:#ff771d;font-weight:600;margin-bottom:6px;
@@ -152,7 +152,7 @@
 @empty
 <div style="text-align:center;padding:56px 24px;color:#bbb">
     <i class="bi bi-door-open" style="font-size:44px;opacity:.3;display:block;margin-bottom:12px"></i>
-    <div style="font-size:14px;font-weight:600;color:#94a3b8;margin-bottom:6px">No rooms in this ward yet</div>
+    <div style="font-size:14px;font-weight:600;color:#6b7280;margin-bottom:6px">No rooms in this ward yet</div>
     <div style="font-size:12px;color:#cbd5e1;margin-bottom:20px">Add rooms first, then add beds inside them</div>
     <a href="{{ route('beds.room.create', $ward->id) }}" class="btn btn-primary">
         <i class="bi bi-plus-lg"></i> Add First Room
@@ -171,7 +171,7 @@
             </button>
         </div>
         <div class="emr-modal-body">
-            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#94a3b8;margin-bottom:10px">
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:10px">
                 <i class="bi bi-circle-half" style="margin-right:4px"></i> Set Status
             </div>
             @php

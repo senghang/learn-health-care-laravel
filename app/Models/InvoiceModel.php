@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,7 +12,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InvoiceModel extends Model
 {
-    use SoftDeletes, Auditable, ClinicScope;
+    use SoftDeletes, Auditable, ClinicScope, HasFactory;
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\InvoiceFactory::new();
+    }
 
     protected $table = 'invoices';
 
@@ -51,7 +57,7 @@ class InvoiceModel extends Model
     {
         // Services: multiply by qty (COALESCE handles legacy rows where qty was not stored)
         $svcTotal = $this->services()
-            ->selectRaw('COALESCE(SUM(price * GREATEST(COALESCE(qty, 1), 1)), 0) as total')
+            ->selectRaw('COALESCE(SUM(price * COALESCE(qty, 1)), 0) as total')
             ->value('total') ?? 0;
 
         $medTotal = $this->medications()

@@ -33,7 +33,7 @@
   <div class="col-6 col-sm-4 col-lg-2">
     <div class="card-emr" style="text-align:center;padding:14px 10px">
       <i class="bi {{ $c['icon'] }}" style="font-size:20px;color:{{ $c['color'] }}"></i>
-      <div style="font-size:22px;font-weight:800;color:#012970;margin-top:4px">{{ $c['val'] }}</div>
+      <div style="font-size:22px;font-weight:800;color:#1a1f36;margin-top:4px">{{ $c['val'] }}</div>
       <div style="font-size:10px;color:#aaa;font-weight:600">{{ $c['label'] }}</div>
     </div>
   </div>

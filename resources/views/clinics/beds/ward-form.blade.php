@@ -101,7 +101,7 @@
             </div>
             @endif
 
-            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #f0f2ff">
+            <div class="d-flex gap-2 pt-3" style="border-top:1px solid #e6e9f0">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check2-circle"></i>
                     {{ $ward ? 'Update Ward' : 'Create Ward' }}
@@ -132,7 +132,7 @@
                 <i class="bi bi-door-open" style="color:#64748b;font-size:14px"></i>
                 <div style="flex:1">
                     <div style="font-size:13px;font-weight:600;color:#374151">{{ $room->name }}</div>
-                    <div style="font-size:10.5px;color:#94a3b8">{{ ucfirst($room->type) }} · Floor {{ $room->floor }} · {{ $room->beds_count ?? 0 }} beds</div>
+                    <div style="font-size:10.5px;color:#6b7280">{{ ucfirst($room->type) }} · Floor {{ $room->floor }} · {{ $room->beds_count ?? 0 }} beds</div>
                 </div>
                 <div style="display:flex;gap:4px">
                     <a href="{{ route('beds.room.edit', [$ward->id, $room->id]) }}"

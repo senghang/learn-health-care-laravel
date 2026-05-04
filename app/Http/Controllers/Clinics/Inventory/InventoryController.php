@@ -45,7 +45,7 @@ class InventoryController extends Controller
             'total' => MedicineModel::where('clinic_id', $clinicId)->count(),
             'low'   => MedicineModel::where('clinic_id', $clinicId)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count(),
             'out'   => MedicineModel::where('clinic_id', $clinicId)->where('stock', '<=', 0)->count(),
-            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(stock::numeric * price), 0) as total')->value('total') ?? 0,
+            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(CAST(stock AS REAL) * price), 0) as total')->value('total') ?? 0,
         ];
 
         return view('clinics.inventory.products', compact('medicines', 'categories', 'stats'));
@@ -312,7 +312,7 @@ class InventoryController extends Controller
             'total' => MedicineModel::where('clinic_id', $clinicId)->count(),
             'low'   => MedicineModel::where('clinic_id', $clinicId)->whereColumn('stock', '<=', 'stock_alert')->where('stock', '>', 0)->count(),
             'out'   => MedicineModel::where('clinic_id', $clinicId)->where('stock', '<=', 0)->count(),
-            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(stock::numeric * price), 0) as total')->value('total') ?? 0,
+            'value' => MedicineModel::where('clinic_id', $clinicId)->selectRaw('COALESCE(SUM(CAST(stock AS REAL) * price), 0) as total')->value('total') ?? 0,
         ];
 
         $lowMeds = MedicineModel::where('clinic_id', $clinicId)

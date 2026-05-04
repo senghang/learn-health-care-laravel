@@ -88,7 +88,7 @@
 
         {{-- Footer / pagination --}}
         @isset($footer)
-        <div class="px-5 py-3" style="border-top:1px solid #f0f2ff">
+        <div class="px-5 py-3" style="border-top:1px solid var(--border-subtle,#E2E8F0)">
             {{ $footer }}
         </div>
         @endisset

@@ -77,14 +77,14 @@
                 @endphp
                 <div style="padding:10px 16px;border-bottom:1px solid #f5f6ff;display:flex;align-items:center;gap:12px">
                     <div style="flex:1;min-width:0">
-                        <div style="font-weight:700;font-size:13px;color:#012970;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                        <div style="font-weight:700;font-size:13px;color:#1a1f36;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                             {{ $med->name }}
                         </div>
                         <div style="font-size:11px;color:#aaa;margin-top:1px">
                             {{ $med->form }} · {{ $med->strength }} · <code style="font-size:10px">{{ $med->code }}</code>
                         </div>
                         <div style="margin-top:5px">
-                            <div style="height:4px;background:#f0f2ff;border-radius:2px;width:120px;overflow:hidden">
+                            <div style="height:4px;background:#e6e9f0;border-radius:2px;width:120px;overflow:hidden">
                                 <div style="height:100%;width:{{ min($pct, 100) }}%;background:{{ $isOut ? '#dc2626' : '#b45309' }};border-radius:2px;transition:width .3s"></div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                                         $typeConfig = [
                                             'dispense'   => ['bg'=>'#fde8e8','color'=>'#dc2626','label'=>'Dispense'],
                                             'return'     => ['bg'=>'#e8f8ef','color'=>'#1D9E75','label'=>'Return'],
-                                            'adjustment' => ['bg'=>'#f0f2ff','color'=>'#4154f1','label'=>'Adjust'],
+                                            'adjustment' => ['bg'=>'#e6e9f0','color'=>'#4154f1','label'=>'Adjust'],
                                         ];
                                         $tc = $typeConfig[$txn->type] ?? ['bg'=>'#f5f5f5','color'=>'#666','label'=>ucfirst($txn->type)];
                                     @endphp
@@ -158,7 +158,7 @@
                                 <td style="text-align:right;font-weight:700;color:{{ $txn->quantity < 0 ? '#dc2626' : '#1D9E75' }}">
                                     {{ $txn->quantity > 0 ? '+'.$txn->quantity : $txn->quantity }}
                                 </td>
-                                <td style="text-align:right;font-weight:700;color:#012970">
+                                <td style="text-align:right;font-weight:700;color:#1a1f36">
                                     {{ $txn->stock_after }}
                                 </td>
                                 <td style="font-size:11px;color:#4154f1;font-family:monospace">

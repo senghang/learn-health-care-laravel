@@ -1,170 +1,221 @@
 @extends('clinics.layout.app')
 @section('title', 'Stock In')
+
 @section('content')
 
-<x-page-header title="ស្តុកចូល" subtitle="Stock In"
-    :breadcrumbs="[['label'=>'ដើម','url'=>url('/')],['label'=>'Inventory','url'=>route('inventory.products')],['label'=>'Stock In']]">
-</x-page-header>
+<x-ui.page-header
+    km="ចូលស្តុក"
+    title="Stock In"
+    :breadcrumbs="[
+        ['label' => __('app.home'), 'url' => route('dashboard')],
+        ['label' => 'Inventory', 'url' => route('inventory.products')],
+        ['label' => 'Stock In'],
+    ]">
+</x-ui.page-header>
 
-<div class="row g-3">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-{{-- ── Stock In Form ──────────────────────────────────────────── --}}
-<div class="col-12 col-lg-4">
-  <div class="card-emr" style="position:sticky;top:76px">
-    <div class="card-hd" style="background:#e8f8ef">
-      <div class="card-hd-title">
-        <i class="bi bi-box-arrow-in-down-right" style="color:#2eca6a"></i>
-        ចូលស្តុក <small style="font-weight:400;color:#aaa">/ Receive Stock</small>
-      </div>
+    {{-- ── Form ──────────────────────────────────────────────────── --}}
+    <div>
+        <x-ui.card class="sticky top-20">
+            <x-slot:header>
+                <div class="flex items-center gap-2 px-5 py-4" style="border-bottom:1px solid #e6e9f0;background:#f0fdf4">
+                    <i class="bi bi-box-arrow-in-down-right" style="color:#2eca6a;font-size:15px" aria-hidden="true"></i>
+                    <span class="text-sm font-bold" style="color:#1a1f36">ចូលស្តុក</span>
+                    <span class="text-xs" style="color:#6b7280">/ Receive Stock</span>
+                </div>
+            </x-slot:header>
+
+            @if($errors->any())
+                <x-ui.alert type="error" class="mb-4">
+                    <ul class="list-disc pl-4 text-xs space-y-0.5">
+                        @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
+                    </ul>
+                </x-ui.alert>
+            @endif
+
+            <form method="POST" action="{{ route('inventory.stock-in.store') }}" novalidate class="space-y-3">
+                @csrf
+
+                {{-- Product --}}
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">
+                        ថ្នាំ / ផលិតផល <span style="color:#ef4444">*</span>
+                    </label>
+                    <div class="relative">
+                        <select name="medicine_id" id="medSelect" required
+                                onchange="updateStock(this)"
+                                class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] appearance-none focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors"
+                                style="padding-right:2.5rem">
+                            <option value="">— ជ្រើស —</option>
+                            @foreach($medicines as $med)
+                                <option value="{{ $med->id }}"
+                                        data-stock="{{ $med->stock }}"
+                                        data-unit="{{ $med->unit }}"
+                                        {{ (request('medicine') == $med->id || old('medicine_id') == $med->id) ? 'selected' : '' }}>
+                                    {{ $med->name }} ({{ $med->code }}) — Stock: {{ $med->stock }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="bi bi-chevron-down text-xs" style="color:#6b7280"></i>
+                        </div>
+                    </div>
+                    <div id="currentStock" class="text-xs" style="color:#6b7280;min-height:1rem"></div>
+                </div>
+
+                {{-- Quantity + Type --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            បរិមាណ <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.input type="number" name="quantity" :value="old('quantity', 1)" placeholder="0" min="1" required />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ប្រភេទ / Type</label>
+                        <x-forms.select name="type">
+                            <option value="in"     @selected(old('type', 'in') === 'in')>Stock In</option>
+                            <option value="return" @selected(old('type', 'in') === 'return')>Return</option>
+                        </x-forms.select>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">លេខយោង / PO Reference</label>
+                    <x-forms.input name="reference" placeholder="PO-2026-001" :value="old('reference')" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">អ្នកផ្គត់ផ្គង់ / Supplier</label>
+                    <x-forms.input name="supplier" :value="old('supplier')" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ថ្លៃ/ឯកតា KHR</label>
+                        <x-forms.input type="number" name="unit_cost" :value="old('unit_cost')" placeholder="0" min="0" />
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">ថ្ងៃផុត / Expiry</label>
+                        <x-forms.input type="date" name="expiry_date" :value="old('expiry_date')" />
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">លេខ Batch</label>
+                    <x-forms.input name="batch_no" :value="old('batch_no')" />
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold" style="color:#374151">ចំណាំ / Note</label>
+                    <textarea name="note" rows="2"
+                              class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#9ca3af] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors resize-none">{{ old('note') }}</textarea>
+                </div>
+
+                <x-ui.button type="submit" variant="success" :fullWidth="true">
+                    <x-slot:icon><i class="bi bi-check2-circle" aria-hidden="true"></i></x-slot:icon>
+                    Save Stock In
+                </x-ui.button>
+            </form>
+        </x-ui.card>
     </div>
-    <div class="card-bd">
 
-      @if($errors->any())
-      <div class="note note-danger mb-3">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <ul style="margin:0;padding-left:14px;font-size:12px">
-          @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
-        </ul>
-      </div>
-      @endif
+    {{-- ── Movement History ─────────────────────────────────────── --}}
+    <div class="lg:col-span-2">
+        <x-ui.card :noPadding="true">
+            <x-slot:header>
+                <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-clock-history" style="color:#2eca6a;font-size:15px" aria-hidden="true"></i>
+                        <span class="text-sm font-bold" style="color:#1a1f36">ប្រវត្តិចូលស្តុក</span>
+                        <span class="text-xs" style="color:#6b7280">/ Receive History</span>
+                    </div>
+                    <form method="GET" class="flex gap-2">
+                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search…"
+                               class="text-xs rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 w-32 focus:outline-none focus:border-[#4154f1] transition-colors" />
+                        <input type="date" name="date" value="{{ request('date') }}"
+                               class="text-xs rounded-lg border border-[#e2e8f0] bg-white px-3 py-1.5 focus:outline-none focus:border-[#4154f1] transition-colors" />
+                        <x-ui.button type="submit" variant="primary" size="sm">
+                            <x-slot:icon><i class="bi bi-funnel" aria-hidden="true"></i></x-slot:icon>
+                        </x-ui.button>
+                        @if(request()->hasAny(['search', 'date']))
+                            <x-ui.button href="{{ route('inventory.stock-in') }}" variant="secondary" size="sm">
+                                <x-slot:icon><i class="bi bi-x" aria-hidden="true"></i></x-slot:icon>
+                            </x-ui.button>
+                        @endif
+                    </form>
+                </div>
+            </x-slot:header>
 
-      <form method="POST" action="{{ route('inventory.stock-in.store') }}" novalidate>
-        @csrf
-        <div class="fld">
-          <label class="flbl"><span class="km">ថ្នាំ / ផលិតផល</span><span class="en">/ Product</span><span class="req">*</span></label>
-          <select name="medicine_id" class="form-select" required id="medSelect" onchange="updateStock(this)">
-            <option value="">— ជ្រើស —</option>
-            @foreach($medicines as $med)
-            <option value="{{ $med->id }}"
-                    data-stock="{{ $med->stock }}"
-                    data-unit="{{ $med->unit }}"
-                    {{ (request('medicine') == $med->id || old('medicine_id') == $med->id) ? 'selected' : '' }}>
-              {{ $med->name }} ({{ $med->code }}) — Stock: {{ $med->stock }}
-            </option>
-            @endforeach
-          </select>
-          <div id="currentStock" style="font-size:11px;color:#aaa;margin-top:4px"></div>
-        </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr style="background:#f8f9fb;border-bottom:1px solid #e6e9f0">
+                            <th class="text-left px-5 py-3 text-xs font-bold" style="color:#6b7280">Date</th>
+                            <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Product</th>
+                            <th class="text-left px-4 py-3 text-xs font-bold hidden sm:table-cell" style="color:#6b7280">Type</th>
+                            <th class="text-center px-4 py-3 text-xs font-bold" style="color:#6b7280">Qty</th>
+                            <th class="text-center px-4 py-3 text-xs font-bold hidden md:table-cell" style="color:#6b7280">Before</th>
+                            <th class="text-center px-4 py-3 text-xs font-bold hidden md:table-cell" style="color:#6b7280">After</th>
+                            <th class="text-left px-4 py-3 text-xs font-bold hidden lg:table-cell" style="color:#6b7280">Ref</th>
+                            <th class="text-left px-4 py-3 text-xs font-bold hidden lg:table-cell" style="color:#6b7280">By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @forelse($movements as $mv)
+                        <tr style="border-bottom:1px solid #f8f9fb" class="hover:bg-[#f8f9fb] transition-colors">
+                            <td class="px-5 py-3">
+                                <div class="text-xs font-semibold" style="color:#1a1f36">{{ $mv->created_at->format('d/m/Y') }}</div>
+                                <div class="text-xs" style="color:#9ca3af">{{ $mv->created_at->format('H:i') }}</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="text-sm font-semibold" style="color:#1a1f36">{{ $mv->medicine_name }}</div>
+                                <code class="text-xs px-1 py-0.5 rounded" style="background:#eef0fd;color:#4154f1">{{ $mv->medicine_code }}</code>
+                            </td>
+                            <td class="px-4 py-3 hidden sm:table-cell">
+                                <x-ui.badge variant="success">{{ $mv->type === 'return' ? 'Return' : 'Stock In' }}</x-ui.badge>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="text-base font-black" style="color:#2eca6a">+{{ $mv->quantity }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">
+                                <span class="text-xs" style="color:#9ca3af">{{ $mv->stock_before }}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center hidden md:table-cell">
+                                <span class="text-sm font-bold" style="color:#1a1f36">{{ $mv->stock_after }}</span>
+                            </td>
+                            <td class="px-4 py-3 hidden lg:table-cell">
+                                @if($mv->reference)
+                                    <div class="text-xs font-semibold" style="color:#4154f1">{{ $mv->reference }}</div>
+                                @endif
+                                @if($mv->supplier)
+                                    <div class="text-xs" style="color:#6b7280">{{ $mv->supplier }}</div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3 hidden lg:table-cell">
+                                <span class="text-xs" style="color:#9ca3af">{{ $mv->recorded_by ?? '—' }}</span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-5 py-12">
+                                <x-ui.empty-state icon="bi-box-arrow-in-down-right" title="No stock-in records found"
+                                    description="Records appear after receiving stock." />
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </x-ui.card>
 
-        <div class="row g-2">
-          <div class="col-6">
-            <x-form.field name="quantity" km="បរិមាណ" en="Quantity" type="number"
-                          :value="old('quantity',1)" placeholder="0" required/>
-          </div>
-          <div class="col-6">
-            <x-form.select name="type" km="ប្រភេទ" en="Type"
-                :options="['in'=>'Stock In','return'=>'Return']"
-                :value="old('type','in')"/>
-          </div>
-        </div>
-
-        <x-form.field name="reference" km="លេខយោង" en="PO / Reference"
-                      placeholder="PO-2026-001" :value="old('reference')"/>
-        <x-form.field name="supplier" km="អ្នកផ្គត់ផ្គង់" en="Supplier"
-                      :value="old('supplier')"/>
-
-        <div class="row g-2">
-          <div class="col-6">
-            <x-form.field name="unit_cost" km="ថ្លៃ/ឯកតា" en="Unit Cost KHR"
-                          type="number" :value="old('unit_cost')" placeholder="0"/>
-          </div>
-          <div class="col-6">
-            <x-form.field name="expiry_date" km="ថ្ងៃផុត" en="Expiry Date"
-                          type="date" :value="old('expiry_date')"/>
-          </div>
-        </div>
-
-        <x-form.field name="batch_no" km="លេខ Batch" en="Batch No."
-                      :value="old('batch_no')"/>
-        <x-form.field name="note" km="ចំណាំ" en="Note"
-                      :value="old('note')" textarea :rows="2"/>
-
-        <button type="submit" class="btn btn-success btn-w100 mt-1">
-          <i class="bi bi-check2-circle"></i> រក្សាទុក / Save Stock In
-        </button>
-      </form>
-
-    </div>
-  </div>
-</div>
-
-{{-- ── Movement History ───────────────────────────────────────── --}}
-<div class="col-12 col-lg-8">
-  <div class="card-emr">
-    <div class="card-hd">
-      <div class="card-hd-title">
-        <i class="bi bi-clock-history"></i>
-        ប្រវត្តិចូលស្តុក <small style="font-weight:400;color:#aaa">/ Receive History</small>
-      </div>
-      <form method="GET" class="d-flex gap-2" style="flex-shrink:0">
-        <input type="text" name="search" class="form-control form-control-sm"
-               placeholder="Search…" value="{{ request('search') }}" style="width:140px"/>
-        <input type="date" name="date" class="form-control form-control-sm"
-               value="{{ request('date') }}" style="width:140px"/>
-        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="bi bi-funnel"></i></button>
-        @if(request()->hasAny(['search','date']))
-          <a href="{{ route('inventory.stock-in') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x"></i></a>
+        @if($movements->hasPages())
+            <x-ui.pagination :paginator="$movements" />
         @endif
-      </form>
     </div>
-    <div class="card-bd" style="padding:0">
-      <div class="table-responsive">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>ថ្ងៃ / Date</th>
-              <th>ផលិតផល / Product</th>
-              <th>ប្រភេទ</th>
-              <th>បរិមាណ</th>
-              <th>ស្តុកមុន</th>
-              <th>ស្តុកក្រោយ</th>
-              <th>យោង / Ref</th>
-              <th>ដោយ</th>
-            </tr>
-          </thead>
-          <tbody>
-          @forelse($movements as $mv)
-          <tr>
-            <td>
-              <div style="font-size:12px;font-weight:600;color:#012970">{{ $mv->created_at->format('d/m/Y') }}</div>
-              <div style="font-size:10px;color:#aaa">{{ $mv->created_at->format('H:i') }}</div>
-            </td>
-            <td>
-              <div style="font-weight:600;font-size:12.5px">{{ $mv->medicine_name }}</div>
-              <code style="font-size:10px;color:#4154f1">{{ $mv->medicine_code }}</code>
-            </td>
-            <td>
-              <span class="badge-s" style="background:#e8f8ef;color:#2eca6a;font-size:10px">
-                <i class="bi bi-box-arrow-in-down-right" style="font-size:9px"></i>
-                {{ $mv->type === 'return' ? 'Return' : 'Stock In' }}
-              </span>
-            </td>
-            <td style="font-weight:800;color:#2eca6a;font-size:15px">+{{ $mv->quantity }}</td>
-            <td style="color:#aaa;font-size:12px">{{ $mv->stock_before }}</td>
-            <td style="font-weight:700;color:#012970">{{ $mv->stock_after }}</td>
-            <td style="font-size:11px">
-              @if($mv->reference)<div style="color:#4154f1">{{ $mv->reference }}</div>@endif
-              @if($mv->supplier)<div style="color:#aaa">{{ $mv->supplier }}</div>@endif
-            </td>
-            <td style="font-size:11px;color:#aaa">{{ $mv->recorded_by ?? '—' }}</td>
-          </tr>
-          @empty
-          <tr><td colspan="8" style="text-align:center;padding:28px;color:#bbb">
-            <div style="font-size:28px;margin-bottom:8px;opacity:.3">📦</div>
-            No stock-in records found
-          </td></tr>
-          @endforelse
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-  @if($movements->hasPages())
-  <div class="mt-3">{{ $movements->links() }}</div>
-  @endif
-</div>
 
-</div>{{-- /row --}}
+</div>{{-- /grid --}}
 
 @push('scripts')
 <script>
@@ -176,8 +227,8 @@ function updateStock(sel) {
     const unit  = opt.dataset.unit || '';
     el.innerHTML = `Current stock: <strong style="color:#2eca6a">${stock} ${unit}</strong>`;
 }
-document.addEventListener('DOMContentLoaded', () => {
-    const sel = document.getElementById('medSelect');
+document.addEventListener('DOMContentLoaded', function() {
+    var sel = document.getElementById('medSelect');
     if (sel && sel.value) updateStock(sel);
 });
 </script>

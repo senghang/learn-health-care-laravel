@@ -34,7 +34,7 @@
         <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
             <div class="flex-1 min-w-0">
                 <input type="text" name="search"
-                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#94a3b8] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
+                       class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-3 py-2.5 text-[#374151] placeholder-[#6b7280] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20"
                        placeholder="ឈ្មោះថ្នាំ / medicine name…" value="{{ request('search') }}"/>
             </div>
             <div class="sm:w-40">
@@ -86,13 +86,13 @@
             $isOut  = $med->stock == 0;
             $isLow  = !$isOut && $med->stock <= $med->stock_alert;
         @endphp
-        <tr class="{{ $isOut ? 'bg-[#fff5f5]' : ($isLow ? 'bg-[#fffaf4]' : 'hover:bg-[#fafbff]') }} transition-colors">
+        <tr class="{{ $isOut ? 'bg-[#fff5f5]' : ($isLow ? 'bg-[#fffaf4]' : 'hover:bg-[#f9fafb]') }} transition-colors">
             <x-ui.table-td>
                 <code class="text-[#4154f1] text-[11px]">{{ $med->code }}</code>
             </x-ui.table-td>
             <x-ui.table-td>
-                <div class="font-semibold text-[#012970]">{{ $med->name }}</div>
-                @if($med->name_kh)<div class="text-[10.5px] text-[#94a3b8]">{{ $med->name_kh }}</div>@endif
+                <div class="font-semibold text-[#1a1f36]">{{ $med->name }}</div>
+                @if($med->name_kh)<div class="text-[10.5px] text-[#6b7280]">{{ $med->name_kh }}</div>@endif
                 @if($med->generic_name)<div class="text-[10px] text-[#bbb] italic">{{ $med->generic_name }}</div>@endif
             </x-ui.table-td>
             <x-ui.table-td>
@@ -100,14 +100,14 @@
                 @if($med->strength)<span class="text-[11px] text-[#888]">{{ $med->strength }}</span>@endif
             </x-ui.table-td>
             <x-ui.table-td align="right">
-                <span class="text-sm font-semibold text-[#012970]">{{ number_format($med->price) }}</span>
+                <span class="text-sm font-semibold text-[#1a1f36]">{{ number_format($med->price) }}</span>
             </x-ui.table-td>
             <x-ui.table-td align="right">
                 <span class="text-lg font-black" style="color:{{ $isOut ? '#e74c3c' : ($isLow ? '#ff771d' : '#2eca6a') }}">{{ $med->stock }}</span>
-                @if($med->unit)<span class="text-[10px] text-[#94a3b8]"> {{ $med->unit }}</span>@endif
+                @if($med->unit)<span class="text-[10px] text-[#6b7280]"> {{ $med->unit }}</span>@endif
             </x-ui.table-td>
             <x-ui.table-td align="right">
-                <span class="text-xs text-[#94a3b8]">{{ $med->stock_alert }}</span>
+                <span class="text-xs text-[#6b7280]">{{ $med->stock_alert }}</span>
             </x-ui.table-td>
             <x-ui.table-td align="right">
                 <span class="text-xs text-[#555]">{{ number_format($med->stock * $med->price) }}</span>

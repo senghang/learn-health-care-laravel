@@ -1,19 +1,20 @@
 @extends('clinics.layout.app')
 @section('title', $user ? 'Edit User' : 'New User')
+
 @section('content')
 
 <x-ui.page-header
     :km="$user ? 'កែប្រែអ្នកប្រើ' : 'បន្ថែមអ្នកប្រើ'"
     :title="$user ? 'Edit User Account' : 'New User Account'"
     :breadcrumbs="[
-        ['label'=>__('app.home'),'url'=>route('dashboard')],
-        ['label'=>__('app.settings'),'url'=>route('settings.general')],
-        ['label'=>'Users','url'=>route('users.index')],
-        ['label'=>$user ? 'Edit '.$user->email : 'New'],
+        ['label' => __('app.home'), 'url' => route('dashboard')],
+        ['label' => __('app.settings'), 'url' => route('settings.general')],
+        ['label' => 'Users', 'url' => route('users.index')],
+        ['label' => $user ? 'Edit ' . $user->email : 'New'],
     ]">
     <x-slot:actions>
         <x-ui.button href="{{ route('users.index') }}" variant="secondary">
-            <x-slot:icon><i class="bi bi-arrow-left"></i></x-slot:icon>
+            <x-slot:icon><i class="bi bi-arrow-left" aria-hidden="true"></i></x-slot:icon>
             Back
         </x-ui.button>
     </x-slot:actions>
@@ -21,7 +22,7 @@
 
 @if($errors->any())
     <x-ui.alert type="error" class="mb-4">
-        <ul class="list-disc list-inside text-xs space-y-0.5">
+        <ul class="list-disc pl-4 text-xs space-y-0.5">
             @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
         </ul>
     </x-ui.alert>
@@ -33,183 +34,205 @@
     @csrf
     @if($user) @method('PATCH') @endif
 
-    <div class="row g-3">
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-        {{-- Left column: account details --}}
-        <div class="col-12 col-lg-7">
-            <x-ui.card class="mb-3">
+        {{-- ── Left: Account Details + Password ──────────────────── --}}
+        <div class="lg:col-span-3 space-y-4">
+
+            {{-- Account Details --}}
+            <x-ui.card>
                 <x-slot:header>
-                    <x-ui.card-header label="Account Details" icon="bi-person-fill"/>
+                    <x-ui.card-header label="Account Details" icon="bi-person-fill" />
                 </x-slot:header>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label" style="font-size:12px;font-weight:700;color:#444">
-                            Full Name <span style="color:#e74c3c">*</span>
+                <div class="space-y-4">
+
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            Full Name <span style="color:#ef4444">*</span>
                         </label>
-                        <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                               value="{{ old('name', $user?->name) }}"
-                               placeholder="e.g. Sok Chan" required maxlength="100"/>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <x-forms.input type="text" name="name" :value="old('name', $user?->name)"
+                                       placeholder="e.g. Sok Chan" required maxlength="100" />
+                        @error('name')
+                            <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </p>
+                        @enderror
                     </div>
 
-                    <div class="col-12 col-sm-7">
-                        <label class="form-label" style="font-size:12px;font-weight:700;color:#444">
-                            Email <span style="color:#e74c3c">*</span>
-                        </label>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                               value="{{ old('email', $user?->email) }}"
-                               placeholder="user@hospital.com" required maxlength="150"
-                               autocomplete="off"/>
-                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="col-12 col-sm-5">
-                        <label class="form-label" style="font-size:12px;font-weight:700;color:#444">Phone</label>
-                        <input type="text" name="phone" class="form-control @error('phone') is-invalid @enderror"
-                               value="{{ old('phone', $user?->phone) }}"
-                               placeholder="+855 12 345 678" maxlength="30"/>
-                        @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-4">
+                        <div class="sm:col-span-3 space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">
+                                Email <span style="color:#ef4444">*</span>
+                            </label>
+                            <x-forms.input type="email" name="email" :value="old('email', $user?->email)"
+                                           placeholder="user@hospital.com" required maxlength="150"
+                                           autocomplete="off" />
+                            @error('email')
+                                <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                        <div class="sm:col-span-2 space-y-1.5">
+                            <label class="block text-xs font-semibold" style="color:#374151">Phone</label>
+                            <x-forms.input type="text" name="phone" :value="old('phone', $user?->phone)"
+                                           placeholder="+855 12 345 678" maxlength="30" />
+                            @error('phone')
+                                <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
                     </div>
                 </div>
             </x-ui.card>
 
             {{-- Password --}}
-            <x-ui.card class="mb-3">
+            <x-ui.card>
                 <x-slot:header>
-                    <x-ui.card-header label="Password" icon="bi-key-fill"/>
+                    <x-ui.card-header label="Password" icon="bi-key-fill" />
                 </x-slot:header>
                 @if($user)
-                    <p class="text-xs text-[#888] mb-3">Leave blank to keep the current password.</p>
+                    <p class="text-xs mb-3" style="color:#6b7280">Leave blank to keep the current password.</p>
                 @endif
-                <div class="row g-3">
-                    <div class="col-12 col-sm-6">
-                        <label class="form-label" style="font-size:12px;font-weight:700;color:#444">
-                            Password {{ !$user ? '<span style="color:#e74c3c">*</span>' : '' }}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            Password @if(!$user)<span style="color:#ef4444">*</span>@endif
                         </label>
-                        <div style="position:relative">
-                            <input type="password" name="password" id="password"
-                                   class="form-control @error('password') is-invalid @enderror"
-                                   placeholder="{{ $user ? 'New password (optional)' : 'Min 8 chars, upper+lower+digit' }}"
-                                   autocomplete="new-password"
-                                   {{ !$user ? 'required' : '' }}/>
+                        <div class="relative">
+                            <x-forms.input type="password" name="password" id="password"
+                                           :placeholder="$user ? 'New password (optional)' : 'Min 8 chars, upper+lower+digit'"
+                                           autocomplete="new-password"
+                                           :required="!$user" />
                             <button type="button" onclick="togglePwd('password')"
-                                    style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#aaa;cursor:pointer;padding:0">
-                                <i class="bi bi-eye" id="pwd-eye"></i>
+                                    class="absolute inset-y-0 right-0 flex items-center pr-3 text-xs"
+                                    style="background:none;border:none;color:#9ca3af;cursor:pointer">
+                                <i class="bi bi-eye" id="pwd-eye" aria-hidden="true"></i>
                             </button>
                         </div>
-                        @error('password')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        @error('password')
+                            <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </p>
+                        @enderror
                     </div>
-
-                    <div class="col-12 col-sm-6">
-                        <label class="form-label" style="font-size:12px;font-weight:700;color:#444">
-                            Confirm Password {{ !$user ? '<span style="color:#e74c3c">*</span>' : '' }}
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            Confirm Password @if(!$user)<span style="color:#ef4444">*</span>@endif
                         </label>
-                        <input type="password" name="password_confirmation" id="password_confirmation"
-                               class="form-control"
-                               placeholder="Repeat password"
-                               autocomplete="new-password"
-                               {{ !$user ? 'required' : '' }}/>
+                        <x-forms.input type="password" name="password_confirmation"
+                                       placeholder="Repeat password"
+                                       autocomplete="new-password"
+                                       :required="!$user" />
                     </div>
                 </div>
-
-                <div id="pwd-strength" class="mt-2 text-[11px] text-[#94a3b8]" style="display:none">
-                    <i class="bi bi-info-circle"></i>
+                <p id="pwd-strength" class="text-xs mt-2 flex items-center gap-1.5" style="color:#6b7280;display:none">
+                    <i class="bi bi-info-circle" aria-hidden="true"></i>
                     Password must be at least 8 characters with uppercase, lowercase, and a number.
-                </div>
+                </p>
             </x-ui.card>
+
         </div>
 
-        {{-- Right column: role & status --}}
-        <div class="col-12 col-lg-5">
-            <x-ui.card class="mb-3">
+        {{-- ── Right: Role, Status, Employee, Submit ──────────────── --}}
+        <div class="lg:col-span-2 space-y-4">
+
+            {{-- Role & Status --}}
+            <x-ui.card>
                 <x-slot:header>
-                    <x-ui.card-header label="Role & Status" icon="bi-shield-fill"/>
+                    <x-ui.card-header label="Role & Status" icon="bi-shield-fill" />
                 </x-slot:header>
+                <div class="space-y-3">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold" style="color:#374151">
+                            Role <span style="color:#ef4444">*</span>
+                        </label>
+                        <x-forms.select name="role_id" required>
+                            <option value="">— Select Role —</option>
+                            @foreach($roles as $role)
+                                <option value="{{ $role->id }}"
+                                        {{ old('role_id', $user?->roles->first()?->id) == $role->id ? 'selected' : '' }}>
+                                    {{ $role->name }}
+                                    @if($role->is_system) (system) @endif
+                                </option>
+                            @endforeach
+                        </x-forms.select>
+                        @error('role_id')
+                            <p class="text-xs flex items-center gap-1" style="color:#ef4444">
+                                <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                            </p>
+                        @enderror
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label" style="font-size:12px;font-weight:700;color:#444">
-                        Role <span style="color:#e74c3c">*</span>
-                    </label>
-                    <select name="role_id" class="form-select @error('role_id') is-invalid @enderror" required>
-                        <option value="">— Select Role —</option>
-                        @foreach($roles as $role)
-                            <option value="{{ $role->id }}"
-                                {{ old('role_id', $user?->roles->first()?->id) == $role->id ? 'selected' : '' }}>
-                                {{ $role->name }}
-                                @if($role->is_system) (system) @endif
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('role_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                </div>
-
-                <div class="mb-3">
-                    <label class="flex items-center gap-2.5 cursor-pointer p-3 rounded-lg border border-[#e6eaf5] bg-[#fafbff] hover:bg-[#f0f4ff] transition-colors">
-                        <input type="hidden" name="is_active" value="0"/>
+                    <label class="flex items-center gap-2.5 cursor-pointer p-3 rounded-lg border border-[#e6eaf5] bg-[#f9fafb] hover:bg-[#f0f4ff] transition-colors">
+                        <input type="hidden" name="is_active" value="0" />
                         <input type="checkbox" name="is_active" value="1"
-                               class="w-4 h-4 accent-[#4154f1] flex-shrink-0"
-                               {{ old('is_active', $user === null || $user->is_active) ? 'checked' : '' }}/>
+                               class="w-4 h-4 flex-shrink-0" style="accent-color:#4154f1"
+                               {{ old('is_active', $user === null || $user->is_active) ? 'checked' : '' }} />
                         <div>
-                            <div class="text-sm font-bold text-[#012970]">Active Account</div>
-                            <div class="text-[11px] text-[#94a3b8]">User can log in to the system</div>
+                            <div class="text-sm font-bold" style="color:#1a1f36">Active Account</div>
+                            <div class="text-xs" style="color:#6b7280">User can log in to the system</div>
                         </div>
                     </label>
                 </div>
             </x-ui.card>
 
-            {{-- Employee linkage --}}
-            <x-ui.card class="mb-3">
+            {{-- Employee Linkage --}}
+            <x-ui.card>
                 <x-slot:header>
                     <x-ui.card-header label="Linked Employee" icon="bi-person-badge-fill">
                         <x-slot:actions>
-                            <span class="text-[10.5px] text-[#94a3b8]">optional</span>
+                            <span class="text-xs" style="color:#6b7280">optional</span>
                         </x-slot:actions>
                     </x-ui.card-header>
                 </x-slot:header>
-                <select name="employee_id" class="form-select">
-                    <option value="">— No employee link —</option>
-                    @foreach($employees as $emp)
-                        <option value="{{ $emp->id }}"
-                            {{ old('employee_id', $user?->employee_id) == $emp->id ? 'selected' : '' }}>
-                            {{ $emp->surname }}, {{ $emp->name }}
-                            ({{ ucfirst(str_replace('_',' ',$emp->employee_type)) }})
-                        </option>
-                    @endforeach
-                </select>
-                <div class="text-[11px] text-[#94a3b8] mt-1.5">
-                    Links this user account to an employee record. Only active, unlinked employees are shown.
+                <div class="space-y-2">
+                    <x-forms.select name="employee_id">
+                        <option value="">— No employee link —</option>
+                        @foreach($employees as $emp)
+                            <option value="{{ $emp->id }}"
+                                    {{ old('employee_id', $user?->employee_id) == $emp->id ? 'selected' : '' }}>
+                                {{ $emp->surname }}, {{ $emp->name }}
+                                ({{ ucfirst(str_replace('_', ' ', $emp->employee_type)) }})
+                            </option>
+                        @endforeach
+                    </x-forms.select>
+                    <p class="text-xs" style="color:#6b7280">
+                        Links this user account to an employee record. Only active, unlinked employees are shown.
+                    </p>
                 </div>
             </x-ui.card>
 
             {{-- Submit --}}
-            <div class="flex flex-col gap-2">
+            <div class="space-y-2">
                 <x-ui.button type="submit" variant="primary" :fullWidth="true">
-                    <x-slot:icon><i class="bi bi-save-fill"></i></x-slot:icon>
+                    <x-slot:icon><i class="bi bi-save-fill" aria-hidden="true"></i></x-slot:icon>
                     {{ $user ? 'Update User' : 'Create User' }}
                 </x-ui.button>
                 <x-ui.button href="{{ route('users.index') }}" variant="secondary" :fullWidth="true">
-                    <x-slot:icon><i class="bi bi-x-circle"></i></x-slot:icon>
+                    <x-slot:icon><i class="bi bi-x-circle" aria-hidden="true"></i></x-slot:icon>
                     Cancel
                 </x-ui.button>
             </div>
+
         </div>
 
-    </div>{{-- /row --}}
+    </div>{{-- /grid --}}
 </form>
 
 @push('scripts')
 <script>
 function togglePwd(id) {
-    const inp = document.getElementById(id);
-    const eye = document.getElementById('pwd-eye');
+    var inp = document.getElementById(id);
+    var eye = document.getElementById('pwd-eye');
     if (!inp) return;
     inp.type = inp.type === 'password' ? 'text' : 'password';
     if (eye) eye.className = inp.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
 }
-
 document.getElementById('password')?.addEventListener('input', function() {
-    const hint = document.getElementById('pwd-strength');
-    if (hint) hint.style.display = this.value.length > 0 ? 'block' : 'none';
+    var hint = document.getElementById('pwd-strength');
+    if (hint) hint.style.display = this.value.length > 0 ? 'flex' : 'none';
 });
 </script>
 @endpush

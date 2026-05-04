@@ -1,1 +1,1 @@
-<div class="my-1 border-t border-[#f0f2ff]" role="separator"></div>
+<div class="my-1 border-t" style="border-color:var(--border-subtle,#E2E8F0)" role="separator"></div>

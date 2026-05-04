@@ -14,7 +14,7 @@
     $allergies     = $triage->allergies    ?? null;
     $chiefComplaint= $triage->chief_complaint ?? null;
     $triageCols    = ['Emergency'=>['#e74c3c','#fde8e8'],'Urgent'=>['#ff771d','#fff3e8'],'Standard'=>['#4154f1','#eef0fd'],'Low'=>['#64748b','#f1f5f9']];
-    [$tCol,$tBg]   = $triageCols[$triageLevel] ?? ['#94a3b8','#f1f5f9'];
+    [$tCol,$tBg]   = $triageCols[$triageLevel] ?? ['#6b7280','#f1f5f9'];
 
     // Latest vitals
     $latestV    = \App\Models\VitalSignModel::where('visit_code', $visit->code)
@@ -37,7 +37,7 @@
     </div>
 
     {{-- Patient identity block --}}
-    <div style="background:#f6f9ff;border-radius:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #f0f2ff">
+    <div style="background:#f6f8fa;border-radius:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #e6e9f0">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
             <div style="width:32px;height:32px;border-radius:8px;
                         background:{{ $visit->visit_type==='IPD' ? '#fff3e8' : '#eef0fd' }};
@@ -47,7 +47,7 @@
                 {{ strtoupper(substr($visit->surname ?? '?', 0, 1)) }}
             </div>
             <div style="min-width:0">
-                <div style="font-size:13px;font-weight:800;color:#012970;line-height:1.2;
+                <div style="font-size:13px;font-weight:800;color:#1a1f36;line-height:1.2;
                             overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     {{ $visit->surname }}, {{ $visit->name }}
                 </div>
@@ -59,7 +59,7 @@
         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
             <span class="badge-s {{ $visitTypeBadge }}" style="font-size:9.5px">{{ $visit->visit_type }}</span>
             @if($age)
-            <span style="font-size:9.5px;color:#64748b;background:#f0f2ff;padding:1px 7px;border-radius:8px">{{ $age }}y</span>
+            <span style="font-size:9.5px;color:#64748b;background:#e6e9f0;padding:1px 7px;border-radius:8px">{{ $age }}y</span>
             @endif
             @if($sex)
             <span style="font-size:9.5px;color:{{ $sex==='F'||strtolower($sex)==='female'?'#e91e8c':'#4154f1' }};
@@ -79,7 +79,7 @@
         <div>
             <div style="font-size:11px;font-weight:700;color:{{ $tCol }}">{{ $triageLevel }}</div>
             @if($chiefComplaint)
-            <div style="font-size:9.5px;color:#94a3b8;margin-top:1px;line-height:1.3">
+            <div style="font-size:9.5px;color:#6b7280;margin-top:1px;line-height:1.3">
                 {{ \Illuminate\Support\Str::limit($chiefComplaint, 60) }}
             </div>
             @endif
@@ -122,7 +122,7 @@
         @foreach($vitalSnap as [$key,$lbl,$unit,$col])
         @if($vObs->has($key))
         <div style="background:#fff;border:1px solid {{ $col }}22;border-radius:7px;padding:4px 6px;text-align:center">
-            <div style="font-size:8.5px;color:#94a3b8;font-weight:700">{{ $lbl }}</div>
+            <div style="font-size:8.5px;color:#6b7280;font-weight:700">{{ $lbl }}</div>
             <div style="font-size:12px;font-weight:800;color:{{ $col }}">{{ $vObs->get($key) }}</div>
             <div style="font-size:7.5px;color:#cbd5e1">{{ $unit }}</div>
         </div>
@@ -200,132 +200,121 @@
                 Not yet admitted. Assign a bed to begin IPD stay.
             </div>
             <button type="button"
-                    onclick="openModal('admitPatientModal')"
+                    onclick="document.getElementById('admitPatientModal').dispatchEvent(new Event('open'))"
                     style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;background:linear-gradient(135deg,#4154f1,#2f42d9);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(65,84,241,.35)">
                 <i class="bi bi-hospital-fill"></i> Admit Patient
             </button>
         </div>
 
-        {{-- ── Admit Patient Modal (using shared emr-modal-wrap system) ── --}}
-        <div id="admitPatientModal" class="emr-modal-wrap" onclick="if(event.target===this)closeModal('admitPatientModal')">
-            <div class="emr-modal modal-lg">
+        {{-- ── Admit Patient Modal ── --}}
+        <x-ui.modal id="admitPatientModal" title="Admit Patient" size="lg">
+            <form method="POST" action="{{ route('admissions.admit', $visit->code) }}" id="admitForm">
+                @csrf
 
-                {{-- Modal Header --}}
-                <div class="emr-modal-hd">
-                    <i class="bi bi-hospital-fill" style="color:#4154f1;font-size:16px;flex-shrink:0"></i>
-                    <div class="emr-modal-title">
-                        Admit Patient
-                        <span style="font-size:11px;font-weight:400;color:#aaa;margin-left:8px">
-                            {{ $visit->surname }}, {{ $visit->name }} · <code style="color:#4154f1">{{ $visit->code }}</code>
-                        </span>
+                {{-- Bed Assignment --}}
+                <div class="rounded-xl p-3 mb-4" style="background:#f6f8ff;border:1px solid #e4e8ff">
+                    <div class="text-xs font-bold uppercase tracking-wide mb-3" style="color:#4154f1">
+                        <i class="bi bi-building-fill"></i> Ward & Bed Assignment
                     </div>
-                    <button type="button" class="emr-modal-close" onclick="closeModal('admitPatientModal')">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold" style="color:#374151">Ward</label>
+                            <select name="ward_id" id="admitModalWardSel"
+                                    class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none appearance-none"
+                                    onchange="filterAdmitModalBeds(this.value)">
+                                <option value="">— Select Ward —</option>
+                                @foreach($admitWards as $w)
+                                    <option value="{{ $w->id }}">{{ $w->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-xs font-semibold" style="color:#374151">
+                                Bed <span style="color:#ef4444">*</span>
+                            </label>
+                            <select name="bed_id" id="admitModalBedSel"
+                                    class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none appearance-none">
+                                <option value="">— Select Bed —</option>
+                                @foreach($admitBeds as $b)
+                                    <option value="{{ $b->id }}" data-ward="{{ $b->ward_id }}">{{ $b->name }} ({{ $b->code }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Modal Body --}}
-                <form method="POST" action="{{ route('admissions.admit', $visit->code) }}" id="admitForm">
-                    @csrf
-                    <div class="emr-modal-body" style="overflow-y:auto">
-
-                        {{-- Bed Assignment --}}
-                        <div style="background:#f6f8ff;border:1px solid #e4e8ff;border-radius:10px;padding:14px;margin-bottom:16px">
-                            <div style="font-size:11px;font-weight:700;color:#4154f1;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">
-                                <i class="bi bi-building-fill"></i> Ward & Bed Assignment
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Ward</label>
-                                    <select name="ward_id" id="admitModalWardSel" class="form-select form-select-sm"
-                                            onchange="filterAdmitModalBeds(this.value)">
-                                        <option value="">— Select Ward —</option>
-                                        @foreach($admitWards as $w)
-                                        <option value="{{ $w->id }}">{{ $w->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">
-                                        Bed <span style="color:#e74c3c">*</span>
-                                    </label>
-                                    <select name="bed_id" id="admitModalBedSel" class="form-select form-select-sm">
-                                        <option value="">— Select Bed —</option>
-                                        @foreach($admitBeds as $b)
-                                        <option value="{{ $b->id }}" data-ward="{{ $b->ward_id }}">{{ $b->name }} ({{ $b->code }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Admission Details --}}
-                        <div class="row g-2">
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Admission Type</label>
-                                <select name="admission_type" class="form-select form-select-sm">
-                                    <option value="">— Select —</option>
-                                    <option value="Emergency">🚨 Emergency</option>
-                                    <option value="Elective">📅 Elective</option>
-                                    <option value="Maternity">🤱 Maternity</option>
-                                    <option value="Surgical">🔪 Surgical</option>
-                                    <option value="Medical">🏥 Medical</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Admitted At</label>
-                                <input type="datetime-local" name="admitted_at" class="form-control form-control-sm"
-                                       value="{{ now()->format('Y-m-d\TH:i') }}"/>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Attending Doctor</label>
-                                <input type="text" name="attending_doctor" class="form-control form-control-sm"
-                                       placeholder="Dr. Name"/>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Admitting Doctor</label>
-                                <input type="text" name="admitting_doctor" class="form-control form-control-sm"
-                                       placeholder="Dr. Name"/>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Primary Nurse</label>
-                                <input type="text" name="primary_nurse" class="form-control form-control-sm"
-                                       placeholder="Nurse name"/>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Expected Discharge</label>
-                                <input type="date" name="expected_discharge_at" class="form-control form-control-sm"/>
-                            </div>
-                            <div class="col-12">
-                                <label style="font-size:11px;font-weight:600;color:#555;display:block;margin-bottom:4px">Admission Reason</label>
-                                <textarea name="admission_reason" class="form-control form-control-sm" rows="2"
-                                          placeholder="Chief complaint / reason for admission…" style="resize:vertical"></textarea>
-                            </div>
-                        </div>
-
-                        @if($admitBeds->isEmpty())
-                        <div style="background:#fff8ee;border:1px solid #ffd080;border-radius:8px;padding:10px 12px;margin-top:12px;font-size:12px;color:#c97700;display:flex;align-items:center;gap:8px">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            <span>No available beds at this time. Please free a bed first.</span>
-                        </div>
-                        @endif
-
+                {{-- Admission Details --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Admission Type</label>
+                        <select name="admission_type"
+                                class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none appearance-none">
+                            <option value="">— Select —</option>
+                            <option value="Emergency">🚨 Emergency</option>
+                            <option value="Elective">📅 Elective</option>
+                            <option value="Maternity">🤱 Maternity</option>
+                            <option value="Surgical">🔪 Surgical</option>
+                            <option value="Medical">🏥 Medical</option>
+                        </select>
                     </div>
-
-                    {{-- Modal Footer --}}
-                    <div class="emr-modal-ft">
-                        <button type="button" onclick="closeModal('admitPatientModal')" class="btn btn-sm btn-outline-secondary">
-                            Cancel
-                        </button>
-                        <button type="submit" class="btn btn-sm btn-primary"
-                                data-confirm="Admit {{ $visit->surname }}, {{ $visit->name }} as an inpatient? A bed will be assigned and an IPD record will be created."
-                                data-confirm-type="info" data-confirm-title="Confirm Admission">
-                            <i class="bi bi-check-circle-fill"></i> Confirm Admission
-                        </button>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Admitted At</label>
+                        <input type="datetime-local" name="admitted_at"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none"
+                               value="{{ now()->format('Y-m-d\TH:i') }}"/>
                     </div>
-                </form>
-            </div>
-        </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Attending Doctor</label>
+                        <input type="text" name="attending_doctor"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none"
+                               placeholder="Dr. Name"/>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Admitting Doctor</label>
+                        <input type="text" name="admitting_doctor"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none"
+                               placeholder="Dr. Name"/>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Primary Nurse</label>
+                        <input type="text" name="primary_nurse"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none"
+                               placeholder="Nurse name"/>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Expected Discharge</label>
+                        <input type="date" name="expected_discharge_at"
+                               class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none"/>
+                    </div>
+                    <div class="sm:col-span-2 space-y-1">
+                        <label class="block text-xs font-semibold" style="color:#374151">Admission Reason</label>
+                        <textarea name="admission_reason" rows="2"
+                                  class="w-full text-sm rounded-lg border border-[#e2e8f0] px-3 py-2 focus:outline-none resize-none"
+                                  placeholder="Chief complaint / reason for admission…"></textarea>
+                    </div>
+                </div>
+
+                @if($admitBeds->isEmpty())
+                    <x-ui.alert type="warning" class="mb-3">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        No available beds at this time. Please free a bed first.
+                    </x-ui.alert>
+                @endif
+
+                <div class="flex justify-end gap-2 pt-3 border-t" style="border-color:#e6eaf5">
+                    <x-ui.button type="button" variant="secondary" size="sm"
+                                 onclick="document.getElementById('admitPatientModal').dispatchEvent(new Event('close-modal'))">
+                        Cancel
+                    </x-ui.button>
+                    <x-ui.button type="submit" variant="primary" size="sm"
+                                 data-confirm="Admit {{ $visit->surname }}, {{ $visit->name }} as an inpatient?"
+                                 data-confirm-type="info" data-confirm-title="Confirm Admission">
+                        <x-slot:icon><i class="bi bi-check-circle-fill" aria-hidden="true"></i></x-slot:icon>
+                        Confirm Admission
+                    </x-ui.button>
+                </div>
+            </form>
+        </x-ui.modal>
 
         <script>
         function filterAdmitModalBeds(wardId) {

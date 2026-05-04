@@ -3,6 +3,8 @@
 namespace Tests;
 
 use App\Models\ClinicModel;
+use App\Models\PermissionModel;
+use App\Models\RoleModel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
@@ -56,6 +58,38 @@ abstract class TestCase extends BaseTestCase
     {
         $clinic = $this->bindClinic($clinic);
         $user   = $this->makeUser($clinic);
+        $this->actingAs($user);
+        return $user;
+    }
+
+    /**
+     * Create an admin user with ALL permissions and log them in.
+     * Use this for permission-gated routes.
+     */
+    protected function loginAdmin(?ClinicModel $clinic = null): User
+    {
+        $clinic = $this->bindClinic($clinic);
+
+        // Create a role with all known permissions
+        $role = RoleModel::factory()->create([
+            'clinic_id' => $clinic->id,
+            'name'      => 'Super Admin',
+        ]);
+
+        // Seed all permissions for this clinic and attach them to the role
+        $slugs = PermissionModel::defaultSlugs();
+        $permIds = [];
+        foreach ($slugs as $perm) {
+            $p = PermissionModel::create(array_merge($perm, ['clinic_id' => $clinic->id]));
+            $permIds[] = $p->id;
+        }
+        $role->permissions()->sync($permIds);
+
+        // Create user, attach role
+        $user = User::factory()->create(['clinic_id' => $clinic->id]);
+        $user->roles()->attach($role->id, ['assigned_at' => now(), 'assigned_by' => $user->id]);
+        $user->load('roles.permissions');
+
         $this->actingAs($user);
         return $user;
     }

@@ -46,10 +46,10 @@ $dotSize = match($size) {
 
 // Status colors
 $statusColor = match($status) {
-    'online'  => '#2eca6a',
-    'away'    => '#ff9f43',
-    'busy'    => '#e74c3c',
-    'offline' => '#94a3b8',
+    'online'  => '#10B981',
+    'away'    => '#F59E0B',
+    'busy'    => '#EF4444',
+    'offline' => '#94A3B8',
     default   => null,
 };
 
@@ -62,7 +62,7 @@ if (count($parts) > 1) {
 
 // Auto-color from name if not provided
 if (!$color) {
-    $palette = ['#4154f1','#2eca6a','#ff771d','#e74c3c','#8b5cf6','#06b6d4','#f59e0b','#ec4899'];
+    $palette = ['#4154f1','#10B981','#F97316','#EF4444','#8B5CF6','#06B6D4','#F59E0B','#EC4899'];
     $color = $palette[abs(crc32($name)) % count($palette)];
 }
 
@@ -95,7 +95,8 @@ $alt   = $alt ?? $name;
     {{-- Notification badge --}}
     @if($badge !== null)
         <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-0.5 text-[9px] font-bold
-                     bg-[#e74c3c] text-white rounded-full flex items-center justify-center leading-none">
+                     text-white rounded-full flex items-center justify-center leading-none"
+              style="background:var(--danger,#EF4444)">
             {{ $badge > 99 ? '99+' : $badge }}
         </span>
     @endif

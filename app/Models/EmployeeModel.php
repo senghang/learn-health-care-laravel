@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class EmployeeModel extends Model
 {
-    use SoftDeletes, Auditable, ClinicScope;
+    use SoftDeletes, Auditable, ClinicScope, HasFactory;
 
     protected $table = 'employees';
 
@@ -34,6 +35,11 @@ class EmployeeModel extends Model
     public function department(): BelongsTo { return $this->belongsTo(DepartmentModel::class, 'department_id'); }
 
     // ── Computed ──────────────────────────────────────────────────────────────
+
+    protected static function newFactory()
+    {
+        return \Database\Factories\EmployeeFactory::new();
+    }
 
     public function getFullNameAttribute(): string { return "{$this->surname} {$this->name}"; }
     public function getDisplayNameAttribute(): string

@@ -79,21 +79,21 @@ $position = $side === 'left' ? 'left-0' : 'right-0';
         class="fixed top-0 {{ $position }} z-50 h-full {{ $maxW }} w-full flex flex-col bg-white shadow-2xl">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between px-5 py-4 flex-shrink-0"
-             style="border-bottom:1px solid #e6e9f0">
+        <div class="flex items-center justify-between px-5 py-4 flex-shrink-0
+                    border-b border-[var(--border-subtle)]">
             <div>
                 @if($km)
-                    <h2 class="text-sm font-black text-[#1a1f36] leading-tight">{{ $km }}</h2>
+                    <h2 class="text-sm font-black leading-tight text-[var(--text-primary)] font-khmer">{{ $km }}</h2>
                     @if($title)
-                        <p class="text-xs text-[#94a3b8] mt-0.5">{{ $title }}</p>
+                        <p class="text-xs mt-0.5 text-[var(--text-muted)]">{{ $title }}</p>
                     @endif
                 @else
-                    <h2 class="text-sm font-black text-[#1a1f36]">{{ $title }}</h2>
+                    <h2 class="text-sm font-black text-[var(--text-primary)]">{{ $title }}</h2>
                 @endif
             </div>
             <button type="button" @click="open = false"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-[#94a3b8]
-                           hover:bg-[#f3f4f6] hover:text-[#1a1f36] transition-colors"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors
+                           text-[var(--text-muted)] hover:bg-[var(--bg-app)] hover:text-[var(--text-primary)]"
                     aria-label="Close">
                 <i class="bi bi-x-lg text-sm"></i>
             </button>
@@ -106,8 +106,8 @@ $position = $side === 'left' ? 'left-0' : 'right-0';
 
         {{-- Footer --}}
         @isset($footer)
-        <div class="flex items-center justify-end gap-2 px-5 py-4 flex-shrink-0"
-             style="border-top:1px solid #e6e9f0;background:#f9fafb">
+        <div class="flex items-center justify-end gap-2 px-5 py-4 flex-shrink-0
+                    border-t border-[var(--border-subtle)] bg-[var(--bg-app)]">
             {{ $footer }}
         </div>
         @endisset

@@ -152,16 +152,16 @@
         </x-ui.button>
 
         @if($employee)
-        <div class="mt-4 pt-3 border-t border-[#f0f2ff]">
-            <div class="text-[11px] text-[#94a3b8] mb-2 font-bold uppercase tracking-wide">Info</div>
+        <div class="mt-4 pt-3 border-t border-[#e6e9f0]">
+            <div class="text-[11px] text-[#6b7280] mb-2 font-bold uppercase tracking-wide">Info</div>
             @foreach([
                 ['Code',    $employee->code],
                 ['Created', $employee->created_at?->format('d/m/Y')],
                 ['Updated', $employee->updated_at?->format('d/m/Y')],
             ] as [$l,$v])
             <div class="flex justify-between text-xs mb-1">
-                <span class="text-[#94a3b8]">{{ $l }}</span>
-                <span class="font-semibold text-[#012970]">{{ $v }}</span>
+                <span class="text-[#6b7280]">{{ $l }}</span>
+                <span class="font-semibold text-[#1a1f36]">{{ $v }}</span>
             </div>
             @endforeach
 
@@ -169,7 +169,7 @@
             <div class="mt-2.5 p-2 bg-[#e8f8ef] rounded-lg">
                 <div class="text-[11px] font-bold text-[#2eca6a]">Linked User Account</div>
                 <div class="text-xs text-[#555]">{{ $employee->user->name }}</div>
-                <div class="text-[10.5px] text-[#94a3b8]">{{ $employee->user->email }}</div>
+                <div class="text-[10.5px] text-[#6b7280]">{{ $employee->user->email }}</div>
             </div>
             @endif
         </div>

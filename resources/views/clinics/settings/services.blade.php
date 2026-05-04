@@ -81,12 +81,12 @@
                 </x-slot:head>
                 <x-slot:body>
                 @forelse($services as $svc)
-                <tr class="hover:bg-[#fafbff] transition-colors">
+                <tr class="hover:bg-[#f9fafb] transition-colors">
                     <x-ui.table-td>
                         <code class="text-[#4154f1] text-[11px]">{{ $svc->code }}</code>
                     </x-ui.table-td>
                     <x-ui.table-td>
-                        <span class="font-semibold text-[#012970] text-sm">{{ $svc->name }}</span>
+                        <span class="font-semibold text-[#1a1f36] text-sm">{{ $svc->name }}</span>
                     </x-ui.table-td>
                     <x-ui.table-td>
                         <span class="text-sm text-[#888]">{{ $svc->name_kh ?? '—' }}</span>

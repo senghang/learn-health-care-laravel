@@ -115,7 +115,7 @@
                             {{ $inv->payment_type }}
                         </span>
                     </td>
-                    <td style="font-weight:700;color:#012970">{{ number_format($inv->total) }}</td>
+                    <td style="font-weight:700;color:#1a1f36">{{ number_format($inv->total) }}</td>
                 </tr>
                 @empty
                 <tr><td colspan="6" style="text-align:center;padding:32px;color:#bbb">

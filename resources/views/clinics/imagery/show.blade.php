@@ -78,7 +78,7 @@
           <div style="font-size:10px;font-weight:700;color:#aaa;text-transform:uppercase;margin-bottom:6px">Attached Images</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             @foreach($result->images as $imgPath)
-            <img src="{{ asset('storage/' . $imgPath) }}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:2px solid #f0f2ff"/>
+            <img src="{{ asset('storage/' . $imgPath) }}" style="width:100px;height:100px;object-fit:cover;border-radius:10px;border:2px solid #e6e9f0"/>
             @endforeach
           </div>
         </div>
@@ -91,7 +91,7 @@
 
       {{-- Verify action --}}
       @if(!$result->is_verified && ($result->result || $result->conclusion))
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #f0f2ff">
+      <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e6e9f0">
         <form method="POST" action="{{ route('imagery.update', $imagery->code) }}">
           @csrf @method('PATCH')
           <input type="hidden" name="action" value="verify"/>
@@ -123,9 +123,9 @@
 <div class="col-12 col-lg-4">
   @if($imagery->patient)
   <div class="card-emr mb-3">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-person-fill" style="color:#4154f1"></i> Patient</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-person-fill" style="color:#4154f1"></i> Patient</div></div>
     <div class="card-bd">
-      <div style="font-weight:700;color:#012970;font-size:14px">{{ $imagery->patient->full_name }}</div>
+      <div style="font-weight:700;color:#1a1f36;font-size:14px">{{ $imagery->patient->full_name }}</div>
       <div style="font-size:11px;color:#aaa;font-family:monospace;margin-bottom:8px">{{ $imagery->patient->code }}</div>
       <a href="{{ route('patients.show', $imagery->patient->code) }}" class="btn btn-outline-primary btn-sm btn-w100"><i class="bi bi-person-fill"></i> View Patient</a>
     </div>
@@ -134,7 +134,7 @@
 
   @if($imagery->visit)
   <div class="card-emr mb-3">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-clipboard2-pulse" style="color:#2eca6a"></i> Visit</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-clipboard2-pulse" style="color:#2eca6a"></i> Visit</div></div>
     <div class="card-bd">
       <code style="font-size:12px;color:#4154f1">{{ $imagery->visit->code }}</code>
       <span class="badge-s {{ $imagery->visit->visit_type === 'IPD' ? 'b-ipd' : 'b-opd' }}" style="margin-left:6px">{{ $imagery->visit->visit_type }}</span>
@@ -145,7 +145,7 @@
 
   {{-- Timeline --}}
   <div class="card-emr">
-    <div class="card-hd" style="background:#f6f9ff"><div class="card-hd-title"><i class="bi bi-clock-history" style="color:#9b59b6"></i> Timeline</div></div>
+    <div class="card-hd" style="background:#f6f8fa"><div class="card-hd-title"><i class="bi bi-clock-history" style="color:#9b59b6"></i> Timeline</div></div>
     <div class="card-bd" style="font-size:12px;line-height:2">
       <div><i class="bi bi-circle-fill" style="color:#ff771d;font-size:8px"></i> Requested: {{ $imagery->requested_at?->format('d/m/Y H:i') }}</div>
       @if($imagery->collected_at)

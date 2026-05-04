@@ -33,6 +33,9 @@ return new class extends Migration {
             $table->string('name', 80)->nullable();
             $table->string('visit_type', 3)->default('OPD')->comment('OPD | IPD');
             $table->string('admission_type', 60)->nullable();
+            $table->string('admission_status', 30)->nullable()
+                ->comment('null | admitted | discharged | transferred');
+            $table->string('given_name', 80)->nullable();
             $table->string('discharge_type', 60)->nullable();
             $table->string('visit_outcome', 60)->nullable();
             $table->string('priority', 20)->nullable()

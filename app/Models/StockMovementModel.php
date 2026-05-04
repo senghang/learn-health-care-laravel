@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Base\Auditable;
 use App\Models\Base\ClinicScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovementModel extends Model
 {
-    use SoftDeletes, Auditable, ClinicScope;
+    use SoftDeletes, ClinicScope;
 
     protected $table = 'stock_movements';
 

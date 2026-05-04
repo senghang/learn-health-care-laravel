@@ -5,7 +5,7 @@
     @param $currentStep — string|null (current step id when $visit exists)
 --}}
 <div class="card-emr" style="position:sticky;top:76px">
-    <div class="card-hd" style="background:#f6f9ff">
+    <div class="card-hd" style="background:#f6f8fa">
         <div class="card-hd-title">
             <i class="bi bi-map-fill" style="color:#4154f1"></i>
             ប្រព័ន្ធណែនាំ
@@ -73,12 +73,12 @@
                 @if($visit)
                     <a href="{{ route('workflow.step', [$visit->code, $step->id()]) }}"
                        style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #f5f6ff;text-decoration:none;background:{{ $rowBg }};transition:background .15s"
-                       onmouseover="this.style.background='#f6f9ff'"
+                       onmouseover="this.style.background='#f6f8fa'"
                        onmouseout="this.style.background='{{ $rowBg }}'">
                         @else
                             <div
                                 style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #f5f6ff;text-decoration:none;background:{{ $rowBg }};transition:background .15s"
-                                onmouseover="this.style.background='#f6f9ff'"
+                                onmouseover="this.style.background='#f6f8fa'"
                                 onmouseout="this.style.background='{{ $rowBg }}'">
                                 @endif
 
@@ -112,7 +112,7 @@
                                         style="font-size:9px;background:#fff8ee;color:#c97700;padding:1px 8px;border-radius:10px;font-weight:700;flex-shrink:0;border:1px solid #ffd080">SKIPPED</span>
                                 @elseif(!$isActive && !$isDone && !$isSkipped)
                                     <span
-                                        style="font-size:9px;background:#f0f2ff;color:#9b59b6;padding:1px 8px;border-radius:10px;font-weight:700;flex-shrink:0">Optional</span>
+                                        style="font-size:9px;background:#e6e9f0;color:#9b59b6;padding:1px 8px;border-radius:10px;font-weight:700;flex-shrink:0">Optional</span>
                         @endif
 
                         @if($visit)
@@ -124,7 +124,7 @@
     </div>
 
     {{-- Legend --}}
-    <div style="padding:12px 16px;border-top:1px solid #f0f2ff;background:#fafbff">
+    <div style="padding:12px 16px;border-top:1px solid #e6e9f0;background:#f9fafb">
         <div
             style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#aaa;margin-bottom:8px">
             សញ្ញា / Legend

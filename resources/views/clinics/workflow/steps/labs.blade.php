@@ -119,7 +119,7 @@
         </div>
         @endforeach
 
-        <hr style="border-color:#f0f2ff;margin:20px 0"/>
+        <hr style="border-color:#e6e9f0;margin:20px 0"/>
 
     {{-- ── New Lab Request (inside same form) ──────────────────────────── --}}
     @else

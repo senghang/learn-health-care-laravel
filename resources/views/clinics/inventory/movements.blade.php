@@ -1,170 +1,238 @@
 @extends('clinics.layout.app')
-@section('title', 'All Stock Movements')
+@section('title', 'Stock Movements')
+
 @section('content')
 
-<div class="flex items-center justify-between mb-4 flex-wrap gap-3">
-    <div>
-        <x-ui.breadcrumbs :items="[['label'=>'ដើម','url'=>route('dashboard')],['label'=>'Inventory','url'=>route('inventory.products')],['label'=>'Movements']]" />
-        <h1 class="text-xl font-black mt-1" style="color:#012970">ចលនាស្តុក <span class="text-sm font-normal text-slate-400">/ All Stock Movements</span></h1>
-    </div>
-    <div class="flex items-center gap-2">
-        <x-ui.button variant="warning" size="sm" href="{{ route('inventory.adjustment') }}">
-            <i class="bi bi-calculator-fill"></i> Adjust Count
+<x-ui.page-header
+    km="ចលនាស្តុក"
+    title="Stock Movements"
+    :breadcrumbs="[
+        ['label' => __('app.home'), 'url' => route('dashboard')],
+        ['label' => 'Inventory', 'url' => route('inventory.products')],
+        ['label' => 'Movements'],
+    ]">
+    <x-slot:actions>
+        <x-ui.button href="{{ route('inventory.adjustment') }}" variant="warning" size="sm">
+            <x-slot:icon><i class="bi bi-calculator-fill" aria-hidden="true"></i></x-slot:icon>
+            Adjust
         </x-ui.button>
-        <x-ui.button variant="success" size="sm" href="{{ route('inventory.stock-in') }}">
-            <i class="bi bi-box-arrow-in-down-right"></i> Stock In
+        <x-ui.button href="{{ route('inventory.stock-in') }}" variant="success" size="sm">
+            <x-slot:icon><i class="bi bi-box-arrow-in-down-right" aria-hidden="true"></i></x-slot:icon>
+            Stock In
         </x-ui.button>
-        <x-ui.button variant="danger" size="sm" href="{{ route('inventory.stock-out') }}">
-            <i class="bi bi-box-arrow-up-right"></i> Stock Out
+        <x-ui.button href="{{ route('inventory.stock-out') }}" variant="danger" size="sm">
+            <x-slot:icon><i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></x-slot:icon>
+            Stock Out
         </x-ui.button>
-    </div>
-</div>
+    </x-slot:actions>
+</x-ui.page-header>
 
 @if(session('flash'))
-    <x-ui.alert type="success" class="mb-3">{{ session('flash') }}</x-ui.alert>
+    <x-ui.alert type="success" class="mb-4">{{ session('flash') }}</x-ui.alert>
 @endif
 
-{{-- Type summary strip --}}
-<div class="row g-3 mb-3">
+{{-- ── TYPE SUMMARY STRIP ─────────────────────────────────────── --}}
+<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4 mb-5">
     @foreach([
-        ['in',         'bi-box-arrow-in-down-right', '#2eca6a','#e8f8ef', 'Stock In',   'ចូលស្តុក'],
-        ['return',     'bi-arrow-return-left',        '#ff771d','#fff3e8', 'Returns',    'ត្រឡប់'],
-        ['out',        'bi-box-arrow-up-right',       '#e74c3c','#fde8e8', 'Manual Out', 'ចេញ'],
-        ['expired',    'bi-calendar-x-fill',          '#9b59b6','#f5eeff', 'Expired',    'ផុតកំណត់'],
-        ['adjustment', 'bi-sliders',                  '#4154f1','#eef0fd', 'Adjusted',   'កែតម្រូវ'],
-    ] as [$type,$ico,$col,$bg,$en,$km])
-        <div class="col-6 col-xl" style="min-width:0">
-            <x-ui.stats-card
-                :href="route('inventory.movements', ['type' => $type])"
-                :km="$km"
-                :label="$en"
-                :value="$typeStats[$type] ?? 0"
-                :icon="$ico"
-                :color="$col"
-                :bg="$bg"
-                style="{{ request('type')===$type ? 'border:2px solid '.$col.';background:'.$bg : '' }}"
-            />
-        </div>
+        ['in',         'bi-box-arrow-in-down-right', '#2eca6a', '#e8f8ef', 'ចូលស្តុក',   'Stock In'],
+        ['return',     'bi-arrow-return-left',        '#ff771d', '#fff3e8', 'ត្រឡប់',     'Returns'],
+        ['out',        'bi-box-arrow-up-right',       '#e74c3c', '#fde8e8', 'ចេញ',        'Manual Out'],
+        ['expired',    'bi-calendar-x-fill',          '#9b59b6', '#f5eeff', 'ផុតកំណត់',  'Expired'],
+        ['adjustment', 'bi-sliders',                  '#4154f1', '#eef0fd', 'កែតម្រូវ',  'Adjusted'],
+    ] as [$type, $ico, $col, $bg, $km, $en])
+        <x-ui.stats-card
+            :href="route('inventory.movements', ['type' => $type])"
+            :km="$km"
+            :label="$en"
+            :value="$typeStats[$type] ?? 0"
+            :icon="$ico"
+            :color="$col"
+            :bg="$bg"
+        />
     @endforeach
 </div>
 
-{{-- Filter --}}
-<x-ui.card class="mb-3">
-    <form method="GET" action="{{ route('inventory.movements') }}">
-        <div class="row g-2 align-items-end">
-            <div class="col-12 col-sm-4">
-                <input type="text" name="search" class="form-control form-control-sm"
-                       placeholder="Medicine name, reference, supplier…"
-                       value="{{ request('search') }}" autofocus/>
+{{-- ── FILTER ─────────────────────────────────────────────────── --}}
+<x-ui.card class="mb-4">
+    <form method="GET" action="{{ route('inventory.movements') }}" role="search" aria-label="Filter movements">
+        <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
+
+            {{-- Search --}}
+            <div class="flex-1 relative min-w-0">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none" aria-hidden="true">
+                    <i class="bi bi-search text-sm" style="color:#6b7280"></i>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}"
+                    placeholder="Medicine name, reference, supplier…"
+                    class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white pl-9 pr-4 py-2.5 text-[#374151] placeholder-[#9ca3af] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors"
+                    autofocus />
             </div>
-            <div class="col-6 col-sm-2">
-                <select name="type" class="form-select form-select-sm">
+
+            {{-- Type --}}
+            <div class="relative sm:w-40">
+                <select name="type" aria-label="Filter by type"
+                    class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-4 py-2.5 text-[#374151] appearance-none focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors"
+                    style="padding-right:2.5rem">
                     <option value="">All Types</option>
-                    @foreach(['in'=>'Stock In','return'=>'Return','out'=>'Manual Out','expired'=>'Expired','adjustment'=>'Adjustment'] as $v=>$l)
-                        <option value="{{ $v }}" {{ request('type')===$v?'selected':'' }}>{{ $l }}</option>
+                    @foreach(['in' => 'Stock In', 'return' => 'Return', 'out' => 'Manual Out', 'expired' => 'Expired', 'adjustment' => 'Adjustment'] as $v => $l)
+                        <option value="{{ $v }}" @selected(request('type') === $v)>{{ $l }}</option>
                     @endforeach
                 </select>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none" aria-hidden="true">
+                    <i class="bi bi-chevron-down text-xs" style="color:#6b7280"></i>
+                </div>
             </div>
-            <div class="col-6 col-sm-2">
-                <input type="date" name="date" class="form-control form-control-sm"
-                       value="{{ request('date') }}"/>
+
+            {{-- Date --}}
+            <div class="sm:w-44">
+                <input type="date" name="date" value="{{ request('date') }}"
+                    class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-4 py-2.5 text-[#374151] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors" />
             </div>
-            <div class="col-6 col-sm-2">
-                <input type="month" name="month" class="form-control form-control-sm"
-                       value="{{ request('month') }}" placeholder="Month"/>
+
+            {{-- Month --}}
+            <div class="sm:w-40">
+                <input type="month" name="month" value="{{ request('month') }}"
+                    class="w-full text-sm rounded-lg border border-[#e2e8f0] bg-white px-4 py-2.5 text-[#374151] focus:outline-none focus:border-[#4154f1] focus:ring-2 focus:ring-[#4154f1]/20 transition-colors" />
             </div>
-            <div class="col-auto d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-funnel-fill"></i></button>
-                @if(request()->hasAny(['search','type','date','month']))
-                    <a href="{{ route('inventory.movements') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle"></i></a>
+
+            {{-- Buttons --}}
+            <div class="flex gap-2">
+                <x-ui.button type="submit" variant="primary">
+                    <x-slot:icon><i class="bi bi-funnel-fill" aria-hidden="true"></i></x-slot:icon>
+                    Filter
+                </x-ui.button>
+                @if(request()->hasAny(['search', 'type', 'date', 'month']))
+                    <x-ui.button href="{{ route('inventory.movements') }}" variant="secondary">
+                        <x-slot:icon><i class="bi bi-x-circle" aria-hidden="true"></i></x-slot:icon>
+                        Clear
+                    </x-ui.button>
                 @endif
             </div>
         </div>
     </form>
 </x-ui.card>
 
-{{-- Table --}}
+{{-- ── MOVEMENTS TABLE ──────────────────────────────────────────── --}}
 <x-ui.card :noPadding="true">
     <x-slot:header>
-        <x-ui.card-header km="Movement Log" icon="bi-journal-text">
-            <span style="font-size:11px;color:#aaa">{{ $movements->total() }} records</span>
-        </x-ui.card-header>
+        <div class="flex items-center justify-between px-5 py-4" style="border-bottom:1px solid #e6e9f0">
+            <div class="flex items-center gap-2">
+                <i class="bi bi-journal-text" style="color:#4154f1;font-size:15px" aria-hidden="true"></i>
+                <span class="text-sm font-bold" style="color:#1a1f36">Movement Log</span>
+                <span class="text-xs font-semibold px-2 py-0.5 rounded-full" style="background:#f3f4f6;color:#6b7280">
+                    {{ number_format($movements->total()) }}
+                </span>
+            </div>
+        </div>
     </x-slot:header>
-    <div class="table-responsive">
-        <table class="tbl">
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
             <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Medicine</th>
-                    <th>Type</th>
-                    <th style="text-align:center">Qty</th>
-                    <th style="text-align:center">Before</th>
-                    <th style="text-align:center">After</th>
-                    <th>Reference / Supplier</th>
-                    <th>Note</th>
-                    <th>By</th>
+                <tr style="background:#f8f9fb;border-bottom:1px solid #e6e9f0">
+                    <th class="text-left px-5 py-3 text-xs font-bold" style="color:#6b7280">Date</th>
+                    <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Medicine</th>
+                    <th class="text-left px-4 py-3 text-xs font-bold" style="color:#6b7280">Type</th>
+                    <th class="text-center px-4 py-3 text-xs font-bold" style="color:#6b7280">Qty</th>
+                    <th class="text-center px-4 py-3 text-xs font-bold hidden sm:table-cell" style="color:#6b7280">Before</th>
+                    <th class="text-center px-4 py-3 text-xs font-bold hidden sm:table-cell" style="color:#6b7280">After</th>
+                    <th class="text-left px-4 py-3 text-xs font-bold hidden md:table-cell" style="color:#6b7280">Reference / Supplier</th>
+                    <th class="text-left px-4 py-3 text-xs font-bold hidden lg:table-cell" style="color:#6b7280">Note</th>
+                    <th class="text-left px-4 py-3 text-xs font-bold hidden lg:table-cell" style="color:#6b7280">By</th>
                 </tr>
             </thead>
             <tbody>
             @forelse($movements as $mv)
-            @php
-                $isIn  = in_array($mv->type, ['in','return']);
-                $isAdj = $mv->type === 'adjustment';
-                $delta = $mv->stock_after - $mv->stock_before;
-                $typeMap = [
-                    'in'         => ['Stock In',    '#2eca6a','#e8f8ef'],
-                    'return'     => ['Return',      '#ff771d','#fff3e8'],
-                    'out'        => ['Manual Out',  '#e74c3c','#fde8e8'],
-                    'expired'    => ['Expired',     '#9b59b6','#f5eeff'],
-                    'adjustment' => ['Adjustment',  '#4154f1','#eef0fd'],
-                ];
-                [$label, $col, $bg] = $typeMap[$mv->type] ?? [ucfirst($mv->type),'#aaa','#f5f5f5'];
-            @endphp
-            <tr>
-                <td>
-                    <div style="font-size:12px;font-weight:600;color:#012970">{{ $mv->created_at->format('d/m/Y') }}</div>
-                    <div style="font-size:10px;color:#aaa">{{ $mv->created_at->format('H:i') }}</div>
-                </td>
-                <td>
-                    <a href="{{ route('inventory.product.ledger', $mv->medicine_id) }}"
-                       style="font-weight:600;font-size:12.5px;color:#012970;text-decoration:none">
-                        {{ $mv->medicine_name }}
-                    </a>
-                    <div><code style="font-size:10px;color:#4154f1">{{ $mv->medicine_code }}</code></div>
-                </td>
-                <td>
-                    <span style="font-size:10.5px;padding:2px 9px;border-radius:8px;font-weight:700;background:{{ $bg }};color:{{ $col }}">
-                        {{ $label }}
-                    </span>
-                </td>
-                <td style="text-align:center;font-size:15px;font-weight:800;color:{{ $isIn?'#2eca6a':($isAdj&&$delta>=0?'#2eca6a':'#e74c3c') }}">
-                    {{ $isIn ? '+' : ($isAdj ? ($delta>=0?'+':'-') : '-') }}{{ $mv->quantity }}
-                </td>
-                <td style="text-align:center;color:#aaa;font-size:12px">{{ $mv->stock_before }}</td>
-                <td style="text-align:center;font-weight:700;color:{{ $mv->stock_after<=0?'#e74c3c':($mv->stock_after<=10?'#ff771d':'#012970') }}">
-                    {{ $mv->stock_after }}
-                </td>
-                <td style="font-size:11px">
-                    @if($mv->reference)<div style="color:#4154f1">{{ $mv->reference }}</div>@endif
-                    @if($mv->supplier)<div style="color:#aaa">{{ $mv->supplier }}</div>@endif
-                    @if($mv->batch_no)<div style="color:#aaa;font-size:10px">Batch: {{ $mv->batch_no }}</div>@endif
-                </td>
-                <td style="font-size:11px;color:#666;max-width:160px">{{ Str::limit($mv->note, 50) }}</td>
-                <td style="font-size:11px;color:#aaa">{{ $mv->recorded_by ?? '—' }}</td>
-            </tr>
+                @php
+                    $isIn  = in_array($mv->type, ['in', 'return']);
+                    $isAdj = $mv->type === 'adjustment';
+                    $delta = $mv->stock_after - $mv->stock_before;
+                    $typeMap = [
+                        'in'         => ['Stock In',   'success'],
+                        'return'     => ['Return',     'warning'],
+                        'out'        => ['Manual Out', 'danger'],
+                        'expired'    => ['Expired',    'secondary'],
+                        'adjustment' => ['Adjustment', 'primary'],
+                    ];
+                    [$typeLabel, $typeVariant] = $typeMap[$mv->type] ?? [ucfirst($mv->type), 'secondary'];
+                    $qtySign  = $isIn ? '+' : ($isAdj ? ($delta >= 0 ? '+' : '-') : '-');
+                    $qtyColor = $isIn ? '#2eca6a' : ($isAdj && $delta >= 0 ? '#2eca6a' : '#e74c3c');
+                    $afterColor = $mv->stock_after <= 0 ? '#e74c3c' : ($mv->stock_after <= 10 ? '#ff771d' : '#1a1f36');
+                @endphp
+                <tr style="border-bottom:1px solid #f8f9fb" class="hover:bg-[#f8f9fb] transition-colors">
+
+                    <td class="px-5 py-3.5">
+                        <div class="text-xs font-semibold" style="color:#1a1f36">
+                            {{ $mv->created_at->format('d/m/Y') }}
+                        </div>
+                        <div class="text-xs" style="color:#9ca3af">{{ $mv->created_at->format('H:i') }}</div>
+                    </td>
+
+                    <td class="px-4 py-3.5">
+                        <a href="{{ route('inventory.product.ledger', $mv->medicine_id) }}"
+                           class="text-sm font-semibold hover:underline" style="color:#1a1f36;text-decoration:none">
+                            {{ $mv->medicine_name }}
+                        </a>
+                        <div>
+                            <code class="text-xs px-1 py-0.5 rounded" style="background:#eef0fd;color:#4154f1">
+                                {{ $mv->medicine_code }}
+                            </code>
+                        </div>
+                    </td>
+
+                    <td class="px-4 py-3.5">
+                        <x-ui.badge :variant="$typeVariant">{{ $typeLabel }}</x-ui.badge>
+                    </td>
+
+                    <td class="px-4 py-3.5 text-center">
+                        <span class="text-base font-black" style="color:{{ $qtyColor }}">
+                            {{ $qtySign }}{{ $mv->quantity }}
+                        </span>
+                    </td>
+
+                    <td class="px-4 py-3.5 text-center hidden sm:table-cell">
+                        <span class="text-xs" style="color:#9ca3af">{{ $mv->stock_before }}</span>
+                    </td>
+
+                    <td class="px-4 py-3.5 text-center hidden sm:table-cell">
+                        <span class="text-sm font-bold" style="color:{{ $afterColor }}">{{ $mv->stock_after }}</span>
+                    </td>
+
+                    <td class="px-4 py-3.5 hidden md:table-cell">
+                        @if($mv->reference)
+                            <div class="text-xs font-semibold" style="color:#4154f1">{{ $mv->reference }}</div>
+                        @endif
+                        @if($mv->supplier)
+                            <div class="text-xs" style="color:#6b7280">{{ $mv->supplier }}</div>
+                        @endif
+                        @if($mv->batch_no)
+                            <div class="text-xs" style="color:#9ca3af">Batch: {{ $mv->batch_no }}</div>
+                        @endif
+                    </td>
+
+                    <td class="px-4 py-3.5 hidden lg:table-cell">
+                        <span class="text-xs" style="color:#6b7280">{{ Str::limit($mv->note, 50) }}</span>
+                    </td>
+
+                    <td class="px-4 py-3.5 hidden lg:table-cell">
+                        <span class="text-xs" style="color:#9ca3af">{{ $mv->recorded_by ?? '—' }}</span>
+                    </td>
+                </tr>
             @empty
-            <tr><td colspan="9" style="text-align:center;padding:36px;color:#bbb">
-                <div style="font-size:32px;margin-bottom:8px;opacity:.3">📦</div>
-                No movements found
-            </td></tr>
+                <tr>
+                    <td colspan="9" class="px-5 py-12">
+                        <x-ui.empty-state
+                            icon="bi-journal-text"
+                            title="No movements found"
+                            description="Stock movements appear here after stock-in, stock-out, or adjustments." />
+                    </td>
+                </tr>
             @endforelse
             </tbody>
         </table>
     </div>
 </x-ui.card>
 
-@if($movements->hasPages())
-    <x-ui.pagination :paginator="$movements" class="mt-3"/>
-@endif
+<x-ui.pagination :paginator="$movements" />
 
 @endsection

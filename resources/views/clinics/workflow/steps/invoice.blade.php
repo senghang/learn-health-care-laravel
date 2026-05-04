@@ -342,7 +342,7 @@
             <div style="border-top:1px dashed #cbd5e1;margin:8px 0"></div>
             <div class="inv-breakdown-row" style="font-size:12px;color:#64748b">
                 <span>Subtotal (after discount)</span>
-                <span id="bdComputed" style="font-weight:700;color:#012970">
+                <span id="bdComputed" style="font-weight:700;color:#1a1f36">
                     {{ khr(max(0, $services->sum('price') + $meds->sum('payment') - ($invoice?->discount ?? 0))) }}
                 </span>
             </div>
@@ -354,9 +354,9 @@
             <div style="display:flex;align-items:center;gap:8px">
                 <input name="total" type="number" id="totalInput"
                        class="form-control"
-                       style="font-size:24px;font-weight:800;color:#012970;text-align:right;border:2px solid #e2e8f0;max-width:200px"
+                       style="font-size:24px;font-weight:800;color:#1a1f36;text-align:right;border:2px solid #e2e8f0;max-width:200px"
                        value="{{ $totalVal }}" oninput="checkTotal()" placeholder="0"/>
-                <span style="font-size:14px;color:#94a3b8;font-weight:700">KHR</span>
+                <span style="font-size:14px;color:#6b7280;font-weight:700">KHR</span>
             </div>
             <div id="totalStatus" class="note note-info mt-2"
                  style="font-size:12px;padding:8px 12px;display:inline-flex">
@@ -397,16 +397,16 @@
         <div class="inv-gate-checks">
             <div class="inv-gate-item" id="gate-inv">
                 <i class="bi {{ $invoicePaid ? 'bi-check-circle-fill' : 'bi-circle' }}" id="gate-inv-icon"
-                   style="color:{{ $invoicePaid ? '#1D9E75' : '#94a3b8' }}"></i>
+                   style="color:{{ $invoicePaid ? '#1D9E75' : '#6b7280' }}"></i>
                 <span id="gate-inv-txt">Invoice {{ $invoicePaid ? 'Paid ✓' : 'not paid yet' }}</span>
             </div>
             <div class="inv-gate-item">
                 @if(!$hasRx)
-                    <i class="bi bi-dash-circle" style="color:#94a3b8"></i>
-                    <span style="color:#94a3b8">No prescription (OK — not required)</span>
+                    <i class="bi bi-dash-circle" style="color:#6b7280"></i>
+                    <span style="color:#6b7280">No prescription (OK — not required)</span>
                 @else
                     <i class="bi {{ $rxDispensed ? 'bi-check-circle-fill' : 'bi-circle' }}"
-                       style="color:{{ $rxDispensed ? '#1D9E75' : '#94a3b8' }}"></i>
+                       style="color:{{ $rxDispensed ? '#1D9E75' : '#6b7280' }}"></i>
                     <span>Prescription {{ $rxDispensed ? 'Dispensed ✓' : 'not fully dispensed yet' }}</span>
                 @endif
             </div>
@@ -439,7 +439,7 @@
 {{-- Invoice CSS is in public/css/app-layout.css --}}
 <style>
     .inv-banner {
-        background: linear-gradient(135deg, #012970, #1a3a7c);
+        background: linear-gradient(135deg, #1a1f36, #1a3a7c);
         border-radius: 12px;
         padding: 14px 18px;
         margin-bottom: 20px;
@@ -589,7 +589,7 @@
     .inv-row-total {
         font-size: 13px;
         font-weight: 700;
-        color: #012970;
+        color: #1a1f36;
         white-space: nowrap;
     }
 
@@ -808,7 +808,7 @@
         var txt = document.getElementById('gate-inv-txt');
         if (icon) {
             icon.className = 'bi ' + (isPaid ? 'bi-check-circle-fill' : 'bi-circle');
-            icon.style.color = isPaid ? '#1D9E75' : '#94a3b8';
+            icon.style.color = isPaid ? '#1D9E75' : '#6b7280';
         }
         if (txt) {
             txt.textContent = 'Invoice ' + (isPaid ? 'Paid ✓' : 'not paid yet');
@@ -831,9 +831,9 @@
             '<td style="min-width:200px">'
             + '<div class="fld ac-wrap" id="acWrap_svc_' + idx + '" style="position:relative">'
             + '<div style="position:relative">'
-            + '<i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;z-index:1"></i>'
+            + '<i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:13px;pointer-events:none;z-index:1"></i>'
             + '<input type="text" id="acText_svc_' + idx + '" class="form-control" style="padding-left:34px;padding-right:30px" placeholder="Type service…" autocomplete="off" data-ac-uid="svc_' + idx + '"/>'
-            + '<button type="button" id="acClear_svc_' + idx + '" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;font-size:14px;cursor:pointer;padding:0;display:none;line-height:1;z-index:2" onclick="acClear('
+            + '<button type="button" id="acClear_svc_' + idx + '" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;font-size:14px;cursor:pointer;padding:0;display:none;line-height:1;z-index:2" onclick="acClear('
         svc_
         '+idx+'
         ')">'
@@ -967,9 +967,9 @@
             '<td style="min-width:200px">'
             + '<div class="fld ac-wrap" id="acWrap_med_' + idx + '" style="position:relative">'
             + '<div style="position:relative">'
-            + '<i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:13px;pointer-events:none;z-index:1"></i>'
+            + '<i class="bi bi-search" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:13px;pointer-events:none;z-index:1"></i>'
             + '<input type="text" id="acText_med_' + idx + '" class="form-control" style="padding-left:34px;padding-right:30px" placeholder="Type medicine\u2026" autocomplete="off"/>'
-            + '<button type="button" id="acClear_med_' + idx + '" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94a3b8;font-size:14px;cursor:pointer;padding:0;display:none;line-height:1;z-index:2" onclick="acClearMed(' + idx + ')">'
+            + '<button type="button" id="acClear_med_' + idx + '" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:#6b7280;font-size:14px;cursor:pointer;padding:0;display:none;line-height:1;z-index:2" onclick="acClearMed(' + idx + ')">'
             + '<i class="bi bi-x-circle-fill"></i></button>'
             + '</div>'
             + '<input type="hidden" name="inv_meds[' + idx + '][medicine_id]" id="acId_med_' + idx + '"/>'

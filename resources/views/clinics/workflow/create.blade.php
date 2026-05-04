@@ -17,7 +17,7 @@
 
     {{-- Banner --}}
     {{--    <div --}}
-    {{--        style="background:linear-gradient(135deg,#012970,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;overflow:hidden;position:relative"> --}}
+    {{--        style="background:linear-gradient(135deg,#1a1f36,#1a3a7c);border-radius:14px;padding:20px 24px;margin-bottom:20px;overflow:hidden;position:relative"> --}}
     {{--        <div --}}
     {{--            style="position:absolute;right:-20px;top:-20px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.04)"></div> --}}
     {{--        <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap"> --}}
@@ -73,7 +73,7 @@
 
                     {{-- Selected Patient Card --}}
                     <div id="selectedPatientCard"
-                        style="display:none;margin-top:12px;background:#f6f9ff;border:2px solid #4154f1;border-radius:12px;padding:14px 16px">
+                        style="display:none;margin-top:12px;background:#f6f8fa;border:2px solid #4154f1;border-radius:12px;padding:14px 16px">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                             <div
                                 style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#4154f1">
@@ -114,7 +114,7 @@
                         ព័ត៌មានការចូលព្យាបាល <small style="font-weight:400;color:#aaa">/ Visit Details</small>
                     </div>
                     <span
-                        style="font-size:11px;color:#aaa;background:#f6f9ff;padding:3px 10px;border-radius:20px;border:1px solid #e6eaf5">
+                        style="font-size:11px;color:#aaa;background:#f6f8fa;padding:3px 10px;border-radius:20px;border:1px solid #e6eaf5">
                         ជំហានតែមួយ / Step 1 of 10
                     </span>
                 </div>
@@ -182,7 +182,7 @@
                                         <label class="flbl">
                                             <span class="km">ប្រភពចូល</span><span class="en">/ Admission</span>
                                             <span
-                                                style="font-size:9px;background:#f0f2ff;color:#9b59b6;padding:1px 7px;border-radius:10px;font-weight:700">OPTIONAL</span>
+                                                style="font-size:9px;background:#e6e9f0;color:#9b59b6;padding:1px 7px;border-radius:10px;font-weight:700">OPTIONAL</span>
                                         </label>
                                         <select name="admission_type" class="form-select">
                                             <option>Self Refer — ចូលដោយខ្លួនឯង</option>
@@ -284,7 +284,7 @@
                             </div>
                         </div>
 
-                        <div class="d-flex flex-wrap gap-2 mt-3 pt-3" style="border-top:1px solid #f0f2ff">
+                        <div class="d-flex flex-wrap gap-2 mt-3 pt-3" style="border-top:1px solid #e6e9f0">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-check2-circle"></i>
                                 បង្កើត & ចាប់ផ្ដើម / Create & Start Workflow
@@ -367,14 +367,14 @@
                 return `
         <div class="patient-result-row" onclick="selectPatient(${JSON.stringify(p).replace(/"/g, '&quot;')})"
              style="display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;border-bottom:1px solid #f5f6ff;transition:background .12s"
-             onmouseover="this.style.background='#f6f9ff'" onmouseout="this.style.background=''">
+             onmouseover="this.style.background='#f6f8fa'" onmouseout="this.style.background=''">
             <div style="width:36px;height:36px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">${initials}</div>
             <div style="flex:1;min-width:0">
                 <div style="font-weight:700;font-size:13px">${p.surname}, ${p.name}</div>
                 <div style="font-size:11px;color:#aaa">${p.code} ${p.phone ? '· ' + p.phone : ''} ${p.birthdate ? '· DOB: ' + p.birthdate : ''}</div>
             </div>
             <div style="text-align:right;flex-shrink:0">
-                <div style="font-size:10px;background:#f0f2ff;color:#4154f1;padding:2px 8px;border-radius:10px;font-weight:700">${p.visits_count} visit${p.visits_count !== 1 ? 's' : ''}</div>
+                <div style="font-size:10px;background:#e6e9f0;color:#4154f1;padding:2px 8px;border-radius:10px;font-weight:700">${p.visits_count} visit${p.visits_count !== 1 ? 's' : ''}</div>
                 ${p.last_visit_date ? `<div style="font-size:10px;color:#ccc;margin-top:3px">Last: ${p.last_visit_date}</div>` : ''}
             </div>
         </div>`;
